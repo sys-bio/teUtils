@@ -34,7 +34,7 @@ def simpleTimeCourseScan (r, parameter, variable, lowRange, highRange, numberOfS
     
     Example
     -------     
-    >>> s = teUtils.scanning.simpleTimeCourseScan (r, 'k2', 'S1', 3, 12, 7)
+    >>> data = teUtils.scanning.simpleTimeCourseScan (r, 'k2', 'S1', 3, 12, 7)
     """   
     r[parameter] = lowRange
     stepSize = (highRange - lowRange)/(numberOfScans-1)
