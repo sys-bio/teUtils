@@ -1,0 +1,17 @@
+LICENSE.txt
+MANIFEST.in
+README.txt
+setup.cfg
+setup.py
+teModels/__init__.py
+teModels/models.py
+teModels.egg-info/PKG-INFO
+teModels.egg-info/SOURCES.txt
+teModels.egg-info/dependency_links.txt
+teModels.egg-info/top_level.txt
+teModels/models/bistablePosFeedback.txt
+teModels/models/equilibrationModel.txt
+teModels/models/feedbackOscil.txt
+teModels/models/relaxationOscil.txt
+teModels/models/repressilatorType.txt
+teModels/models/toggleSwitch.txt

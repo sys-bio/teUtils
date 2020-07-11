@@ -1,0 +1,15 @@
+
+# Equilibration model
+
+import tellurium as _te
+
+r = _te.loada("""
+      A -> B; k1*A
+      B -> A; k2*B
+      
+      A = 10; B = 0
+      k1 = 0.24; k2 = 0.1
+""")
+
+m = r.simulate (0, 30, 100)
+r.plot()
