@@ -41,3 +41,5 @@ from . import plotting
 from . import prettyTabular
 from . import buildNetworks
 from . import scanning
+from . import fitModel
+
