@@ -1,0 +1,17 @@
+# Repressilator type oscillator (ring oscillator)
+r = te.loada('''
+      $x -> P1;  A/(1 + P2^n);
+       P1 -> $w; k1*P1;
+
+      $x -> P2; A/(1 + P3^n); 
+       P2 -> $w; k2*P2;
+
+      $x -> P3; A/(1 + P1^n); 
+       P3 -> $w;  k3*P3;
+A = 1;
+n = 4;
+k1 = 0.2; k2 = 0.2; k3 = 0.1
+''')
+
+m = r.simulate (0, 200, 200, ['time', 'P1']);
+r.plot ();

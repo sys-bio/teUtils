@@ -1,0 +1,16 @@
+LICENSE.txt
+MANIFEST.in
+README.txt
+setup.cfg
+setup.py
+teUtils/__init__.py
+teUtils/buildNetworks.py
+teUtils/odePrint.py
+teUtils/plotting.py
+teUtils/prettyTabular.py
+teUtils/scanning.py
+teUtils.egg-info/PKG-INFO
+teUtils.egg-info/SOURCES.txt
+teUtils.egg-info/dependency_links.txt
+teUtils.egg-info/requires.txt
+teUtils.egg-info/top_level.txt

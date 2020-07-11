@@ -1,0 +1,11 @@
+# Relaxation oscillator
+r = te.loada ('''
+     $Xo -> So;  k0*Xo;
+     So -> S1;   k1*So + Vmax*So*S1^n/(15 + S1^n);
+     S1 -> $X1;  k2*S1;
+     Xo = 1; X1 = 0; S1 = 1; n = 4;
+     Vmax = 12; k0 = 0.044; k1 = 0.01; k2 = 0.1;
+''')
+
+m = r.simulate (0, 400, 100)
+r.plot()
