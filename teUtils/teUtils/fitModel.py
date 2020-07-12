@@ -5,6 +5,12 @@ Created on Tue Jul  7 14:24:09 2020
 @author: hsauro
 """
 
+# TODO:
+#  1. separate test file with unittests instead of print
+#  2. Travis
+#  3. Constructor handles model and data, and model may be string
+#  4. Constants are default values
+
 import numpy as np
 import lmfit; 
 import roadrunner
