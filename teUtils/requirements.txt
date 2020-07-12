@@ -1,0 +1,6 @@
+libroadrunner
+lmfit
+nose
+numpy
+tabulate
+tellurium==2.1.5

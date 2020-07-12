@@ -20,3 +20,15 @@ buildNetworks
 
 This modules provides two methods to build a linear chain of reactions using either mass-action or Michaelis-Menten
 kinetics or a random network using uniuni, unibi, biuni or bibi mass-action governed reactions. 
+
+
+===========================================
+DEVELOPER NOTES
+
+1. run tests as follows:
+   a. change to this directory
+   b. set the environment variable PYTHONPATH to
+      the absolute path of this directory. In Linux,
+      this can be done with "PYTHONPATH=`pwd`" and
+      "export PYTHONPATH"
+   c. "python tests/<test file>
