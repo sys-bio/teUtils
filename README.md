@@ -1,4 +1,4 @@
-# teUtils
+
 Tellurium Utilities
 ===================
 
