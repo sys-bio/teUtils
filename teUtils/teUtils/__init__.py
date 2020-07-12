@@ -31,7 +31,13 @@
     scanning
     --------
 
-    At the moment a single metho to do a simple time course parameter scan
+    At the moment a single method to do a simple time course parameter scan
+    
+    fitModel
+    --------
+    
+    A helper class to make it much easier to fit models using lmfit
+    
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals
