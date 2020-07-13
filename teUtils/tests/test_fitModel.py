@@ -38,11 +38,10 @@ class TestFitter(unittest.TestCase):
             self.fitter.time_series)[0], 0)
 
     def testFit(self):
-        self.fitter.parameters = [
-              'k1', 'k2', 'k3', 'k4', 'k5']
-        self.fitter.setTimeSeriesData([
-              'S1', 'S2', 'S3', 'S4'])
-        self.fitter.fit()
+        parameters = ['k1', 'k2', 'k3', 'k4', 'k5']
+        species_list = ['S1', 'S2', 'S3', 'S4']
+        self.fitter.fit(parameters=parameters,
+              species_list=species_list)
         values = self.fitter.parameter_values
         import pdb; pdb.set_trace()
         
