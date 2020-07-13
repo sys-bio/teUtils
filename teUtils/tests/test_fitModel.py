@@ -43,7 +43,9 @@ class TestFitter(unittest.TestCase):
         self.fitter.fit(parameters=parameters,
               species_list=species_list)
         values = self.fitter.parameter_values
-        import pdb; pdb.set_trace()
+        self.assertEqual(len(values), len(parameters))
+        for value in values:
+            self.assertTrue(isinstance(value, float))
         
 
 if __name__ == '__main__':
