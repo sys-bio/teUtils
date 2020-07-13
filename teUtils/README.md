@@ -29,7 +29,7 @@ This module fits model parameters to observational data.
 
 1. run tests as follows:
    1. change to this directory
-   1. set the environment variable PYTHONPATH to
+   1. set the environment variable `PYTHONPATH` to
       the absolute path of this directory.
       - [Windows](https://www.computerhope.com/issues/ch000549.htm)
       - Linux and Mac
