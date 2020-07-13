@@ -36,5 +36,5 @@ This module fits model parameters to observational data.
         - `PYTHONPATH=<current directory>`
         - `export PYTHONPATH`
    
-   1. "python tests/<test file>
+   1. `python tests`
 
