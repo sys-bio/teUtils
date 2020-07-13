@@ -31,7 +31,7 @@ This module fits model parameters to observational data.
    1. change to this directory
    1. set the environment variable PYTHONPATH to
       the absolute path of this directory. In Linux,
-      this can be done with `PYTHONPATH=\`pwd\`` and
+      this can be done with `PYTHONPATH=``pwd``` and
       `export PYTHONPATH`.
    1. "python tests/<test file>
 
