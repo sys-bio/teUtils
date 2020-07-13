@@ -49,7 +49,8 @@ class TestFitter(unittest.TestCase):
 
     def testFit(self):
         parameters = ['k1', 'k2', 'k3', 'k4', 'k5']
-        species_list = ['S1', 'S2', 'S3', 'S4']
+        species_list = ['S1', 'S2', 'S3', 'S4',
+              'S5', 'S6']
         self.fitter.fit(parameters=parameters,
               species_list=species_list)
         dct = self.fitter.parameter_dct
