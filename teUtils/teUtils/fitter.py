@@ -15,6 +15,7 @@ import csv
 # Constants
 PARAMETER_LOWER_BOUNDS = 0
 PARAMETER_UPPER_BOUNDS = 10
+DELIMITER = ","
 
 
 class Fitter:
@@ -42,21 +43,25 @@ class Fitter:
             f = Fitter (roadrunner_model=r, time_series_file_path='mydata.txt', parameters_to_fit=['k1', 'k2'])
         """
         ### PUBLIC FIELDS
+        self.number_of_data_points = None  # Computed later
         self.parameters_to_fit = parameters_to_fit
+        self.result = None  # Minimizer with the result of the fit
         self.selected_time_series_ids = selected_time_series_ids
         self.time_to_simulate = None  # Computed later
-        self.number_of_data_points = None  # Computed later
         self.time_series_data = None  # Set later
-        self._lower_bound = PARAMETER_LOWER_BOUNDS
-        self._upper_bound = PARAMETER_UPPER_BOUNDS
         ### PRIVATE FIELDS
         self._antimony_model = antimony_model
-        self._roadrunner_model = roadrunner_model
         self._indices_of_selected_species = [] 
+        self._lower_bound = PARAMETER_LOWER_BOUNDS
+        self._num_parameter = None
+        self._roadrunner_model = roadrunner_model
+        self._upper_bound = PARAMETER_UPPER_BOUNDS
+        self._x_data = None  # time values
+        self._y_data = None  # species values
         # Model selection       
-        if not roadrunner_model is not None:
+        if roadrunner_model is not None:
             self.setRoadrunnerModel(roadrunner_model)
-        elif not antimony_model is not None:
+        elif antimony_model is not None:
             self.setAntimonyModel(antimony_model)
         # Acquire the data
         if (not time_series_file_path == None) or (not selected_time_series_ids == None):
@@ -158,111 +163,145 @@ class Fitter:
         # Open the data file and look for the header line         
         try:
             with open(time_series_file_path, 'r') as f:
-                reader = csv.reader(f, delimiter=',')
-                if csv.Sniffer().has_header(f.readline()):
-                    f.seek(0)
-                    self.time_series_ids = next(reader)
-                    # Add a check that the first column is time
+                reader = csv.reader(f, delimiter=DELIMITER)
+                self.time_series_ids = f.readline()
+                self.time_series_ids = self.time_series_ids.strip()
+                self.time_series_ids = self.time_series_ids.split(DELIMITER)
+                if all([isinstance(h, str) for h in self.time_series_ids]):
                     del self.time_series_ids[0] # remove time
                 else:
                     raise ValueError('No column headers %s' % time_series_file_path)
+                self.time_series_data = np.array(list(reader)).astype(float)
         except IOError:
             raise ValueError("There is a problem with the data path %s" %
-       self.time_series_data = np.array(list(reader)).astype(float)
-    
+                  time_series_file_path)
         # if the user didn't specify any variable that wantto use then default to 
         # all variables indicated in the time series file
-        if selected_time_series_ids == None:
+        if selected_time_series_ids is None:
            selected_time_series_ids = self.time_series_ids
-           
-        # Some sanity checks:
-           
+        ### SANITY CHECKS
         # Check that the columns in the time series data file exist in the model
+        missing_columns = []
         for id in self.model_species_ids:
             if not id in self.time_series_ids:
-               raise Exception ('Error: The following column in the data file: ' + id + ' does not correspond to a species in the model')
-
+                missing_columns.append(id)
+        if len(missing_columns) > 0:
+            import pdb; pdb.set_trace()
+            msg = 'The following columns in the data file: %s'  \
+                  % " ".join(missing_columns)
+            msg += ' does not correspond to a species in the model'
+            raise Exception (msg)
         # Check that the selected_time_series_ids exist inthe model
         #print (selected_time_series_ids)
         for id in selected_time_series_ids:
-            #print (id)
+            missing_species = []
             if not id in self.model_species_ids:
-               raise Exception ('Error: The column: ' + id + ' in the data file does not correspond to a species in the model')
-       
-       
+               missing_species.append(id)
+            if len(missing_species) > 0:
+               msg = 'The columns: ' % " ".join(missing_species)
+               msg += ' in the data file do not correspond to a species in the model'
+               raise Exception (msg)
+        ### DO THE FIT
         # Find the indices of the data series columns, indices reference the roadrunner species indices
         self.indices_of_time_series_ids = []
-        for index, id in enumerate (self.time_series_ids):
+        for index, id in enumerate(self.time_series_ids):
             if id in self._roadrunner_model.getFloatingSpeciesIds():
                self.indices_of_time_series_ids.append (index+1) 
-            
+        # Compute data characteristics    
         self.number_of_data_points = len(self.time_series_data)
         self.time_to_simulate = self.time_series_data[len(self.time_series_data)-1][0]
-        
         # Get the indices of the seleted species, these also directly map to the roadrunner species indices
         self._indices_of_selected_species_ids = []        
         for i in range (len (selected_time_series_ids)):
             if selected_time_series_ids[i] in self._roadrunner_model.getFloatingSpeciesIds():
                 # Add one because index must start from 1 not zero
                 self._indices_of_selected_species_ids.append (self.model_species_ids.index (selected_time_series_ids[i])+1)
-               
-        #print ('indices_of_selected_species_ids = ', self._indices_of_selected_species_ids)
-        #print ('self.indices_of_time_series_ids = ', self.indices_of_time_series_ids)
-        self.x_data = self.time_series_data[:,0]  
-
+        self._x_data = self.time_series_data[:,0]  
         # Pluck out times series columns as defined by  
         # indices_of_time_series_ids and put them into y_data 
-        self._nColumns = len (self._indices_of_selected_species_ids)
-         
-        self.y_data = np.empty((0,self.number_of_data_points))
+        self._num_column = len(self._indices_of_selected_species_ids)
+        # Construct the y data 
+        self._y_data = np.empty((0,self.number_of_data_points))
         for index in self._indices_of_selected_species_ids:
-            self.y_data = np.vstack((self.y_data, self.time_series_data[:,index]))       
+            self._y_data = np.vstack((self._y_data, self.time_series_data[:,index]))       
         
            
-    def getTimeSeriesData (self):
+    def getTimeSeriesData(self):
         """
-        
         Returns
         -------
         numpy array
             Time series data
-
         """
-        try:
-            return self.time_series_data
-        except AttributeError:
+        if self.time_series_data is None:
            raise Exception ('Error: Time series data has not yet been set. Use setTimeSeriesData()')
+        return self.time_series_data
         
-           
-    def _computeSimulationData(self, p, speciesIndex):
+    def _computeSimulationData(self, params, indices_of_selected_species):
+        """
+        Runs a simulation and returns the species data produced.
 
+        Parameters
+        ----------
+        params: lmfit.Parameters
+        indices_of_selected_species: list-int
+
+        Returns
+        -------
+        numpy array
+            Time series data
+        """
         self._roadrunner_model.reset()  
-        pp = p.valuesdict()
-        for i in range(0, self.nParameters):
+        pp = params.valuesdict()
+        for i in range(0, self._num_parameter):
            self._roadrunner_model.model[self.parameters_to_fit[i]] = pp[self.parameters_to_fit[i]]
         m = self._roadrunner_model.simulate (0, self.time_to_simulate, self.number_of_data_points)
-        return m[:,speciesIndex]
+        return m[:,indices_of_selected_species]
 
+    def _residuals(self, params):
+        """
+        Compute the residuals between objective and experimental data
+        Python optimizers often require the residual rather than the sum
+        of squares themselves. Hence we just copute the residuals which are
+        the difference between the simulated data the time read in time series data 
+        Runs a simulation and returns the species data produced.
 
-    # Compute the residuals between objective and experimental data
-    # Python optimizers often require the residual rather than the sum
-    # of squares themselves. Hence we just copute the residuals which are
-    # the difference between the simulated data the time read in time series data 
-    def _residuals(self, p):
-        # The following is inefficient it will do for now
+        Parameters
+        ----------
+        params: lmfit.Parameters
+
+        Returns
+        -------
+        numpy array
+            Time series data
+        """
+        # FIXME: The following is inefficient it will do for now
         # Simulate one species column at a time
-        y1 = (self.y_data[0] - self._computeSimulationData (p, self._indices_of_selected_species_ids[0])); 
+        def getData(idx):
+            return self._y_data[0] - self._computeSimulationData(
+                  params, self._indices_of_selected_species_ids[0])
+        #
+        y1 = (getData(0))
         y1 = np.concatenate ((y1, ))
         for k in range (0, len (self._indices_of_selected_species_ids)-1):
-            y1 = np.concatenate ((y1, (self.y_data[k] - self._computeSimulationData (p, self._indices_of_selected_species_ids[k]))))
+            y1 = np.concatenate ((y1, (getData(k))))
         return y1
     
-    def plotTimeSeries(self):
+    def plotTimeSeries(self, y_data=None):
+        """
+        Plots the timeseries data.
 
+        Parameters
+        ----------
+     
+        y_data; np.array
+            default is self._y_data
+        """
+        if y_data is None:
+            y_data = self._y_data
         for i in range (len (self._indices_of_selected_species_ids)):
-            plt.plot (self.x_data, self.y_data[i,:])
+            plt.plot (self._x_data, y_data[i,:])
         plt.show()
-       
       
     def setLowerParameterBounds (self, lower_bound):
         """
@@ -272,7 +311,6 @@ class Fitter:
               f.setLowerParameterBounds (0.0)
         """
         self._lower_bound = lower_bound
-       
         
     def setLowerParameterBounds (self, upper_bound):
         """
@@ -283,7 +321,6 @@ class Fitter:
         """
         self._upper_bound =  upper_bound
         
-        
     def fitModel(self):
         """
         Fit the model
@@ -291,23 +328,19 @@ class Fitter:
         Example:
               f.fitModel ()
         """
-        print ('Starting fit...')
-        
         self.params = lmfit.Parameters()
-        self.nParameters = len (self.parameters_to_fit)
+        self._num_parameter = len (self.parameters_to_fit)
         # Update parameters in case user has changed bounds
         for k in self.parameters_to_fit:
            self.params.add(k, value=1, 
                  min=self._lower_bound, max=self._upper_bound)
-           
         # Fit the model to the data
         # Use two algorithms:
         #   Global differential evolution to get us close to minimum
         #   A local Levenberg-Marquardt to getsus to the minimum
-        minimizer = lmfit.Minimizer(self._residuals, self.params)
-        self.result = minimizer.minimize(method='differential_evolution')
-        self.result = minimizer.minimize(method='leastsqr')
-
+        self.result = lmfit.Minimizer(self._residuals, self.params)
+        self.result.minimize(method='differential_evolution')
+        self.result.minimize(method='leastsqr')
 
     def getFittedParameters (self):
         """
@@ -316,10 +349,7 @@ class Fitter:
         Example:
               f.getFittedParameters ()
         """
-        fittedParameters = []
-        for i in range(0, self.nParameters):
-            fittedParameters.append (self.result.params[self.parameters_to_fit[i]].value)
-        return fittedParameters
+        return [self.result.params[p].value for p in self.parameters_to_fit]
      
         
 r = te.loada("""
