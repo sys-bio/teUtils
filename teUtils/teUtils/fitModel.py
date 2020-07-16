@@ -132,13 +132,15 @@ class fitter:
                f.setTimeSeriesData ('mydata.txt')
          """
          
-         # Id lists:
+         # Note on Id and Index lists:
          # selected_time_series_ids : list of species selected by user to be used in the fit
          # model_species_ids : list of species in the mode itself
          # time_series_ids : list of species columns in the time series data file
          
-         # The same variable with indices_ in front represent the equivalent index
-         # in the list of model floaating species
+         # The same variable with "indices_" in front represent list of integers
+         # where the integer are indices that map to the order of floating
+         # floaating species in the model itself. 
+         
          if type (self._roadrunner_model) != te.roadrunner.extended_roadrunner.ExtendedRoadRunner:
              raise Exception ('Model not set, please set the model first')
          
