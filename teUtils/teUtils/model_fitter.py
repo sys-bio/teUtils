@@ -5,12 +5,13 @@ Created on Tue Jul  7 14:24:09 2020
 @author: hsauro
 """
 
+import model_data
+
 import numpy as np
 import lmfit; 
 import roadrunner
 import tellurium as te 
 import matplotlib.pyplot as plt
-import csv
 
 # Constants
 PARAMETER_LOWER_BOUNDS = 0
@@ -18,32 +19,30 @@ PARAMETER_UPPER_BOUNDS = 10
 DELIMITER = ","
 
 
-class Fitter:
+class ModelFitter(object):
           
-    def __init__(self, roadrunner_model=None, antimony_model=None, 
-                    time_series_file_path=None, selected_time_series_ids=None, 
-                    parameters_to_fit=None):      
+    def __init__(self, model, data, selected_variables=None, 
+                 parameters_to_fit=None):      
         """
         Parameters
         ---------
-        roadrunner_model : roadrunner object
-               roadrunner model
-        antimony_model : string
-               antimony string of a model
-        data_file_name : stirng
-               file path to the file containing the time series data
-        selected_time_series_ids : list
-               list of species names in the time series file that you wish use to fit the model
-        parameters_to_fit : list
-               list pf parameter names that you wish to fit in the model
+        model: ExtendedRoadRunner/str
+            roadrunner model or antimony model
+        data: ModelData/str
+            str: path to CSV file
+        selected_values: list-str
+            species names you wish use to fit the model
+            default: all variables in data
+        parameters_to_fit : list-str
+            parameters in the model that you want to fit
+            default: fit no parameter
                
        Examples:
-            f = Fitter()
-            f = Fitter(roadrunnder_model=r)
-            f = Fitter (roadrunner_model=r, time_series_file_path='mydata.txt', parameters_to_fit=['k1', 'k2'])
+            f = ModelFitter(roadrunner_model, "data.csv")
+            f = ModelFitter(roadrunner_model, "data.csv", parameters_to_fit=['k1', 'k2'])
         """
         ### PUBLIC FIELDS
-        self.number_of_data_points = None  # Computed later
+        self.data = ModelData(data)
         self.parameters_to_fit = parameters_to_fit
         self.result = None  # Minimizer with the result of the fit
         self.selected_time_series_ids = selected_time_series_ids

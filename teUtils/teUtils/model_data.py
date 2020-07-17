@@ -1,6 +1,12 @@
-"""Data Used for a Simulation Model."""
+"""
+Data Used for a Simulation Model.
 
-import copy
+Creates the following from a CSV file:
+  time_values: times for data
+  variable_names: variables that have values
+  variable_values: values of variables over time
+"""
+
 import csv
 import numpy as np
 
@@ -9,11 +15,11 @@ DELIMITER = ","
 
 class ModelData(object):
           
-    def __init__(self, description):
+    def __init__(self, source):
         """
         Parameters
         ---------
-        description: str/ModelData
+        source: str/ModelData
                str: file path to the CSV file
                ModelData: object to copy
                
@@ -21,10 +27,12 @@ class ModelData(object):
             data = ModelData("mydata.csv")
         """
         ### PUBLIC FIELDS
-        if isinstance(description, ModelData):
-            self = copy.deepcopy(description)
+        if isinstance(source, ModelData):
+            # Copy the existing object
+            for k in source.__dict__.keys():
+                self.__setattr__(k, source.__dict__[k])
         else:
-            data_file_path = description
+            data_file_path = source
             self.last_time= None  # last time in sequence
             self.number_of_data_values = None  # length of data
             self.time_values = None  # array of time values in data
