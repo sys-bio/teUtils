@@ -1,12 +1,13 @@
 from named_timeseries import NamedTimeseries
+import named_timeseries
 
 import numpy as np
 import os
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 VARIABLE_NAMES = ["S%d" % d for d in range(1, 7)]
 DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
@@ -20,19 +21,31 @@ class TestNamedTimeseries(unittest.TestCase):
     def setUp(self):
         self.timeseries = NamedTimeseries(TEST_DATA_PATH)
 
-    def testConstructor(self):
-        # TESTING
-        self.assertGreater(len(self.timeseries._value_arr), 0)
+    def testConstructor1(self):
+        if IGNORE_TEST:
+            return
+        self.assertGreater(len(self.timeseries.values), 0)
         # colnames doesn't include TIME
         self.assertEqual(len(self.timeseries.colnames),
-               np.shape(self.timeseries._value_arr)[1] - 1)
+               np.shape(self.timeseries.values)[1] - 1)
+
+    def testConstructor2(self):
+        if IGNORE_TEST:
+            return
+        COLNAMES = [TIME, "S1", "S2"]
+        def test(timeseries):
+            for name in COLNAMES:
+                self.assertTrue(np.isclose(sum(timeseries[name]
+                      - self.timeseries[name]), 0))
         #
-        cols = [TIME, "S1", "S2"]
-        new_values = self.timeseries[cols]
-        new_timeseries = NamedTimeseries((cols, new_values))
-        for name in cols:
-            self.assertTrue(np.isclose(sum(new_timeseries[name]
-                  - self.timeseries[name]), 0))
+        args = named_timeseries.ConstructorArguments(
+              colnames=COLNAMES, array=self.timeseries[COLNAMES])
+        new_timeseries = NamedTimeseries(args)
+        test(new_timeseries)
+
+    def testConstructor3(self):
+        if IGNORE_TEST:
+            return
 
     def testSizeof(self):
         if IGNORE_TEST:
@@ -49,7 +62,7 @@ class TestNamedTimeseries(unittest.TestCase):
         # Get multiple values at once
         values = self.timeseries[self.timeseries.colnames]
         trues = np.array([v1 == v2 for v1, v2 in 
-              zip(values, self.timeseries._value_arr)])
+              zip(values, self.timeseries.values[:, 1:])])
         self.assertTrue(all(trues.flatten()))
 
     def testMissingData(self):
@@ -84,7 +97,7 @@ class TestNamedTimeseries(unittest.TestCase):
                   self.timeseries.__getattribute__(variable))
         for variable in ["colnames"]:
             checkVector(variable)
-        for variable in ["_value_arr"]:
+        for variable in ["values"]:
             checkMatrix(variable)
 
     def testFlattenValues(self):
@@ -92,7 +105,28 @@ class TestNamedTimeseries(unittest.TestCase):
             return
         values = self.timeseries.flattenValues()
         self.assertTrue(np.isclose(sum(values - 
-              self.timeseries._value_arr[:, 1:].flatten()), 0))
+              self.timeseries.values[:, 1:].flatten()), 0))
+
+    def testSelectTimes(self):
+        if IGNORE_TEST:
+            return
+        selector_function = lambda t: t > 2
+        array = self.timeseries.selectTimes(selector_function)
+        self.assertLess(len(array), len(self.timeseries))
+
+    def testMkNamedTimeseries(self):
+        if IGNORE_TEST:
+            return
+        # Create a new time series that subsets the old one
+        colnames = ["time", "S1", "S2"]
+        new_timeseries = named_timeseries.mkNamedTimeseries(
+              colnames, self.timeseries[colnames])
+        self.assertEqual(len(self.timeseries), len(new_timeseries))
+        # Create a new timeseries with a subset of times
+        array = self.timeseries.selectTimes(lambda t: t > 2)
+        new_timeseries = named_timeseries.mkNamedTimeseries(
+              self.timeseries.all_colnames, array)
+        self.assertGreater(len(self.timeseries), len(new_timeseries))
         
 
 if __name__ == '__main__':

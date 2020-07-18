@@ -1,4 +1,5 @@
-from fitter import Fitter
+from model_fitter import ModelFitter
+from named_timeseries import NamedTimeseries
 
 import numpy as np
 import os
@@ -31,15 +32,15 @@ ANTIMONY_MODEL = """
    %s
 """ % parameters_str
 DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_DATA_PATH = os.path.join(DIR, "testdata.txt")
-TEST_BAD_DATA_PATH = os.path.join(DIR, "missing.txt")
+TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
         
 
 class TestFitter(unittest.TestCase):
 
     def setUp(self):
-        self.fitter = Fitter(TEST_DATA_PATH, 
-              antimony_model=ANTIMONY_MODEL)
+        self.timeseries = NamedTimeseries(TEST_DATA_PATH)
+        self.fitter = Fitter(self.timeseries,
+              ANTIMONY_MODEL)
 
     def testConstructor(self):
         true = isinstance(self.fitter.rmodel,

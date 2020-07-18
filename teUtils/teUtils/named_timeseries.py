@@ -1,27 +1,27 @@
 """
-Abstraction for a matrix of timeseries data.
-"time" references the time index.
-Constructor argument may be CSV file, NamedTimeseries,
-    or (names, matrix)
-named_timeseries[name] returns a numpy array of type float.
-Some instance variables
-    colnames: list of non-time column names
-    start: minimum value of the time column
-    end: maximum value of the time column
-Key methods
-    flatten: returns a one dimensional array of
-             all values in sequence by column
-    __len__: called by len
+Abstraction for a matrix of timeseries data from a file or in-memory data.
+Column values are retrieved using indexing ("[", "]")
 
 Usage:
+   # Create from file
    timeseries = NamedTimeseries("myfile.txt")
+   # NamedTimeseries can use len function
    length = len(timeseries)  # number of rows
+   # Extract the time values
    time_values = timeseries["time"]
-   cols = ["S1", "S2"]
-   S1_S2_values = timeseries[cols]
-   new_timeseries = NamedTimeseries((cols, S1_S2_values))
+   # Get the start and end times
+   start_time = timeseries.start
+   end_time = timeseries.end
+   # Create a new time series that subsets the old one
+   colnames = ["time", "S1", "S2"]
+   new_timeseries = mkNamedTimeseries(colnames, timeseries[colnames])
+   # Create a new timeseries with a subset of times
+   array = timeseries.selectTime(lambda t: t > 2)
+   new_timeseries = mkNamedTimeseries(self.all_colnames, timeseries.values)
 """
 
+import collections
+import copy
 import csv
 import numpy as np
 
@@ -29,16 +29,26 @@ DELIMITER = ","
 TIME = "time"
 
 
+################## FUNCTIONS ########################
+def mkNamedTimeseries(colnames, array):
+    args = ConstructorArguments(colnames=colnames, array=array)
+    return NamedTimeseries(args)
+
+
+################## CLASSES ########################
+ConstructorArguments = collections.namedtuple(
+      "ConstructorArguments", "colnames array")
+
+######
 class NamedTimeseries(object):
           
     def __init__(self, source):
         """
         Parameters
         ---------
-        source: str/NamedTimeseries/tupe
+        source: str/NamedTimeseries/ConstructorArgument
                str: file path to the CSV file
                NamedTimeseries: object to copy
-               tuple: list-str, values array (n, #variables)
                
        Examples:
             data = NamedTimeseries("mydata.csv")
@@ -46,21 +56,25 @@ class NamedTimeseries(object):
         if isinstance(source, NamedTimeseries):
             # Copy the existing object
             for k in source.__dict__.keys():
-                self.__setattr__(k, source.__dict__[k])
+                self.__setattr__(k, 
+                      copy.deepcopy(source.__dict__[k]))
         else:
             if isinstance(source, str):
-                colnames, self._value_arr = self._load(source)
-            elif isinstance(source, tuple):
-                colnames, self._value_arr = source
+                # Names of all columns and array of all values
+                self.all_colnames, self.values = self._load(source)
+            elif isinstance(source, ConstructorArguments):
+                self.all_colnames = source.colnames
+                self.values = source.array
             else:
                 msg = "source should be a file path, tupe or a NamedTuple. Got: %s" % str(source)
                 raise ValueError(msg)
-            if not TIME in colnames:
+            if not TIME in self.all_colnames:
                 raise ValueError("Must have a time column")
-            self._index_dct = {c: colnames.index(c) for c in colnames}
-            self.colnames = list(colnames)
-            self.colnames.remove(TIME)
-            times = self._value_arr[:, self._index_dct[TIME]]
+            self._index_dct = {c: self.all_colnames.index(c)
+                  for c in self.all_colnames}
+            self.colnames = list(self.all_colnames)
+            self.colnames.remove(TIME)  # Value column names
+            times = self.values[:, self._index_dct[TIME]]
             self.start = min(times)
             self.end = max(times)
 
@@ -83,10 +97,10 @@ class NamedTimeseries(object):
                   if k in reference]
         else:
             raise ValueError("Reference not found: %s" % reference)
-        return self._value_arr[:, indices]
+        return self.values[:, indices]
 
     def __len__(self):
-       return np.shape(self._value_arr)[0]
+       return np.shape(self.values)[0]
        
     def _load(self, file_path):
         """
@@ -133,7 +147,29 @@ class NamedTimeseries(object):
         ------
         array
         """
-        indices = [i for i in self._index_dct.values()
-              if i != self._index_dct[TIME]]
-        arr = self._value_arr[:, indices]
+        indices = [self._index_dct[c] for c in self.colnames]
+        arr = self.values[:, indices]
         return arr.flatten()
+
+    def selectTimes(self, selector_function):
+        """
+        Selects a subset of rows based on time values by using
+        a boolean valued selector function.
+        
+        Parameters
+        ----------
+ 
+        selector_function: Function
+            argument: time value
+            returns: boolean
+        
+        Returns
+        ------
+        array
+        """
+        row_indices = [i for i, t in enumerate(self[TIME])
+              if selector_function(t)]
+        col_indices = [i for i in self._index_dct.values()
+              if self._index_dct[TIME] != i]
+        array = self.values[row_indices, :]
+        return array[:, col_indices]
