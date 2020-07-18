@@ -1,13 +1,15 @@
 """
-Abstraction for a matrix of timeseries data from a file or in-memory data.
-Column values are retrieved using indexing ("[", "]")
+A NamedTimeseries is a container of multiple vairables that are obtained at the
+same timepoints. Variables can be accessed by time using ("[", "]").
+Various properties of the common timepoints can be accessed, such as start
+and end.
 
 Usage:
    # Create from file
    timeseries = NamedTimeseries("myfile.txt")
    # NamedTimeseries can use len function
    length = len(timeseries)  # number of rows
-   # Extract the time values
+   # Extract the time values using indexing
    time_values = timeseries["time"]
    # Get the start and end times
    start_time = timeseries.start
