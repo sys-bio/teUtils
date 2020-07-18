@@ -127,6 +127,16 @@ class TestNamedTimeseries(unittest.TestCase):
         new_timeseries = named_timeseries.mkNamedTimeseries(
               self.timeseries.all_colnames, array)
         self.assertGreater(len(self.timeseries), len(new_timeseries))
+
+    def testToPandas(self):
+        if IGNORE_TEST:
+            return
+        df = self.timeseries.to_pandas()
+        timeseries = NamedTimeseries(df)
+        diff = set(df.columns).symmetric_difference(timeseries.colnames)
+        self.assertEqual(len(diff), 0)
+        total = sum(timeseries.values.flatten() - self.timeseries.values.flatten())
+        self.assertTrue(np.isclose(total, 0))
         
 
 if __name__ == '__main__':

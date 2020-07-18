@@ -26,6 +26,7 @@ import collections
 import copy
 import csv
 import numpy as np
+import pandas as pd
 
 DELIMITER = ","
 TIME = "time"
@@ -48,7 +49,7 @@ class NamedTimeseries(object):
         """
         Parameters
         ---------
-        source: str/NamedTimeseries/ConstructorArgument
+        source: str/NamedTimeseries/ConstructorArgument/DataFrame
                str: file path to the CSV file
                NamedTimeseries: object to copy
                
@@ -67,6 +68,10 @@ class NamedTimeseries(object):
             elif isinstance(source, ConstructorArguments):
                 self.all_colnames = source.colnames
                 self.values = source.array
+            elif isinstance(source, pd.DataFrame):
+                df = source.reset_index()
+                self.all_colnames = df.columns.tolist()
+                self.values = df.to_numpy()
             else:
                 msg = "source should be a file path, tupe or a NamedTuple. Got: %s" % str(source)
                 raise ValueError(msg)
@@ -155,19 +160,19 @@ class NamedTimeseries(object):
 
     def selectTimes(self, selector_function):
         """
-        Selects a subset of rows based on time values by using
-        a boolean valued selector function.
-        
-        Parameters
-        ----------
- 
-        selector_function: Function
-            argument: time value
-            returns: boolean
-        
-        Returns
-        ------
-        array
+            Selects a subset of rows based on time values by using
+            a boolean valued selector function.
+            
+            Parameters
+            ----------
+     
+            selector_function: Function
+                argument: time value
+                returns: boolean
+            
+            Returns
+            ------
+            array
         """
         row_indices = [i for i, t in enumerate(self[TIME])
               if selector_function(t)]
@@ -175,3 +180,17 @@ class NamedTimeseries(object):
               if self._index_dct[TIME] != i]
         array = self.values[row_indices, :]
         return array[:, col_indices]
+
+    def to_pandas(self):
+        """
+            Creates a pandas dataframe from the NamedTimeseries.
+            
+            Returns
+            ------
+            pd.DataFrame
+                columns: self.colnames
+                index: Time
+        """
+        dct = {c: self.values[:, i] for c, i in self._index_dct.items()}
+        df = pd.DataFrame(dct)
+        return df.set_index(TIME)
