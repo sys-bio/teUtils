@@ -21,7 +21,7 @@ DELIMITER = ","
 
 class ModelFitter(object):
           
-    def __init__(self, model, data, selected_variables=None, 
+    def __init__(self, model, data, selected_variable_names=None, 
                  parameters_to_fit=None):      
         """
         Parameters
@@ -45,11 +45,11 @@ class ModelFitter(object):
         self.data = ModelData(data)
         self.parameters_to_fit = parameters_to_fit
         self.result = None  # Minimizer with the result of the fit
-        self.selected_time_series_ids = selected_time_series_ids
+        self.seleted_variable_names = seleted_variable_names
         self.time_to_simulate = None  # Computed later
         self.time_series_data = None  # Set later
+        self.antimony_model, self.roadrunner_model = self.setModel(model)
         ### PRIVATE FIELDS
-        self._antimony_model = antimony_model
         self._indices_of_selected_species = [] 
         self._lower_bound = PARAMETER_LOWER_BOUNDS
         self._num_parameter = None
@@ -63,178 +63,31 @@ class ModelFitter(object):
         elif antimony_model is not None:
             self.setAntimonyModel(antimony_model)
         # Acquire the data
-        if (not time_series_file_path == None) or (not selected_time_series_ids == None):
-            self.setTimeSeriesData(time_series_file_path, selected_time_series_ids)   
+        if (not time_series_file_path == None) or (not seleted_variable_names == None):
+            self.setTimeSeriesData(time_series_file_path, seleted_variable_names)   
      
-    def setRoadrunnerModel (self, roadrunner_model):
+    def _setRoadrunnerModel(self, model):
         """
-        If the roadrunner model wasn't loaded when Fitter was created, this
-        method allows one to set roadrunner object at a later time
-        
-        Parameters
-        ---------
-        roadrunner_model : Roadrunner model         
-        """
-        self._validateRoadrunnerModel(roadrunner_model)
-        self._roadrunner_model = model
-        self._antimony_model = te.sbmlToAntimony(self._roadrunner_model.getSBML())
-        
-    def setAntimonyModel (self, antimony_model):
-        """
-        This allows one to set a new model to the Fitter object 
-        
-        Parameters
-        ---------
-        roadrunner_model : Roadrunner model         
-        """
-        self._antimony_model = antimony_model
-        try:
-            self._roadrunner_model = te.loada(antimony_model)
-        except Exception:
-            raise ValueError(
-                  "Invalid antimony_model:\n%s" % antomony_model)
+        Set values for the roadrunner and antimony models.
 
-    def _validateRoadrunnerModel(self, roadrunner_model):
-        if roadrunner_model is None:
-           raise ValueError(
-                 'No roadrunner model. Use setRoadRunnerModel.')
-        if type(roadrunner_model)  \
-              != te.roadrunner.extended_roadrunner.ExtendedRoadRunner:
-            msg = 'Invalid roadrunner model.'
-            msg = msg + "\nYou can create a roadrunner model using tellurium.loada."
-            raise Exception (msg)
-
-    def _validateAntimonyModel(self, antimony_model):
-        if self._antimony_model is None:
-           raise ValueError(
-                 'No antimony model. Use setAntimonyModel')
-        if not instance(antimony_model, str):
-            raise Exception ('Antimony model must be a string. Please try again.')
-        
-    def getRoadRunnerModel(self):
-        self._validateRoadrunnerModel(self._roadrunner_model)
-        return self._roadrunner_model
-       
-    def getAntimonyModel(self):
-        if self._antimony_model is None:
-           raise ValueError(
-                 'No antimony model. Use setAntimonyModel')
-        return self._antimony_model
-       
-    def setParametersToFit(self, parameters_to_fit):
-        self.parameters_to_fit = parameters_to_fit
-       
-    def getParametersToFit(self):
-        return self.parameters_to_fit
-       
-    def setTimeSeriesData(self, time_series_file_path, selected_time_series_ids=None):
-        """
-        Load the experimental data stored in the file 'fileWithData'
-        This data will be used to fit the parameters of the model
-        
         Parameters
         ----------
-        
-        time_series_file_path : string
-              Path to the file containing time series data. Data should be arranged
-              in columns, first colums representing time, remaining columns will
-              be whatever timeseries data is avaialble.
-       selected_time_series_ids : list of strings
-              List of names of floating species that are the columns in the 
-              time series data. If the list of names is missing then it is assumed that
-              all the time series columns should be used in the fit
-              
-        Examples:
-              f.setTimeSeriesData('mydata.txt', ['S1', 'S2'])
-              f.setTimeSeriesData('mydata.txt')
-        
-        Note on Id and Index lists:
-        selected_time_series_ids : list of species selected by user to be used in the fit
-        model_species_ids : list of species in the mode itself
-        time_series_ids : list of species columns in the time series data file
-        
-        The same variable with "indices_" in front represent list of integers
-        where the integer are indices that map to the order of floating
-        floaating species in the model itself. 
+
+        model: ExtendedRoadRunnerModel/str
         """
-        self._validateRoadrunnerModel(self._roadrunner_model)
-        self.model_species_ids = self._roadrunner_model.getFloatingSpeciesIds();
-        # Open the data file and look for the header line         
-        try:
-            with open(time_series_file_path, 'r') as f:
-                reader = csv.reader(f, delimiter=DELIMITER)
-                self.time_series_ids = f.readline()
-                self.time_series_ids = self.time_series_ids.strip()
-                self.time_series_ids = self.time_series_ids.split(DELIMITER)
-                if all([isinstance(h, str) for h in self.time_series_ids]):
-                    del self.time_series_ids[0] # remove time
-                else:
-                    raise ValueError('No column headers %s' % time_series_file_path)
-                self.time_series_data = np.array(list(reader)).astype(float)
-        except IOError:
-            raise ValueError("There is a problem with the data path %s" %
-                  time_series_file_path)
-        # if the user didn't specify any variable that wantto use then default to 
-        # all variables indicated in the time series file
-        if selected_time_series_ids is None:
-           selected_time_series_ids = self.time_series_ids
-        ### SANITY CHECKS
-        # Check that the columns in the time series data file exist in the model
-        missing_columns = []
-        for id in self.model_species_ids:
-            if not id in self.time_series_ids:
-                missing_columns.append(id)
-        if len(missing_columns) > 0:
-            import pdb; pdb.set_trace()
-            msg = 'The following columns in the data file: %s'  \
-                  % " ".join(missing_columns)
-            msg += ' does not correspond to a species in the model'
-            raise Exception (msg)
-        # Check that the selected_time_series_ids exist inthe model
-        #print (selected_time_series_ids)
-        for id in selected_time_series_ids:
-            missing_species = []
-            if not id in self.model_species_ids:
-               missing_species.append(id)
-            if len(missing_species) > 0:
-               msg = 'The columns: ' % " ".join(missing_species)
-               msg += ' in the data file do not correspond to a species in the model'
-               raise Exception (msg)
-        ### DO THE FIT
-        # Find the indices of the data series columns, indices reference the roadrunner species indices
-        self.indices_of_time_series_ids = []
-        for index, id in enumerate(self.time_series_ids):
-            if id in self._roadrunner_model.getFloatingSpeciesIds():
-               self.indices_of_time_series_ids.append (index+1) 
-        # Compute data characteristics    
-        self.number_of_data_points = len(self.time_series_data)
-        self.time_to_simulate = self.time_series_data[len(self.time_series_data)-1][0]
-        # Get the indices of the seleted species, these also directly map to the roadrunner species indices
-        self._indices_of_selected_species_ids = []        
-        for i in range (len (selected_time_series_ids)):
-            if selected_time_series_ids[i] in self._roadrunner_model.getFloatingSpeciesIds():
-                # Add one because index must start from 1 not zero
-                self._indices_of_selected_species_ids.append (self.model_species_ids.index (selected_time_series_ids[i])+1)
-        self._x_data = self.time_series_data[:,0]  
-        # Pluck out times series columns as defined by  
-        # indices_of_time_series_ids and put them into y_data 
-        self._num_column = len(self._indices_of_selected_species_ids)
-        # Construct the y data 
-        self._y_data = np.empty((0,self.number_of_data_points))
-        for index in self._indices_of_selected_species_ids:
-            self._y_data = np.vstack((self._y_data, self.time_series_data[:,index]))       
-        
-           
-    def getTimeSeriesData(self):
-        """
-        Returns
-        -------
-        numpy array
-            Time series data
-        """
-        if self.time_series_data is None:
-           raise Exception ('Error: Time series data has not yet been set. Use setTimeSeriesData()')
-        return self.time_series_data
+        if isinstance(model,
+              te.roadrunner.extended_roadrunner.ExtendedRoadRunner):
+            self.roadrunner_model = model
+            self.antimony_model =  \
+                    te.sbmlToAntimony(self._roadrunner_model.getSBML())
+        elif isinstance(model, str):
+            self.antimony_model = model
+            self.roadrunner_model = te.loada(self.antimony_model)
+        else:
+            msg = 'Invalid model.'
+            msg = msg + "\nA model must either be a Roadrunner model "
+            msg = msg + "an Antimony model."
+            raise ValueError(msg)
         
     def _computeSimulationData(self, params, indices_of_selected_species):
         """
@@ -389,7 +242,7 @@ def tryMe():
 
     # Alternative way to start Fitter
     # f = Fitter (roadrunner_model=r, time_series_file_path='testdata.txt',
-    #         selected_time_series_ids=['S1', 'S2', 'S3', 'S4']),
+    #         seleted_variable_names=['S1', 'S2', 'S3', 'S4']),
     #         parameters_to_fit=['k1', 'k2', 'k3', 'k4', 'k5']) 
     # f.fitModel()
     
