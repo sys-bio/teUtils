@@ -14,21 +14,14 @@ Created on Tue Jul  7 14:24:09 2020
        # The constructor takes either a roadrunner or antimony model
        f = ModelFitter(model, "mydata.txt",
              parameters_to_fit=["k1", "k2"])
-       # Fit the model parameters
+       # Fit the model parameters and view parameters
        f.fit()
-       # View the parameters
-       list_of_values_of_fitted_parameters = f.getFittedParamters()
+       print(f.getFittedParamters())
        # Run a simulation with the fitted parameters
        timeseries = f.simulate()
-       # Get the model with the fitted parameters and do another simulation
+       # Get the model with the fitted parameters and simulate over a different time period
        roadrunner_model = f.getFittedModel()
        data = roadrunner_model.simulate(0, 100, 1000)
-       # Run the same model with the same timeseries but different parameters
-       # and different a subset of the floating species. (By default, all
-       # floating species in the data are used.)
-       f2 = ModelFitter(f.roadrunner_model,  f.timeseries,
-             parameters_to_fit=["k1", "k2", "k3"],
-             selected_variable_names=["S1", "S2", "S3", "S4"])
 """
 
 from named_timeseries import NamedTimeseries, ConstructorArguments, TIME
