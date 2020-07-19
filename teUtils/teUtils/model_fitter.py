@@ -79,6 +79,18 @@ class ModelFitter(object):
         else:
             self.selected_variable_names = selected_variable_names
         self.roadrunner_model = self._setRoadrunnerModel(model)
+        self.unoptimized_residual_variance  \
+              = self._calculateUnoptimizedResidualVariance()
+        # Variance of residuals of optimized model
+        self.optimized_residual_variance = None
+
+    def _calculateResidualVariance(self, timeseries):
+        residuals = self.timeseries[self.selected_variable_names]  \
+              - timeseries[self.selected_variable_names]
+        return np.var(residuals)
+
+    def _calculateUnoptimizedResidualVariance(self):
+        return self._calculateResidualVariance(self.simulate())
      
     def _setRoadrunnerModel(self, model):
         """
@@ -105,12 +117,13 @@ class ModelFitter(object):
             raise ValueError(msg)
         return roadrunner_model
 
-    def simulate(self, params=None):
+    def simulate(self, model=None, params=None, is_reset=False):
         """
             Runs a simulation and returns the species data produced.
     
             Parameters
             ----------
+            model: ExtendedRoadRunner
             params: lmfit.Parameters
     
             Returns
@@ -123,8 +136,12 @@ class ModelFitter(object):
             f.fitModel()
             timeseries = f.simulate()
         """
+        if model is None:
+            model = self.roadrunner_model
+        if is_reset:
+            model.reset()
         _ = self.getFittedModel(params=params)
-        named_array = self.roadrunner_model.simulate(
+        named_array = model.simulate(
               self.timeseries.start, self.timeseries.end, len(self.timeseries))
         # Fix the column names by deleting '[', ']'
         colnames = [s[1:-1] if s[0] == '[' else s for s in named_array.colnames]
@@ -187,6 +204,11 @@ class ModelFitter(object):
         result = minimizer.minimize(method='differential_evolution')
         minimizer = lmfit.Minimizer(self._residuals, result.params)
         self.minimizer = minimizer.minimize(method='leastsqr')
+        # Calculate residuals for the fitted model
+        fitted_model = self.getFittedModel()
+        simulated_timeseries = self.simulate(model=fitted_model, is_reset=True)
+        self.optimized_residual_variance =  \
+              self._calculateResidualVariance(simulated_timeseries)
 
     def getFittedParameters(self):
         """

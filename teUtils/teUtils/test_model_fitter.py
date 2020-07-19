@@ -54,6 +54,9 @@ class TestModelFitter(unittest.TestCase):
         #
         for variable in self.fitter.selected_variable_names:
             self.assertTrue(variable in VARIABLE_NAMES)
+        #
+        self.assertTrue(isinstance(
+              self.fitter.unoptimized_residual_variance, float))
 
     def testSimulate(self):
         if IGNORE_TEST:
@@ -100,17 +103,14 @@ class TestModelFitter(unittest.TestCase):
     def testGetFittedModel(self):
         if IGNORE_TEST:
             return
-        def mkFitter(model):
-            fitter = ModelFitter(model, self.timeseries,
-                  parameters_to_fit=list(PARAMETER_DCT.keys()))
-            fitter.fitModel()
-            residual_var = sum(fitter.minimizer.residual**2)
-            return fitter, residual_var
-        #
-        fitter1, var1 = mkFitter(ANTIMONY_MODEL)
+        fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
+              parameters_to_fit=list(PARAMETER_DCT.keys()))
+        fitter1.fitModel()
         fitted_model = fitter1.getFittedModel()
-        fitter2, var2 = mkFitter(fitted_model)
-        self.assertTrue(np.isclose(var1, var2))
+        fitter2 = ModelFitter(fitted_model, self.timeseries, None)
+        # Should get same fit without changing the parameters
+        self.assertTrue(np.isclose(fitter1.optimized_residual_variance,
+              fitter2.unoptimized_residual_variance))
         
 
         
