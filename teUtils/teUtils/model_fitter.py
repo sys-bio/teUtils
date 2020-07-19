@@ -33,11 +33,11 @@ Created on Tue Jul  7 14:24:09 2020
 
 from named_timeseries import NamedTimeseries, ConstructorArguments, TIME
 
-import numpy as np
 import lmfit; 
+import matplotlib.pyplot as plt
+import numpy as np
 import roadrunner
 import tellurium as te 
-import matplotlib.pyplot as plt
 
 # Constants
 PARAMETER_LOWER_BOUND = 0
@@ -130,7 +130,7 @@ class ModelFitter(object):
             f.fitModel()
             timeseries = f.simulate()
         """
-        _ = self.getFittedModel(params=params, is_reuse=True)
+        _ = self.getFittedModel(params=params)
         named_array = self.roadrunner_model.simulate(
               self.timeseries.start, self.timeseries.end, len(self.timeseries))
         # Fix the column names by deleting '[', ']'
@@ -206,20 +206,16 @@ class ModelFitter(object):
             raise ValueError("Must fit model before extracting fitted parameters")
         return [self.minimizer.params[p].value for p in self.parameters_to_fit]
 
-    def getFittedModel(self, params=None, is_reuse=False):
+    def getFittedModel(self, params=None):
         """
             Returns a reset roadrunner model with parameters set to their fitted values.
         
             Parameters
             ----------
-         
             params: lmfit.Parameters
-            is_reuse: boolean
-                Updates _roadrunner_model
     
             Returns
             -------
-    
             ExtendedRoadrunnerModel
      
             Usage
@@ -228,19 +224,15 @@ class ModelFitter(object):
                   f.fitModel()
                   fitted_model = f.getFittedModel()
         """
-        if not is_reuse:
-            model = copy.deepcopy(self.roadrunner_model)
-        else:
-            model = self.roadrunner_model
         # Set the parameters
-        model.reset()  
+        self.roadrunner_model.reset()  
         if (params is None) and (self.minimizer is not None):
             params = self.minimizer.params
         if params is not None:
             pp = params.valuesdict()
             for parameter in self.parameters_to_fit:
-               model.model[parameter] = pp[parameter]
-        return model
+               self.roadrunner_model.model[parameter] = pp[parameter]
+        return self.roadrunner_model
 
     def _initializeParams(self):
         params = lmfit.Parameters()

@@ -97,6 +97,22 @@ class TestModelFitter(unittest.TestCase):
         values = self.fitter.getFittedParameters()
         _ = self.checkParameterValues()
 
+    def testGetFittedModel(self):
+        if IGNORE_TEST:
+            return
+        def mkFitter(model):
+            fitter = ModelFitter(model, self.timeseries,
+                  parameters_to_fit=list(PARAMETER_DCT.keys()))
+            fitter.fitModel()
+            residual_var = sum(fitter.minimizer.residual**2)
+            return fitter, residual_var
+        #
+        fitter1, var1 = mkFitter(ANTIMONY_MODEL)
+        fitted_model = fitter1.getFittedModel()
+        fitter2, var2 = mkFitter(fitted_model)
+        self.assertTrue(np.isclose(var1, var2))
+        
+
         
 
 if __name__ == '__main__':
