@@ -80,10 +80,11 @@ class ModelFitter(object):
         self.parameters_to_fit = parameters_to_fit
         self._lower_bound = parameter_lower_bound
         self._upper_bound = parameter_upper_bound
-        self.params = self._initializeParams()
-        self.result = None  # Minimizer with the result of the fit
+        self.minimizer = None  # Minimizer with the result of the fit
         if selected_variable_names is None:
-            self.seleted_variable_names = self.timeseries.colnames
+            self.selected_variable_names = self.timeseries.colnames
+        else:
+            self.selected_variable_names = selected_variable_names
         self.roadrunner_model = self._setRoadrunnerModel(model)
      
     def _setRoadrunnerModel(self, model):
@@ -154,9 +155,10 @@ class ModelFitter(object):
             -------
             NamedTimeseries
         """
-        return self.timeseries[self.selected_variable_names].flatten()  \
-              - self.simulate(params=params)[
-              self.selected_variable_names].flatten()
+        arr = self.timeseries[self.selected_variable_names]  \
+              - self.simulate(params=params)[self.selected_variable_names]
+        arr = arr.flatten()
+        return arr
     
     def plotTimeSeries(self, y_data=None):
         """
@@ -183,14 +185,15 @@ class ModelFitter(object):
             Example:
                   f.fitModel()
         """
-        self.params = self._initializeParams()
+        params = self._initializeParams()
         # Fit the model to the data
         # Use two algorithms:
         #   Global differential evolution to get us close to minimum
         #   A local Levenberg-Marquardt to getsus to the minimum
-        self.result = lmfit.Minimizer(self._residuals, self.params)
-        self.result.minimize(method='differential_evolution')
-        self.result.minimize(method='leastsqr')
+        minimizer = lmfit.Minimizer(self._residuals, params)
+        result = minimizer.minimize(method='differential_evolution')
+        minimizer = lmfit.Minimizer(self._residuals, result.params)
+        self.minimizer = minimizer.minimize(method='leastsqr')
 
     def getFittedParameters(self):
         """
@@ -199,11 +202,13 @@ class ModelFitter(object):
             Example:
                   f.getFittedParameters ()
         """
-        return [self.result.params[p].value for p in self.parameters_to_fit]
+        if self.minimizer is None:
+            raise ValueError("Must fit model before extracting fitted parameters")
+        return [self.minimizer.params[p].value for p in self.parameters_to_fit]
 
     def getFittedModel(self, params=None, is_reuse=False):
         """
-            Returns a roadrunner model with parameters set to their fitted values.
+            Returns a reset roadrunner model with parameters set to their fitted values.
         
             Parameters
             ----------
@@ -227,12 +232,14 @@ class ModelFitter(object):
             model = copy.deepcopy(self.roadrunner_model)
         else:
             model = self.roadrunner_model
-        if params is None:
-            params = self.params
+        # Set the parameters
         model.reset()  
-        pp = params.valuesdict()
-        for parameter in self.parameters_to_fit:
-           model.model[parameter] = pp[parameter]
+        if (params is None) and (self.minimizer is not None):
+            params = self.minimizer.params
+        if params is not None:
+            pp = params.valuesdict()
+            for parameter in self.parameters_to_fit:
+               model.model[parameter] = pp[parameter]
         return model
 
     def _initializeParams(self):

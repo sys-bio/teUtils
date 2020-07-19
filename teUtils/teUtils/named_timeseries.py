@@ -85,6 +85,10 @@ class NamedTimeseries(object):
             self.start = min(times)
             self.end = max(times)
 
+    def __str__(self):
+        df = self.to_pandas()
+        return str(df.head())
+
     def __getitem__(self, reference):
         """
         Returns data for the requested variables.

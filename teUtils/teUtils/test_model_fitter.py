@@ -16,6 +16,7 @@ PARAMETER_DCT = {
       "k4": 4,
       "k5": 5,
      }
+VARIABLE_NAMES = ["S%d" % d for d in range(1, 7)]
 parameters_strs = ["%s=%d" % (k, v) for k,v 
       in PARAMETER_DCT.items()]
 parameters_str = "; ".join(parameters_strs)
@@ -39,7 +40,8 @@ class TestModelFitter(unittest.TestCase):
 
     def setUp(self):
         self.timeseries = NamedTimeseries(TEST_DATA_PATH)
-        self.fitter = ModelFitter(ANTIMONY_MODEL, self.timeseries)
+        self.fitter = ModelFitter(ANTIMONY_MODEL, self.timeseries,
+              parameters_to_fit=list(PARAMETER_DCT.keys()))
 
     def testConstructor(self):
         if IGNORE_TEST:
@@ -50,9 +52,8 @@ class TestModelFitter(unittest.TestCase):
         self.assertTrue(true)
         self.assertGreater(len(self.fitter.timeseries), 0)
         #
-        parameters = self.fitter.params.valuesdict().keys()
-        trues = [p in self.timeseries.colnames for p in parameters]
-        self.assertTrue(all(trues))
+        for variable in self.fitter.selected_variable_names:
+            self.assertTrue(variable in VARIABLE_NAMES)
 
     def testSimulate(self):
         if IGNORE_TEST:
@@ -62,24 +63,39 @@ class TestModelFitter(unittest.TestCase):
               zip(timeseries[TIME], self.fitter.timeseries["time"])])
         self.assertTrue(np.isclose(diff, 0))
 
-    def testFit(self):
+    def testResiduals(self):
         if IGNORE_TEST:
             return
-        parameters = ['k1', 'k2', 'k3', 'k4', 'k5']
-        species_list = ['S1', 'S2', 'S3', 'S4',
-              'S5', 'S6']
-        self.fitter.fit(parameters=parameters,
-              species_list=species_list)
-        dct = self.fitter.PARAMETER_DCT
-        self.assertEqual(len(dct), len(parameters))
+        arr = self.fitter._residuals(None)
+        self.assertEqual(len(arr),
+              len(self.fitter.timeseries.colnames)*
+              len(self.fitter.timeseries))
+
+    def checkParameterValues(self):
+        dct = self.fitter.minimizer.params.valuesdict()
+        self.assertEqual(len(dct), len(self.fitter.parameters_to_fit))
         #
         for value in dct.values():
             self.assertTrue(isinstance(value, float))
+        return dct
+
+    def testFit(self):
+        if IGNORE_TEST:
+            return
+        self.fitter.fitModel()
+        dct = self.checkParameterValues()
         #
         PARAMETER = "k2"
         diff = np.abs(PARAMETER_DCT[PARAMETER]
               - dct[PARAMETER])
-        self.assertLess(diff, 0.1)
+        self.assertLess(diff, 1)
+
+    def testGetFittedParameters(self):
+        if IGNORE_TEST:
+            return
+        self.fitter.fitModel()
+        values = self.fitter.getFittedParameters()
+        _ = self.checkParameterValues()
 
         
 
