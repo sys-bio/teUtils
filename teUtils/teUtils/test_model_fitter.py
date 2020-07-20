@@ -113,7 +113,5 @@ class TestModelFitter(unittest.TestCase):
               fitter2.unoptimized_residual_variance))
         
 
-        
-
 if __name__ == '__main__':
   unittest.main()

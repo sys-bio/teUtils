@@ -6,20 +6,24 @@ and end.
 
 Usage:
    # Create from file
-   timeseries = NamedTimeseries("myfile.txt")
+   timeseries = NamedTimeseries(csv_path="myfile.txt")
+   print(timeseries)  # dispaly a tabular view of the timeseries
    # NamedTimeseries can use len function
    length = len(timeseries)  # number of rows
-   # Extract the time values using indexing
+   # Extract the numpy array values using indexing
    time_values = timeseries["time"]
+   s1_values = timeseries["S1"]
    # Get the start and end times
    start_time = timeseries.start
    end_time = timeseries.end
-   # Create a new time series that subsets the old one
+   # Create a new time series that subsets the variables of the old one
    colnames = ["time", "S1", "S2"]
    new_timeseries = mkNamedTimeseries(colnames, timeseries[colnames])
-   # Create a new timeseries with a subset of times
-   array = timeseries.selectTime(lambda t: t > 2)
-   new_timeseries = mkNamedTimeseries(self.all_colnames, timeseries.values)
+   # Create a new timeseries that excludes time 0
+   ts2 = timeseries[1:] 
+   # Create a new column variable
+   timeseries["S8"] = timeseries["time"]**2 + 3*timeseries["S1"]
+   timeseries["S9"] = 10  # Assign a constant to all rows
 """
 
 import collections
@@ -34,8 +38,26 @@ TIME = "time"
 
 ################## FUNCTIONS ########################
 def mkNamedTimeseries(colnames, array):
-    args = ConstructorArguments(colnames=colnames, array=array)
-    return NamedTimeseries(args)
+    return NamedTimeseries(colnames=colnames, array=array)
+
+def arrayEquals(arr1, arr2):
+    """
+        Tests equality of two numpy arrays.
+        
+        Parameters
+        ---------
+        arr1: numpy array
+        arr2: numpy array
+        
+        Returns
+        -------
+        boolean
+    """
+    if np.shape(arr1) != np.shape(arr2):
+        return False
+    value = sum([np.abs(v1 - v2) for v1, v2 in 
+        zip(arr1.flatten(), arr2.flatten())])
+    return np.isclose(value, 0)
 
 
 ################## CLASSES ########################
@@ -45,69 +67,209 @@ ConstructorArguments = collections.namedtuple(
 ######
 class NamedTimeseries(object):
           
-    def __init__(self, source):
+    def __init__(self,
+          csv_path=None,
+          colnames=None, array=None,
+          dataframe=None,
+          timeseries=None):
         """
-        Parameters
-        ---------
-        source: str/NamedTimeseries/ConstructorArgument/DataFrame
-               str: file path to the CSV file
-               NamedTimeseries: object to copy
-               
-       Examples:
-            data = NamedTimeseries("mydata.csv")
+            Parameters
+            ---------
+            csv_path: str
+                path to CSV file
+            colnames: list-str
+            array: np.ndarray
+                values corresponding to colnames
+            dataframe: pd.DataFrame
+                index: time
+            timeseries: NamedTimeseries
+                   
+           Usage
+           -----
+               data = NamedTimeseries(csv_path="mydata.csv")
+         
+           Notes
+           -----
+               At one of the following most be non-None:
+                 csv_path, colnames & array, dataframe, timeseries
         """
-        if isinstance(source, NamedTimeseries):
+        if timeseries is not None:
             # Copy the existing object
-            for k in source.__dict__.keys():
+            for k in timeseries.__dict__.keys():
                 self.__setattr__(k, 
-                      copy.deepcopy(source.__dict__[k]))
+                      copy.deepcopy(timeseries.__dict__[k]))
         else:
-            if isinstance(source, str):
-                # Names of all columns and array of all values
-                self.all_colnames, self.values = self._load(source)
-            elif isinstance(source, ConstructorArguments):
-                self.all_colnames = source.colnames
-                self.values = source.array
-            elif isinstance(source, pd.DataFrame):
-                df = source.reset_index()
-                self.all_colnames = df.columns.tolist()
+            if csv_path is not None:
+                all_colnames, self.values = self._load(csv_path)
+            elif (colnames is not None) and (array is not None):
+                all_colnames = colnames
+                self.values = array
+            elif dataframe is not None:
+                df = dataframe.reset_index()
+                all_colnames = df.columns.tolist()
                 self.values = df.to_numpy()
             else:
-                msg = "source should be a file path, tupe or a NamedTuple. Got: %s" % str(source)
+                msg = "Source should be a file path, colnames & array"
                 raise ValueError(msg)
-            if not TIME in self.all_colnames:
-                raise ValueError("Must have a time column")
-            self._index_dct = {c: self.all_colnames.index(c)
-                  for c in self.all_colnames}
-            self.colnames = list(self.all_colnames)
-            self.colnames.remove(TIME)  # Value column names
+                if not TIME in all_colnames:
+                    raise ValueError("Must have a time column")
+            self.all_colnames = []  # all column names
+            self.colnames = []  # Names of non-time columns
+            self._index_dct = {} # index for columns
+            [self._addColname(n) for n in all_colnames]
             times = self.values[:, self._index_dct[TIME]]
             self.start = min(times)
             self.end = max(times)
 
     def __str__(self):
-        df = self.to_pandas()
-        return str(df.head())
+        df = self.to_dataframe()
+        return str(df)
+
+    def _addColname(self, name):
+        self.all_colnames.append(name)
+        self._index_dct[name] = self.all_colnames.index(name)
+        self.colnames = list(self.all_colnames)
+        self.colnames.remove(TIME)
+
+    def __setitem__(self, reference, value):
+        """
+            Assigns a value, and optionally, creates a new columns.
+            The value may be 0 or 1 dimenson for a new column.
+            If reference is a list of columns, then the dimension
+            must be <length of timeseries> X <number of columns in reference>
+            
+            Parameters
+            ---------
+            reference: str or str/list-str
+            value: scalar, array
+        """
+        indices = self._getColumnIndices(reference, is_validate=False)
+        if indices is None:
+            # New column
+            if not isinstance(reference, str):
+                 raise ValueError("New column must be a string.")
+            else:
+                # New column is being added
+                self._addColname(reference)
+                num_dim = len(np.shape(value))
+                num_row = np.shape(self.values)[0]
+                if num_dim == 0:
+                    # Make it 1-d
+                    value = np.repeat(value, num_row)
+                    num_dim = len(np.shape(value))
+                if num_dim == 1:
+                    if len(value) != num_row:
+                        raise ValueError("New column has %d elements not %d"
+                              % (len(value), num_row))
+                    arr = np.reshape(value, (num_row, 1))
+                else: 
+                    msg = "New column must be a scalar or a 1-d array"
+                    raise ValueError(msg)
+                self.values = np.concatenate([self.values, arr],
+                      axis=1)
+        else:
+            # Not a new column
+            if isinstance(value, np.ndarray):
+                values = value
+            else:
+                values = np.repeat(value, np.shape(self.values[:, indices]))
+            self.values[:, indices] = values
+
+    def _getColumnIndices(self, reference, is_validate=True):
+        """
+            Returns indices for reference.
+            
+            Parameters
+            ---------
+            variable_names: str/list-str
+            is_validate: boolean
+                raise an error if index doesn't exist
+    
+            Returns
+            -------
+            list-int
+        """
+        try:
+            if isinstance(reference, str):
+                indices = self._index_dct[reference]
+            elif isinstance(reference, list):
+                indices = [v for k, v in self._index_dct.items()
+                      if k in reference]
+            else:
+                raise (KeyKerror)
+        except KeyError:
+            if is_validate:
+                raise ValueError(
+                      "NamedTimeseries invalid index: %s" % reference)
+            else:
+                indices = None
+        return indices
+        
 
     def __getitem__(self, reference):
         """
-        Returns data for the requested variables.
+            Returns data for the requested variables or rows.
+            Columns are specified by a str or list-str.
+            Rows are indicated by an int, list-int, or slice.
+            
+            Parameters
+            ---------
+            variable_names: str/list-str/slice/list-int/int
+    
+            Returns
+            -------
+            np.array/NamedTimeseries
+                np.ndarray for column type reference
+                NamedTimeseries for row type reference
+        """
+        # indicate types
+        is_int = False
+        is_list_int = False
+        is_slice = False
+        is_str = False
+        is_list_str = False
+        if isinstance(reference, int):
+            is_int = True
+        elif isinstance(reference, list):
+            if isinstance(reference[0], int):
+                is_list_int = True
+            elif isinstance(reference[0], str):
+                is_list_str = True
+        elif isinstance(reference, slice):
+            is_slice = True
+        # Process row type references
+        if is_list_int:
+            return NamedTimeseries(colnames=self.all_colnames,
+                  array=self.values[reference, :])
+        if is_int:
+            return NamedTimeseries(colnames=self.all_colnames,
+                  array=self.values[[reference], :])
+        elif is_slice:
+            all_indices = list(range(len(self)))
+            indices = all_indices[reference]
+            return NamedTimeseries(colnames=self.all_colnames,
+                  array=self.values[indices, :])
+        else:
+            indices = self._getColumnIndices(reference)
+            return self.values[:, indices]
+
+    def __len__(self):
+       return np.shape(self.values)[0]
+       
+    def _load(self, file_path):
+        """
+        Load data from a CSV file.
         
         Parameters
-        ---------
-        variable_names: str/list-str
-
-        Returns
-        -------
-        np.array: variable values
+        ----------
+        
+        file_path: str
+              Path to the file containing time series data. Data should be arranged
+              in columns, first colums representing time, remaining columns will
+              be whatever timeseries data is avaialble.
+        selected_variables : list of strings
         """
-        if isinstance(reference, str):
-            indices = self._index_dct[reference]
-        elif isinstance(reference, list):
-            indices = [v for k, v in self._index_dct.items()
-                  if k in reference]
-        else:
-            raise ValueError("Reference not found: %s" % reference)
+        indices = self._getColumnIndices(reference)
         return self.values[:, indices]
 
     def __len__(self):
@@ -185,7 +347,19 @@ class NamedTimeseries(object):
         array = self.values[row_indices, :]
         return array[:, col_indices]
 
-    def to_pandas(self):
+    def copy(self):
+        return copy.deepcopy(self)
+
+    def equals(self, other):
+        diff = set(self.all_colnames).symmetric_difference(other.all_colnames)
+        if len(diff) > 0:
+            return False
+        checks = []
+        for col in self.all_colnames:
+             checks.append(arrayEquals(self[col], other[col]))
+        return all(checks)   
+
+    def to_dataframe(self):
         """
             Creates a pandas dataframe from the NamedTimeseries.
             

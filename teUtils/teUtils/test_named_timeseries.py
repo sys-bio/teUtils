@@ -1,4 +1,4 @@
-from named_timeseries import NamedTimeseries
+from named_timeseries import NamedTimeseries, mkNamedTimeseries
 import named_timeseries
 
 import numpy as np
@@ -19,7 +19,7 @@ TIME = "time"
 class TestNamedTimeseries(unittest.TestCase):
 
     def setUp(self):
-        self.timeseries = NamedTimeseries(TEST_DATA_PATH)
+        self.timeseries = NamedTimeseries(csv_path=TEST_DATA_PATH)
 
     def testConstructor1(self):
         if IGNORE_TEST:
@@ -38,9 +38,8 @@ class TestNamedTimeseries(unittest.TestCase):
                 self.assertTrue(np.isclose(sum(timeseries[name]
                       - self.timeseries[name]), 0))
         #
-        args = named_timeseries.ConstructorArguments(
-              colnames=COLNAMES, array=self.timeseries[COLNAMES])
-        new_timeseries = NamedTimeseries(args)
+        new_timeseries = NamedTimeseries(colnames=COLNAMES,
+              array=self.timeseries[COLNAMES])
         test(new_timeseries)
 
     def testConstructor3(self):
@@ -69,12 +68,12 @@ class TestNamedTimeseries(unittest.TestCase):
         if IGNORE_TEST:
             return
         with self.assertRaises(ValueError):
-            timeseries = NamedTimeseries(TEST_BAD_DATA_PATH)
+            timeseries = NamedTimeseries(csv_path=TEST_BAD_DATA_PATH)
 
     def testCopyExisting(self):
         if IGNORE_TEST:
             return
-        timeseries = NamedTimeseries(self.timeseries)
+        timeseries = NamedTimeseries(timeseries=self.timeseries)
         #
         def checkVector(attribute):
             length = len(self.timeseries.__getattribute__(attribute))
@@ -131,12 +130,85 @@ class TestNamedTimeseries(unittest.TestCase):
     def testToPandas(self):
         if IGNORE_TEST:
             return
-        df = self.timeseries.to_pandas()
-        timeseries = NamedTimeseries(df)
+        df = self.timeseries.to_dataframe()
+        timeseries = NamedTimeseries(dataframe=df)
         diff = set(df.columns).symmetric_difference(timeseries.colnames)
         self.assertEqual(len(diff), 0)
         total = sum(timeseries.values.flatten() - self.timeseries.values.flatten())
         self.assertTrue(np.isclose(total, 0))
+
+    def testArrayEquals(self):
+        if IGNORE_TEST:
+            return
+        arr1 = np.array([1, 2, 3, 4])
+        arr1 = np.reshape(arr1, (2, 2))
+        self.assertTrue(named_timeseries.arrayEquals(arr1, arr1))
+        arr2 = 1.0001*arr1
+        self.assertFalse(named_timeseries.arrayEquals(arr1, arr2))
+
+
+    def testEquals(self):
+        if IGNORE_TEST:
+            return
+        self.assertTrue(self.timeseries.equals(self.timeseries))
+        new_timeseries = self.timeseries.copy()
+        new_timeseries["S1"] = -1
+        self.assertFalse(self.timeseries.equals(new_timeseries))
+ 
+    def testCopy(self):
+        if IGNORE_TEST:
+            return
+        ts2 = self.timeseries.copy()
+        self.assertTrue(self.timeseries.equals(ts2))
+
+    def testSetitem(self):
+        if IGNORE_TEST:
+            return
+        self.timeseries["S1"] = self.timeseries["S2"]
+        self.assertTrue(named_timeseries.arrayEquals(
+              self.timeseries["S1"], self.timeseries["S2"]))
+        value = -20
+        self.timeseries["S19"] = value
+        self.assertEquals(self.timeseries["S19"].sum(), len(self.timeseries)*value)
+
+    def testGetitemRows(self):
+        if IGNORE_TEST:
+            return
+        start = 1
+        stop = 3
+        ts1 = self.timeseries[start:stop]
+        self.assertTrue(isinstance(ts1, NamedTimeseries))
+        self.assertEqual(len(ts1), stop - start)
+        #
+        ts2 = self.timeseries[[1, 2]]
+        self.assertTrue(ts1.equals(ts2))
+        #
+        ts3 = self.timeseries[1]
+        self.assertEqual(np.shape(ts3.values), (1, len(ts2.all_colnames)))
+
+    def testExamples(self):
+        if IGNORE_TEST:
+            return
+        # Create from file
+        timeseries = NamedTimeseries(csv_path=TEST_DATA_PATH)
+        print(timeseries)  # dispaly a tabular view of the timeseries
+        # NamedTimeseries can use len function
+        length = len(timeseries)  # number of rows
+        # Extract the numpy array values using indexing
+        time_values = timeseries["time"]
+        s1_values = timeseries["S1"]
+        # Get the start and end times
+        start_time = timeseries.start
+        end_time = timeseries.end
+        # Create a new time series that subsets the variables of the old one
+        colnames = ["time", "S1", "S2"]
+        new_timeseries = mkNamedTimeseries(colnames, timeseries[colnames])
+        # Create a new timeseries that excludes time 0
+        ts2 = timeseries[1:] 
+        # Create a new column variable
+        timeseries["S8"] = timeseries["time"]**2 + 3*timeseries["S1"]
+        timeseries["S9"] = 10  # Assign a constant to all rows
+
         
 
 if __name__ == '__main__':

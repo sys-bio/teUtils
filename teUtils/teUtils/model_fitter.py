@@ -27,7 +27,6 @@ Created on Tue Jul  7 14:24:09 2020
 from named_timeseries import NamedTimeseries, ConstructorArguments, TIME
 
 import lmfit; 
-import matplotlib.pyplot as plt
 import numpy as np
 import roadrunner
 import tellurium as te 
@@ -169,22 +168,6 @@ class ModelFitter(object):
               - self.simulate(params=params)[self.selected_variable_names]
         arr = arr.flatten()
         return arr
-    
-    def plotTimeSeries(self, y_data=None):
-        """
-        Plots the timeseries data.
-
-        Parameters
-        ----------
-     
-        y_data; np.array
-            default is self._y_data
-        """
-        if y_data is None:
-            y_data = self._y_data
-        for i in range (len (self._indices_of_selected_species_ids)):
-            plt.plot (self._x_data, y_data[i,:])
-        plt.show()
         
     def fitModel(self):
         """

@@ -1,8 +1,13 @@
 """
-A TimeseriesPlotter visualizes timeseries data, especially for comparing
-time series.
-
-Usage:
+    A TimeseriesPlotter visualizes timeseries data, especially for comparing
+    time series.
+    
+    All plots are line plots with the x-axis as time. The following
+    can be varied:
+      single or multiple variables in a plot
+      one or two timeseries plot
+    
+    Usage:
 """
 
 from named_timeseries import NamedTimeseries, TIME
@@ -20,6 +25,15 @@ class PlotOptions(object):
         self.title = ""
         self.ylim = None
         self.xlim = None
+
+    def do(self, ax):
+        ax.set_xlabel(self.xlabel)
+        ax.set_ylabel(self.ylabel)
+        ax.set_title(self.title)
+        if self.xlim is not None:
+            ax.set_xlim(self.xlim)
+        if self.ylim is not None:
+            ax.set_ylim(self.ylim)
 
 
 ########################################
@@ -40,15 +54,30 @@ class TimeseriesPlotter(object):
         self.options = options
         pass
 
-    def plotWithCommonTime(self, variables, options=options):
+    def plotSingle(self, num_row=1, num_col=None, 
+          variables=None, other=timeseries, options=options):
         """
-            Plots the selected variables on a common time axis.
+            Constructs a
 
             Parameters
             ---------
-            timeseries: NamedTimeseries
+            num_row: int
+                number of rows in the plot
+            num_col: int
+                number of columns in the plot
+                default is the number of variables
+            variables: list-str
+                list of variables in the timeseries
+            other: NamedTimeseries
+                second timeseries with the same variables and times
+            options: PlotOptions
                    
             Usage
             ____
                 
         """
+        if variables is None:
+            variables = self.timeseries.colnames
+        if num_col is None:
+            num_col = len(variables)
+        
