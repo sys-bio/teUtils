@@ -204,7 +204,16 @@ class NamedTimeseries(object):
             else:
                 indices = None
         return indices
-        
+
+    def __delitem__(self, reference):
+        if not isinstance(reference, str):
+            raise ValueError("del takes a string column names as its argument.")
+        idx = self._getColumnIndices(reference)
+        self.values = np.delete(self.values, idx, axis=1)
+        self.colnames.remove(reference)
+        self.all_colnames.remove(reference)
+        self._index_dct = {n: self.all_colnames.index(n)
+              for n in self.all_colnames}
 
     def __getitem__(self, reference):
         """

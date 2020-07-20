@@ -209,6 +209,15 @@ class TestNamedTimeseries(unittest.TestCase):
         timeseries["S8"] = timeseries["time"]**2 + 3*timeseries["S1"]
         timeseries["S9"] = 10  # Assign a constant to all rows
 
+    def testDelitem(self):
+        if IGNORE_TEST:
+            return
+        ts1 = self.timeseries.copy()
+        del ts1["S1"]
+        stg = str(ts1)
+        self.assertEqual(len(ts1), len(self.timeseries))
+        self.assertEqual(len(ts1.colnames) +1, len(self.timeseries.colnames))
+
         
 
 if __name__ == '__main__':
