@@ -24,7 +24,7 @@ Created on Tue Jul  7 14:24:09 2020
        data = roadrunner_model.simulate(0, 100, 1000)
 """
 
-from named_timeseries import NamedTimeseries, ConstructorArguments, TIME
+from named_timeseries import NamedTimeseries, TIME
 
 import lmfit; 
 import numpy as np
@@ -66,7 +66,14 @@ class ModelFitter(object):
                 f = ModelFitter(roadrunner_model, "data.csv",
                        parameters_to_fit=['k1', 'k2'])
         """
-        self.timeseries = NamedTimeseries(data)
+        if isinstance(data, str):
+            self.timeseries = NamedTimeseries(csv_path=data)
+        elif isinstance(data, NamedTimeseries):
+            self.timeseries = NamedTimeseries(timeseries=data)
+        else:
+            msg = "Invalid data specification."
+            msg += " Must be either file path or NamedTimeseries."
+            raise ValueError(msg)
         if parameters_to_fit is None:
             parameters_to_fit = []
         self.parameters_to_fit = parameters_to_fit
@@ -144,8 +151,8 @@ class ModelFitter(object):
               self.timeseries.start, self.timeseries.end, len(self.timeseries))
         # Fix the column names by deleting '[', ']'
         colnames = [s[1:-1] if s[0] == '[' else s for s in named_array.colnames]
-        timeseries = NamedTimeseries(ConstructorArguments(
-              array=np.array(named_array), colnames=colnames))
+        timeseries = NamedTimeseries(
+              array=np.array(named_array), colnames=colnames)
         return timeseries
 
     def _residuals(self, params):

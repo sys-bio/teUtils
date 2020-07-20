@@ -61,10 +61,6 @@ def arrayEquals(arr1, arr2):
 
 
 ################## CLASSES ########################
-ConstructorArguments = collections.namedtuple(
-      "ConstructorArguments", "colnames array")
-
-######
 class NamedTimeseries(object):
           
     def __init__(self,
