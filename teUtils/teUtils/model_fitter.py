@@ -87,8 +87,9 @@ class ModelFitter(object):
         self.optimized_residual_variance = None
 
     def _calculateResidualVariance(self, timeseries):
-        residuals = self.timeseries[self.selected_variable_names]  \
-              - timeseries[self.selected_variable_names]
+        residuals = self.timeseries[self.selected_variable_names].flatten()  \
+              - timeseries[self.selected_variable_names].flatten()
+        residuals = [float(v) for v in residuals]
         return np.var(residuals)
 
     def _calculateUnoptimizedResidualVariance(self):
