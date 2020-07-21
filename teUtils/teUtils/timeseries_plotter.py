@@ -119,7 +119,7 @@ class TimeseriesPlotter(object):
             ax = axes[row, col]
             options = copy.deepcopy(options)
             options.set("ylabel", "concentration")
-            options.set("title", variable)
+            options.title = variable
             if col > 0:
                 options.ylabel =  ""
                 options.set("yticklabels", [])
