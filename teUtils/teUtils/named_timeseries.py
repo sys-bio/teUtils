@@ -377,3 +377,8 @@ class NamedTimeseries(object):
         dct = {c: self.values[:, i] for c, i in self._index_dct.items()}
         df = pd.DataFrame(dct)
         return df.set_index(TIME)
+
+    def to_csv(self, path):
+        df = self.to_dataframe()
+        df = df.reset_index()
+        df.to_csv(path, index=False)

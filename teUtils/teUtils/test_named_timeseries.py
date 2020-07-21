@@ -12,6 +12,7 @@ VARIABLE_NAMES = ["S%d" % d for d in range(1, 7)]
 DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
 TEST_BAD_DATA_PATH = os.path.join(DIR, "missing.txt")
+TEMP_FILE = os.path.join(DIR, "temp.csv")
 LENGTH = 30
 TIME = "time"
         
@@ -20,6 +21,10 @@ class TestNamedTimeseries(unittest.TestCase):
 
     def setUp(self):
         self.timeseries = NamedTimeseries(csv_path=TEST_DATA_PATH)
+
+    def tearDown(self):
+        if os.path.isfile(TEMP_FILE):
+            os.remove(TEMP_FILE)
 
     def testConstructor1(self):
         if IGNORE_TEST:
@@ -217,6 +222,13 @@ class TestNamedTimeseries(unittest.TestCase):
         stg = str(ts1)
         self.assertEqual(len(ts1), len(self.timeseries))
         self.assertEqual(len(ts1.colnames) +1, len(self.timeseries.colnames))
+
+    def testToCsv(self):
+        if IGNORE_TEST:
+            return
+        self.timeseries.to_csv(TEMP_FILE)
+        self.assertTrue(os.path.isfile(TEMP_FILE))
+   
 
         
 
