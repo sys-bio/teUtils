@@ -59,6 +59,20 @@ def arrayEquals(arr1, arr2):
         zip(arr1.flatten(), arr2.flatten())])
     return np.isclose(value, 0)
 
+def cleanColnames(colnames):
+    """
+    Fixes column names by deleting '[', ']'
+
+    Parameters
+    ----------
+    colnames: list-str
+
+    Returns
+    -------
+    list-str
+    """
+    return [s[1:-1] if s[0] == '[' else s for s in colnames]
+
 
 ################## CLASSES ########################
 class NamedTimeseries(object):
@@ -66,6 +80,7 @@ class NamedTimeseries(object):
     def __init__(self,
           csv_path=None,
           colnames=None, array=None,
+          named_array=None,
           dataframe=None,
           timeseries=None):
         """
@@ -76,6 +91,7 @@ class NamedTimeseries(object):
             colnames: list-str
             array: np.ndarray
                 values corresponding to colnames
+            named_array: NamedArray
             dataframe: pd.DataFrame
                 index: time
             timeseries: NamedTimeseries
@@ -100,6 +116,9 @@ class NamedTimeseries(object):
             elif (colnames is not None) and (array is not None):
                 all_colnames = colnames
                 self.values = array
+            elif named_array is not None:
+                all_colnames = cleanColnames(named_array.colnames)
+                self.values = named_array
             elif dataframe is not None:
                 df = dataframe.reset_index()
                 all_colnames = df.columns.tolist()

@@ -3,6 +3,7 @@ import named_timeseries
 
 import numpy as np
 import os
+import tellurium as te
 import unittest
 
 
@@ -15,12 +16,24 @@ TEST_BAD_DATA_PATH = os.path.join(DIR, "missing.txt")
 TEMP_FILE = os.path.join(DIR, "temp.csv")
 LENGTH = 30
 TIME = "time"
-        
+ANTIMONY_MODEL = """
+# Reactions   
+    J1: S1 -> S2; k1*S1
+    J2: S2 -> S3; k2*S2
+    J3: S3 -> S4; k3*S3
+    J4: S4 -> S5; k4*S4
+    J5: S5 -> S6; k5*S5;
+# Species initializations     
+    S1 = 10;
+    k1 = 1; k2 = 2; k3 = 3; k4 = 4; k5 = 5;
+"""
+
 
 class TestNamedTimeseries(unittest.TestCase):
 
     def setUp(self):
         self.timeseries = NamedTimeseries(csv_path=TEST_DATA_PATH)
+        self.model = te.loada(ANTIMONY_MODEL)
 
     def tearDown(self):
         if os.path.isfile(TEMP_FILE):
@@ -47,9 +60,13 @@ class TestNamedTimeseries(unittest.TestCase):
               array=self.timeseries[COLNAMES])
         test(new_timeseries)
 
-    def testConstructor3(self):
+    def testConstructorNamedArray(self):
         if IGNORE_TEST:
             return
+        named_array = self.model.simulate(0, 100, 30)
+        ts = NamedTimeseries(named_array=named_array)
+        self.assertTrue(named_timeseries.arrayEquals(named_array.flatten(),
+              ts.values.flatten()))
 
     def testSizeof(self):
         if IGNORE_TEST:

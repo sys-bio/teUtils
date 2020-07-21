@@ -145,11 +145,7 @@ class ModelFitter(object):
         _ = self.getFittedModel(params=params)
         named_array = model.simulate(
               self.timeseries.start, self.timeseries.end, len(self.timeseries))
-        # Fix the column names by deleting '[', ']'
-        colnames = [s[1:-1] if s[0] == '[' else s for s in named_array.colnames]
-        timeseries = NamedTimeseries(
-              array=np.array(named_array), colnames=colnames)
-        return timeseries
+        return NamedTimeseries(named_array=named_array)
 
     def _residuals(self, params):
         """
