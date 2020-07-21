@@ -16,6 +16,8 @@ import copy
 import matplotlib.pyplot as plt
 import numpy as np
 
+FIGSIZE = "figsize"
+
 
 ########################################
 class PlotOptions(object):
@@ -30,6 +32,7 @@ class PlotOptions(object):
         self.yticklabels = None
         self.legend = None
         self.suptitle = None
+        self.figsize = (10, 8)
 
     def set(self, attribute, value):
         if not attribute in self.__dict__.keys():
@@ -106,7 +109,10 @@ class TimeseriesPlotter(object):
         if num_col is None:
             num_col = len(variables)
         #
-        fig, axes = plt.subplots(num_row, num_col)
+        if options.figsize is not None:
+            fig, axes = plt.subplots(num_row, num_col, figsize=options.figsize)
+        else:
+            fig, axes = plt.subplots(num_row, num_col)
         if len(np.shape(axes)) == 1:
             axes = np.reshape(axes, (num_row, num_col))
         for idx, variable in enumerate(variables):
@@ -155,17 +161,23 @@ class TimeseriesPlotter(object):
             variables = self.timeseries.colnames
         #
         def multiPlot(timeseries, ax):
-            df = timeseries.to_dataframe()
+            df = timeseries.to_dataframe()[variables]
             df.plot(ax=ax)
             options.do(ax)
         #
         if timeseries2 is not None:
-            fig, axes = plt.subplots(2)
+            if options.figsize is not None:
+                fig, axes = plt.subplots(2, figsize=options.figsize)
+            else:
+                fig, axes = plt.subplots(2)
             for idx, ts in enumerate([self.timeseries, timeseries2]):
                 multiPlot(ts, axes[idx])
                 options.do(axes[idx])
         else:
-            fig, ax = plt.subplots()
+            if options.figsize is not None:
+                fig, ax = plt.subplots(figsize=options.figsize)
+            else:
+                fig, ax = plt.subplots()
             multiPlot(self.timeseries, ax)
         if self.is_plot:
             plt.show()

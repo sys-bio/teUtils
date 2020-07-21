@@ -107,8 +107,8 @@ class NamedTimeseries(object):
             else:
                 msg = "Source should be a file path, colnames & array"
                 raise ValueError(msg)
-                if not TIME in all_colnames:
-                    raise ValueError("Must have a time column")
+            if not TIME in all_colnames:
+                raise ValueError("Must have a time column")
             self.all_colnames = []  # all column names
             self.colnames = []  # Names of non-time columns
             self._index_dct = {} # index for columns
