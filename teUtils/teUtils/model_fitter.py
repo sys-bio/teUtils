@@ -38,33 +38,31 @@ PARAMETER_UPPER_BOUND = 10
 
 class ModelFitter(object):
           
-    def __init__(self, model, data, selected_variable_names=None, 
-                 parameters_to_fit=None,
+    def __init__(self, model, data, parameters_to_fit,
+                 selected_variable_names=None, 
                  parameter_lower_bound=PARAMETER_LOWER_BOUND,
                  parameter_upper_bound=PARAMETER_UPPER_BOUND,
                  ):      
         """
-            Parameters
-            ---------
-            model: ExtendedRoadRunner/str
-                roadrunner model or antimony model
-            data: NamedTimeseries/str
-                str: path to CSV file
-            selected_values: list-str
-                species names you wish use to fit the model
-                default: all variables in data
-            parameters_to_fit: list-str
-                parameters in the model that you want to fit
-                default: fit no parameter
-            parameter_lower_bound: float
-                lower bound for the fitting parameters
-            parameter_upper_bound: float
-                upper bound for the fitting parameters
-                   
-           Examples:
-                f = ModelFitter(roadrunner_model, "data.csv")
-                f = ModelFitter(roadrunner_model, "data.csv",
-                       parameters_to_fit=['k1', 'k2'])
+        Parameters
+        ---------
+        model: ExtendedRoadRunner/str
+            roadrunner model or antimony model
+        data: NamedTimeseries/str
+            str: path to CSV file
+        parameters_to_fit: list-str
+            parameters in the model that you want to fit
+        selected_values: list-str
+            species names you wish use to fit the model
+            default: all variables in data
+        parameter_lower_bound: float
+            lower bound for the fitting parameters
+        parameter_upper_bound: float
+            upper bound for the fitting parameters
+               
+        Usage
+        -----
+        f = ModelFitter(roadrunner_model, "data.csv", ['k1', 'k2'])
         """
         if isinstance(data, str):
             self.timeseries = NamedTimeseries(csv_path=data)
@@ -74,8 +72,6 @@ class ModelFitter(object):
             msg = "Invalid data specification."
             msg += " Must be either file path or NamedTimeseries."
             raise ValueError(msg)
-        if parameters_to_fit is None:
-            parameters_to_fit = []
         self.parameters_to_fit = parameters_to_fit
         self._lower_bound = parameter_lower_bound
         self._upper_bound = parameter_upper_bound
@@ -178,13 +174,20 @@ class ModelFitter(object):
         
     def fitModel(self):
         """
-            Fits the model by adjusting values of parameters based on
-            differences between simulated and provided values of
-            floating species.
-                  
-            Example:
-                  f.fitModel()
+        Fits the model by adjusting values of parameters based on
+        differences between simulated and provided values of
+        floating species.
+              
+        Example:
+              f.fitModel()
         """
+        is_error = False
+        if not isinstance(self.parameters_to_fit, list):
+            is_error = True
+        if len(self.parameters_to_fit) == 0:
+            is_error = True
+        if is_error:
+            raise ValueError("Must specify at least one parameter to fit")
         params = self._initializeParams()
         # Fit the model to the data
         # Use two algorithms:

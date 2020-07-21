@@ -41,7 +41,7 @@ class TestModelFitter(unittest.TestCase):
     def setUp(self):
         self.timeseries = NamedTimeseries(TEST_DATA_PATH)
         self.fitter = ModelFitter(ANTIMONY_MODEL, self.timeseries,
-              parameters_to_fit=list(PARAMETER_DCT.keys()))
+              list(PARAMETER_DCT.keys()))
 
     def testConstructor(self):
         if IGNORE_TEST:
@@ -104,7 +104,7 @@ class TestModelFitter(unittest.TestCase):
         if IGNORE_TEST:
             return
         fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
-              parameters_to_fit=list(PARAMETER_DCT.keys()))
+              list(PARAMETER_DCT.keys()))
         fitter1.fitModel()
         fitted_model = fitter1.getFittedModel()
         fitter2 = ModelFitter(fitted_model, self.timeseries, None)

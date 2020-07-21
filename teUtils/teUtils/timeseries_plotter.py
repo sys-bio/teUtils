@@ -16,8 +16,6 @@ import copy
 import matplotlib.pyplot as plt
 import numpy as np
 
-FIGSIZE = "figsize"
-
 
 ########################################
 class PlotOptions(object):
@@ -32,7 +30,7 @@ class PlotOptions(object):
         self.yticklabels = None
         self.legend = None
         self.suptitle = None
-        self.figsize = (10, 8)
+        self.figsize = (8, 6)
 
     def set(self, attribute, value):
         if not attribute in self.__dict__.keys():
