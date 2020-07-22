@@ -4,10 +4,16 @@ Created on Tue Jul  7 14:24:09 2020
 
 @author: hsauro
 
-    A ModelFitter estimates parameters of a roadrunner model by fitting simulation
-    results to a timeseries. The user can access values of the fitted parameters,
-    can run simulations with these fitted parameters, can obtain a roadrunner model
-    with the fitted parameters.
+    A ModelFitter estimates parameters of a roadrunner model by using observed values
+    of floating species concentrations to construct fitted values with 
+    small residuals (the difference between fitted and observed values).
+
+    The user can access:
+        estimated parameter values
+        roadrunner model with estimated parameter values
+        observed values of floating species concentrations
+        fitted values of floating species concentrations
+        residuals of observed - fitted
     
     Usage
     -----
