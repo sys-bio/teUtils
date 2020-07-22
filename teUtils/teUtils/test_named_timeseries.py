@@ -26,6 +26,7 @@ ANTIMONY_MODEL = """
 # Species initializations     
     S1 = 10;
     k1 = 1; k2 = 2; k3 = 3; k4 = 4; k5 = 5;
+    S1 = 0; S2 = 0; S3 = 0; S4 = 0; S5 = 0; S6 = 0;
 """
 
 
@@ -191,7 +192,7 @@ class TestNamedTimeseries(unittest.TestCase):
               self.timeseries["S1"], self.timeseries["S2"]))
         value = -20
         self.timeseries["S19"] = value
-        self.assertEquals(self.timeseries["S19"].sum(), len(self.timeseries)*value)
+        self.assertEqual(self.timeseries["S19"].sum(), len(self.timeseries)*value)
 
     def testGetitemRows(self):
         if IGNORE_TEST:
@@ -245,9 +246,41 @@ class TestNamedTimeseries(unittest.TestCase):
             return
         self.timeseries.to_csv(TEMP_FILE)
         self.assertTrue(os.path.isfile(TEMP_FILE))
-   
 
-        
+    def testConcatenateColumns(self):
+        if IGNORE_TEST:
+            return
+        ts = self.timeseries.concatenateColumns(self.timeseries)
+        new_names = ["%s_" % c for c in self.timeseries.colnames]
+        self.assertTrue(named_timeseries.arrayEquals(ts[new_names],
+              self.timeseries[self.timeseries.colnames]))
+        self.assertEquals(len(ts), len(self.timeseries))
+        self.assertTrue(named_timeseries.arrayEquals(ts[TIME],
+              self.timeseries[TIME]))
+        #
+        ts = self.timeseries.concatenateColumns(self.timeseries, self.timeseries)
+        self.assertEqual(3*len(self.timeseries.colnames), len(ts.colnames))
+
+    def testConcatenateRows(self):
+        if IGNORE_TEST:
+            return
+        ts = self.timeseries.concatenateRows(self.timeseries)
+        diff = set(ts.colnames).symmetric_difference(self.timeseries.colnames)
+        self.assertEqual(len(diff), 0)
+        length = len(self.timeseries)
+        ts1 = ts[length:]
+        self.assertTrue(self.timeseries.equals(ts1))
+        #
+        ts = self.timeseries.concatenateRows(self.timeseries, self.timeseries)
+        self.assertEqual(3*len(self.timeseries), len(ts))
+
+    def testSubsetColumns(self):
+        if IGNORE_TEST:
+            return
+        ts = self.timeseries.concatenateColumns(self.timeseries)
+        ts1 = ts.subsetColumns(*self.timeseries.colnames)
+        self.assertTrue(self.timeseries.equals(ts1))
+   
 
 if __name__ == '__main__':
   unittest.main()
