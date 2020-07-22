@@ -4,30 +4,30 @@ Created on Tue Jul  7 14:24:09 2020
 
 @author: hsauro
 
-    A ModelFitter estimates parameters of a roadrunner model by using observed values
-    of floating species concentrations to construct fitted values with 
-    small residuals (the difference between fitted and observed values).
+A ModelFitter estimates parameters of a roadrunner model by using observed values
+of floating species concentrations to construct fitted values with 
+small residuals (the difference between fitted and observed values).
 
-    The user can access:
-        estimated parameter values
-        roadrunner model with estimated parameter values
-        observed values of floating species concentrations
-        fitted values of floating species concentrations
-        residuals of observed - fitted
-    
-    Usage
-    -----
-       # The constructor takes either a roadrunner or antimony model
-       f = ModelFitter(model, "mydata.txt",
-             parameters_to_fit=["k1", "k2"])
-       # Fit the model parameters and view parameters
-       f.fit()
-       print(f.getFittedParamters())
-       # Run a simulation with the fitted parameters
-       timeseries = f.simulate()
-       # Get the model with the fitted parameters and simulate over a different time period
-       roadrunner_model = f.getFittedModel()
-       data = roadrunner_model.simulate(0, 100, 1000)
+The user can access:
+    estimated parameter values
+    roadrunner model with estimated parameter values
+    observed values of floating species concentrations
+    fitted values of floating species concentrations
+    residuals of observed - fitted
+
+Usage
+-----
+   # The constructor takes either a roadrunner or antimony model
+   f = ModelFitter(model, "mydata.txt",
+         parameters_to_fit=["k1", "k2"])
+   # Fit the model parameters and view parameters
+   f.fit()
+   print(f.getFittedParamters())
+   # Run a simulation with the fitted parameters
+   timeseries = f.simulate()
+   # Get the model with the fitted parameters and simulate over a different time period
+   roadrunner_model = f.getFittedModel()
+   data = roadrunner_model.simulate(0, 100, 1000)
 """
 
 from named_timeseries import NamedTimeseries, TIME
@@ -35,7 +35,7 @@ from named_timeseries import NamedTimeseries, TIME
 import lmfit; 
 import numpy as np
 import roadrunner
-import tellurium as te 
+import tellurium as te
 
 # Constants
 PARAMETER_LOWER_BOUND = 0
@@ -44,8 +44,8 @@ PARAMETER_UPPER_BOUND = 10
 
 class ModelFitter(object):
           
-    def __init__(self, model, data, parameters_to_fit,
-                 selected_variable_names=None, 
+    def __init__(self, model, observed, parameters_to_fit,
+                 selected_columns=None, 
                  parameter_lower_bound=PARAMETER_LOWER_BOUND,
                  parameter_upper_bound=PARAMETER_UPPER_BOUND,
                  ):      
@@ -54,13 +54,13 @@ class ModelFitter(object):
         ---------
         model: ExtendedRoadRunner/str
             roadrunner model or antimony model
-        data: NamedTimeseries/str
+        observed: NamedTimeseries/str
             str: path to CSV file
         parameters_to_fit: list-str
             parameters in the model that you want to fit
         selected_values: list-str
             species names you wish use to fit the model
-            default: all variables in data
+            default: all columns in observed
         parameter_lower_bound: float
             lower bound for the fitting parameters
         parameter_upper_bound: float
@@ -68,12 +68,12 @@ class ModelFitter(object):
                
         Usage
         -----
-        f = ModelFitter(roadrunner_model, "data.csv", ['k1', 'k2'])
+        f = ModelFitter(roadrunner_model, "observed.csv", ['k1', 'k2'])
         """
-        if isinstance(data, str):
-            self.timeseries = NamedTimeseries(csv_path=data)
-        elif isinstance(data, NamedTimeseries):
-            self.timeseries = NamedTimeseries(timeseries=data)
+        if isinstance(observed, str):
+            self.observed_ts = NamedTimeseries(csv_path=observed)
+        elif isinstance(observed, NamedTimeseries):
+            self.observed_ts = NamedTimeseries(timeseries=observed)
         else:
             msg = "Invalid data specification."
             msg += " Must be either file path or NamedTimeseries."
@@ -82,10 +82,10 @@ class ModelFitter(object):
         self._lower_bound = parameter_lower_bound
         self._upper_bound = parameter_upper_bound
         self.minimizer = None  # Minimizer with the result of the fit
-        if selected_variable_names is None:
-            self.selected_variable_names = self.timeseries.colnames
+        if selected_columns is None:
+            self.selected_columns = self.observed_ts.colnames
         else:
-            self.selected_variable_names = selected_variable_names
+            self.selected_columns = selected_columns
         self.roadrunner_model = self._setRoadrunnerModel(model)
         self.unoptimized_residual_variance  \
               = self._calculateUnoptimizedResidualVariance()
@@ -93,8 +93,8 @@ class ModelFitter(object):
         self.optimized_residual_variance = None
 
     def _calculateResidualVariance(self, timeseries):
-        residuals = self.timeseries[self.selected_variable_names].flatten()  \
-              - timeseries[self.selected_variable_names].flatten()
+        residuals = self.observed_ts[self.selected_columns].flatten()  \
+              - timeseries[self.selected_columns].flatten()
         residuals = [float(v) for v in residuals]
         return np.var(residuals)
 
@@ -151,7 +151,7 @@ class ModelFitter(object):
             model.reset()
         _ = self.getFittedModel(params=params)
         named_array = model.simulate(
-              self.timeseries.start, self.timeseries.end, len(self.timeseries))
+              self.observed_ts.start, self.observed_ts.end, len(self.observed_ts))
         return NamedTimeseries(named_array=named_array)
 
     def _residuals(self, params):
@@ -170,8 +170,8 @@ class ModelFitter(object):
             -------
             NamedTimeseries
         """
-        arr = self.timeseries[self.selected_variable_names]  \
-              - self.simulate(params=params)[self.selected_variable_names]
+        arr = self.observed_ts[self.selected_columns]  \
+              - self.simulate(params=params)[self.selected_columns]
         arr = arr.flatten()
         return arr
         
