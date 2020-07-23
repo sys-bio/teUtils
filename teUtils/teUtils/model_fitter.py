@@ -23,7 +23,8 @@ Usage
    # Fit the model parameters and view parameters
    f.fitModel()
    print(f.getFittedParamters())
-   # Print fitted and residual values
+   # Print observed, fitted and residual values
+   print(f.observed_ts)
    print(f.fitted_ts)
    print(f.residual_ts)
 """
@@ -139,8 +140,9 @@ class ModelFitter(object):
         1-d ndarray of residuals
         """
         self._simulate(params=params)
-        arr = self.observed_ts[self.selected_columns]  \
-              - self.fitted_ts[self.selected_columns]
+        cols = self.residual_ts.colnames
+        self.residual_ts[cols] = self.observed_ts[cols] - self.fitted_ts[cols]
+        arr = self.residual_ts[self.selected_columns]
         self.residual_ts[self.selected_columns] = arr
         return arr.flatten()
         
