@@ -89,6 +89,7 @@ class ModelFitter(object):
         # The following are calculated during fitting
         self.roadrunner_model = None
         self.minimizer = None
+        self.minimizer_result = None  # Results of minimization
         self.params = None
         self.fitted_ts = None
         self.residual_ts = self.observed_ts.copy()
@@ -191,7 +192,7 @@ class ModelFitter(object):
         """
         if self.minimizer is None:
             raise ValueError("Must fit model before extracting fitted parameters")
-        return [self.minimizer.params[p].value for p in self.parameters_to_fit]
+        return [self.params[p].value for p in self.parameters_to_fit]
 
     def getFittedModel(self):
         if self.roadrunner_model is None:

@@ -23,6 +23,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+LABEL1 = "1"
+LABEL2 = "2"
+
+
 ########################################
 class _Positioner(object):
     # Determines the position of a plot
@@ -162,15 +166,17 @@ class TimeseriesPlotter(object):
             if not positioner.isLastRow():
                 options.xlabel =  ""
             if options.marker1 is None:
-                ax.plot(timeseries1[TIME], timeseries1[variable], color="blue")
+                ax.plot(timeseries1[TIME], timeseries1[variable], color="blue", label=LABEL1)
             else:
-                ax.scatter(timeseries1[TIME], timeseries1[variable], color="blue", marker=options.marker1)
+                ax.scatter(timeseries1[TIME], timeseries1[variable], color="blue", label=LABEL1,
+                      marker=options.marker1)
             if timeseries2 is not None:
                 if options.marker2 is None:
-                    ax.plot(timeseries2[TIME], timeseries2[variable], color="red")
+                    ax.plot(timeseries2[TIME], timeseries2[variable], color="red", label=LABEL2)
                 else:
-                    ax.scatter(timeseries2[TIME], timeseries2[variable], color="red", marker=options.marker2)
-                options.set("legend", ("1", "2"))
+                    ax.scatter(timeseries2[TIME], timeseries2[variable], color="red", label=LABEL2,
+                          marker=options.marker2)
+                options.set("legend", [LABEL1, LABEL2])
             options.do(ax)
         if self.is_plot:
             plt.show()
