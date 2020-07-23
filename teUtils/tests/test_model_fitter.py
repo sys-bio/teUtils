@@ -7,6 +7,7 @@ Created on Tue Jul  7 14:24:09 2020
 """
 
 from teUtils.model_fitter import ModelFitter
+from teUtils import model_fitter
 from teUtils.named_timeseries import NamedTimeseries, TIME
 
 import numpy as np
@@ -89,13 +90,23 @@ class TestModelFitter(unittest.TestCase):
     def testFit(self):
         if IGNORE_TEST:
             return
+        def test(method):
+            fitter = ModelFitter(ANTIMONY_MODEL, self.timeseries,
+                  list(PARAMETER_DCT.keys()), method=method)
+            self.fitter.fitModel()
+            PARAMETER = "k2"
+            diff = np.abs(PARAMETER_DCT[PARAMETER]
+                  - dct[PARAMETER])
+            self.assertLess(diff, 1)
+        #
         self.fitter.fitModel()
         dct = self.checkParameterValues()
         #
-        PARAMETER = "k2"
-        diff = np.abs(PARAMETER_DCT[PARAMETER]
-              - dct[PARAMETER])
-        self.assertLess(diff, 1)
+        for method in [model_fitter.METHOD_LEASTSQR,
+              model_fitter.METHOD_BOTH,
+              model_fitter.METHOD_DIFFERENTIAL_EVOLUTION]:
+            test(method)
+    
 
     def testGetFittedParameters(self):
         if IGNORE_TEST:

@@ -40,12 +40,16 @@ import tellurium as te
 # Constants
 PARAMETER_LOWER_BOUND = 0
 PARAMETER_UPPER_BOUND = 10
+#  Minimizer methods
+METHOD_BOTH = "both"
+METHOD_DIFFERENTIAL_EVOLUTION = "differential_evolution"
+METHOD_LEASTSQR = "leastsqr"
 
 
 class ModelFitter(object):
           
     def __init__(self, model_specification, observed, parameters_to_fit,
-                 selected_columns=None, 
+                 selected_columns=None, method=METHOD_BOTH,
                  parameter_lower_bound=PARAMETER_LOWER_BOUND,
                  parameter_upper_bound=PARAMETER_UPPER_BOUND,
                  ):      
@@ -66,6 +70,8 @@ class ModelFitter(object):
             lower bound for the fitting parameters
         parameter_upper_bound: float
             upper bound for the fitting parameters
+        method: str
+            method used for minimization
                
         Usage
         -----
@@ -79,9 +85,10 @@ class ModelFitter(object):
         if selected_columns is None:
             selected_columns = self.observed_ts.colnames
         self.selected_columns = selected_columns
+        self._method = method
         # The following are calculated during fitting
         self.roadrunner_model = None
-        self.minimizer = None  # Minimizer with the result of the fit
+        self.minimizer = None
         self.params = None
         self.fitted_ts = None
         self.residual_ts = self.observed_ts.copy()
@@ -166,11 +173,14 @@ class ModelFitter(object):
             # Use two algorithms:
             #   Global differential evolution to get us close to minimum
             #   A local Levenberg-Marquardt to getsus to the minimum
-            minimizer = lmfit.Minimizer(self._residuals, params)
-            result = minimizer.minimize(method='differential_evolution')
-            minimizer = lmfit.Minimizer(self._residuals, result.params)
-            self.minimizer = minimizer.minimize(method='leastsqr')
-            self.params = self.minimizer.params
+            if self._method in [METHOD_BOTH, METHOD_DIFFERENTIAL_EVOLUTION]:
+                minimizer = lmfit.Minimizer(self._residuals, params)
+                self.minimizer_result = minimizer.minimize(method='differential_evolution')
+            if self._method in [METHOD_BOTH, METHOD_LEASTSQR]:
+                minimizer = lmfit.Minimizer(self._residuals, params)
+                self.minimizer_result = minimizer.minimize(method='leastsqr')
+            self.params = self.minimizer_result.params
+            self.minimizer = minimizer
 
     def getFittedParameters(self):
         """
