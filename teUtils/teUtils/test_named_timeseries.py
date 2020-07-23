@@ -149,6 +149,16 @@ class TestNamedTimeseries(unittest.TestCase):
         new_timeseries = named_timeseries.mkNamedTimeseries(
               self.timeseries.all_colnames, array)
         self.assertGreater(len(self.timeseries), len(new_timeseries))
+        #
+        ts = mkNamedTimeseries(self.timeseries)
+        self.assertTrue(self.timeseries.equals(ts))
+        #
+        ts = mkNamedTimeseries(TEST_DATA_PATH)
+        self.assertTrue(self.timeseries.equals(ts))
+        #
+        with self.assertRaises(ValueError):
+            ts = mkNamedTimeseries(3)
+       
 
     def testToPandas(self):
         if IGNORE_TEST:

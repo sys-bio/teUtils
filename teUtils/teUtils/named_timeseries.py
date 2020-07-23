@@ -37,8 +37,27 @@ TIME = "time"
 
 
 ################## FUNCTIONS ########################
-def mkNamedTimeseries(colnames, array):
-    return NamedTimeseries(colnames=colnames, array=array)
+def mkNamedTimeseries(*args):
+    """
+    Constructs a NamedTimeseries from different arguments.
+    
+    Parameters
+    ----------
+    args: list
+        [list-str, np.ndarray]
+        [NamedTimeseries]
+        [str]
+    """
+    if len(args) == 2:
+        return NamedTimeseries(colnames=args[0], array=args[1])
+    if len(args) == 1:
+        if isinstance(args[0], NamedTimeseries):
+            return args[0]
+        elif isinstance(args[0], str):
+            return NamedTimeseries(csv_path=args[0])
+    raise ValueError("Specification for NameTimeseries: %s"
+          % str(args))
+    
 
 def arrayEquals(arr1, arr2):
     """
@@ -479,3 +498,20 @@ class NamedTimeseries(object):
         """
         df = self.to_dataframe()
         return NamedTimeseries(dataframe=df[list(colnames)])
+
+    def isEqualShape(self, other_ts):
+        """
+        Verifies that data shape and column names are the same.
+
+        Parameters
+        ----------
+        other_ts: NamedTimeseries
+        
+        Returns
+        ------
+        boolean
+        """
+        diff = set(self.colnames).symmetric_difference(other_ts.colnames)
+        if len(diff) > 0:
+            return False
+        return np.shape(self.values) == np.shape(other_ts.values)

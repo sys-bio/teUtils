@@ -21,16 +21,14 @@ Usage
    f = ModelFitter(model, "mydata.txt",
          parameters_to_fit=["k1", "k2"])
    # Fit the model parameters and view parameters
-   f.fit()
+   f.fitModel()
    print(f.getFittedParamters())
-   # Run a simulation with the fitted parameters
-   timeseries = f.simulate()
-   # Get the model with the fitted parameters and simulate over a different time period
-   roadrunner_model = f.getFittedModel()
-   data = roadrunner_model.simulate(0, 100, 1000)
+   # Print fitted and residual values
+   print(f.fitted_ts)
+   print(f.residual_ts)
 """
 
-from named_timeseries import NamedTimeseries, TIME
+from named_timeseries import NamedTimeseries, TIME, mkNamedTimeseries
 
 import lmfit; 
 import numpy as np
@@ -44,7 +42,7 @@ PARAMETER_UPPER_BOUND = 10
 
 class ModelFitter(object):
           
-    def __init__(self, model, observed, parameters_to_fit,
+    def __init__(self, model_specification, observed, parameters_to_fit,
                  selected_columns=None, 
                  parameter_lower_bound=PARAMETER_LOWER_BOUND,
                  parameter_upper_bound=PARAMETER_UPPER_BOUND,
@@ -52,13 +50,14 @@ class ModelFitter(object):
         """
         Parameters
         ---------
-        model: ExtendedRoadRunner/str
+        model_specification: ExtendedRoadRunner/str
             roadrunner model or antimony model
         observed: NamedTimeseries/str
             str: path to CSV file
-        parameters_to_fit: list-str
+        parameters_to_fit: list-str/None
             parameters in the model that you want to fit
-        selected_values: list-str
+            if None, no parameters are fit
+        selected_columns: list-str
             species names you wish use to fit the model
             default: all columns in observed
         parameter_lower_bound: float
@@ -70,110 +69,80 @@ class ModelFitter(object):
         -----
         f = ModelFitter(roadrunner_model, "observed.csv", ['k1', 'k2'])
         """
-        if isinstance(observed, str):
-            self.observed_ts = NamedTimeseries(csv_path=observed)
-        elif isinstance(observed, NamedTimeseries):
-            self.observed_ts = NamedTimeseries(timeseries=observed)
-        else:
-            msg = "Invalid data specification."
-            msg += " Must be either file path or NamedTimeseries."
-            raise ValueError(msg)
+        self.model_specification = model_specification
+        self.observed_ts = mkNamedTimeseries(observed)
         self.parameters_to_fit = parameters_to_fit
         self._lower_bound = parameter_lower_bound
         self._upper_bound = parameter_upper_bound
-        self.minimizer = None  # Minimizer with the result of the fit
         if selected_columns is None:
-            self.selected_columns = self.observed_ts.colnames
-        else:
-            self.selected_columns = selected_columns
-        self.roadrunner_model = self._setRoadrunnerModel(model)
-        self.unoptimized_residual_variance  \
-              = self._calculateUnoptimizedResidualVariance()
-        # Variance of residuals of optimized model
-        self.optimized_residual_variance = None
+            selected_columns = self.observed_ts.colnames
+        self.selected_columns = selected_columns
+        # The following are calculated during fitting
+        self.roadrunner_model = None
+        self.minimizer = None  # Minimizer with the result of the fit
+        self.params = None
+        self.fitted_ts = None
+        self.residual_ts = self.observed_ts.copy()
 
     def _calculateResidualVariance(self, timeseries):
         residuals = self.observed_ts[self.selected_columns].flatten()  \
               - timeseries[self.selected_columns].flatten()
         residuals = [float(v) for v in residuals]
         return np.var(residuals)
-
-    def _calculateUnoptimizedResidualVariance(self):
-        return self._calculateResidualVariance(self.simulate())
      
-    def _setRoadrunnerModel(self, model):
+    def _initializeRoadrunnerModel(self):
         """
-            Set values for the roadrunner and antimony models.
-    
-            Parameters
-            ----------
-    
-            model: ExtendedRoadRunnerModel/str
-    
-            Returns
-            -------
-            ExtendedRoadRunner
+            Sets self.roadrunner_model.
         """
-        if isinstance(model,
+        if isinstance(self.model_specification,
               te.roadrunner.extended_roadrunner.ExtendedRoadRunner):
-            roadrunner_model = model
-        elif isinstance(model, str):
-            roadrunner_model = te.loada(model)
+            self.roadrunner_model = self.model_specification
+        elif isinstance(self.model_specification, str):
+            self.roadrunner_model = te.loada(self.model_specification)
         else:
             msg = 'Invalid model.'
             msg = msg + "\nA model must either be a Roadrunner model "
             msg = msg + "an Antimony model."
             raise ValueError(msg)
-        return roadrunner_model
 
-    def simulate(self, model=None, params=None, is_reset=False):
+    def _simulate(self, params=None):
         """
-            Runs a simulation and returns the species data produced.
-    
-            Parameters
-            ----------
-            model: ExtendedRoadRunner
-            params: lmfit.Parameters
-    
-            Returns
-            -------
-            NamedTimeseries
-    
-            Usage
-            -----
-            f = ModelFitter(data, model, parameters_to_fit=["k1", "k2"])
-            f.fitModel()
-            timeseries = f.simulate()
+        Runs a simulation. Updates self.fitted_ts.
+
+        Parameters
+        ----------
+        params: lmfit.Parameters
+
+        Instance Variables Updated
+        --------------------------
+        self.fitted_ts
         """
-        if model is None:
-            model = self.roadrunner_model
-        if is_reset:
-            model.reset()
-        _ = self.getFittedModel(params=params)
-        named_array = model.simulate(
+        self._setupModel(params=params)
+        named_array = self.roadrunner_model.simulate(
               self.observed_ts.start, self.observed_ts.end, len(self.observed_ts))
-        return NamedTimeseries(named_array=named_array)
+        self.fitted_ts = NamedTimeseries(named_array=named_array)
 
     def _residuals(self, params):
         """
-            Compute the residuals between objective and experimental data
-            Python optimizers often require the residual rather than the sum
-            of squares themselves. Hence we just copute the residuals which are
-            the difference between the simulated data the time read in time series data 
-            Runs a simulation and returns the species data produced.
-    
-            Parameters
-            ----------
-            params: lmfit.Parameters
-    
-            Returns
-            -------
-            NamedTimeseries
+        Compute the residuals between objective and experimental data
+
+        Parameters
+        ----------
+        params: lmfit.Parameters
+
+        Instance Variables Updated
+        --------------------------
+        self.fitted_ts
+
+        Returns
+        -------
+        1-d ndarray of residuals
         """
+        self._simulate(params=params)
         arr = self.observed_ts[self.selected_columns]  \
-              - self.simulate(params=params)[self.selected_columns]
-        arr = arr.flatten()
-        return arr
+              - self.fitted_ts[self.selected_columns]
+        self.residual_ts[self.selected_columns] = arr
+        return arr.flatten()
         
     def fitModel(self):
         """
@@ -184,66 +153,54 @@ class ModelFitter(object):
         Example:
               f.fitModel()
         """
-        is_error = False
-        if not isinstance(self.parameters_to_fit, list):
-            is_error = True
-        if len(self.parameters_to_fit) == 0:
-            is_error = True
-        if is_error:
-            raise ValueError("Must specify at least one parameter to fit")
-        params = self._initializeParams()
-        # Fit the model to the data
-        # Use two algorithms:
-        #   Global differential evolution to get us close to minimum
-        #   A local Levenberg-Marquardt to getsus to the minimum
-        minimizer = lmfit.Minimizer(self._residuals, params)
-        result = minimizer.minimize(method='differential_evolution')
-        minimizer = lmfit.Minimizer(self._residuals, result.params)
-        self.minimizer = minimizer.minimize(method='leastsqr')
-        # Calculate residuals for the fitted model
-        fitted_model = self.getFittedModel()
-        simulated_timeseries = self.simulate(model=fitted_model, is_reset=True)
-        self.optimized_residual_variance =  \
-              self._calculateResidualVariance(simulated_timeseries)
+        self._initializeRoadrunnerModel()
+        if self.parameters_to_fit is None:
+            # Compute fit and residuals for base model
+            _ = self._residuals(None)
+        else:
+            params = self._initializeParams()
+            # Fit the model to the data
+            # Use two algorithms:
+            #   Global differential evolution to get us close to minimum
+            #   A local Levenberg-Marquardt to getsus to the minimum
+            minimizer = lmfit.Minimizer(self._residuals, params)
+            result = minimizer.minimize(method='differential_evolution')
+            minimizer = lmfit.Minimizer(self._residuals, result.params)
+            self.minimizer = minimizer.minimize(method='leastsqr')
+            self.params = self.minimizer.params
 
     def getFittedParameters(self):
         """
-            Returns an array of the fitted parameters 
-                  
-            Example:
-                  f.getFittedParameters ()
+        Returns an array of the fitted parameters 
+              
+        Example:
+              f.getFittedParameters ()
         """
         if self.minimizer is None:
             raise ValueError("Must fit model before extracting fitted parameters")
         return [self.minimizer.params[p].value for p in self.parameters_to_fit]
 
-    def getFittedModel(self, params=None):
+    def getFittedModel(self):
+        if self.roadrunner_model is None:
+            raise ValueError("Must fit model before you get a fitted model.")
+        self.roadrunner_model.reset()
+        self._setupModel(params=self.params)
+        return self.roadrunner_model
+
+    def _setupModel(self, params=None):
         """
-            Returns a reset roadrunner model with parameters set to their fitted values.
-        
-            Parameters
-            ----------
-            params: lmfit.Parameters
+        Sets up the model for use based on the parameter parameters
     
-            Returns
-            -------
-            ExtendedRoadrunnerModel
-     
-            Usage
-            -----
-                  f = ModelFitter(data, model, parameters_to_fit=parameters_to_fit)
-                  f.fitModel()
-                  fitted_model = f.getFittedModel()
+        Parameters
+        ----------
+        params: lmfit.Parameters
+ 
         """
-        # Set the parameters
         self.roadrunner_model.reset()  
-        if (params is None) and (self.minimizer is not None):
-            params = self.minimizer.params
         if params is not None:
             pp = params.valuesdict()
             for parameter in self.parameters_to_fit:
                self.roadrunner_model.model[parameter] = pp[parameter]
-        return self.roadrunner_model
 
     def _initializeParams(self):
         params = lmfit.Parameters()
@@ -252,4 +209,3 @@ class ModelFitter(object):
            params.add(parameter, value=value, 
                  min=self._lower_bound, max=self._upper_bound)
         return params
-

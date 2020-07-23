@@ -28,7 +28,7 @@ ANTIMONY_MODEL = """
     J4: S4 -> S5; k4*S4
     J5: S5 -> S6; k5*S5;
 # Species initializations     
-    S1 = 10;
+    S1 = 10; S2 = 0; S3 = 0; S4 = 0; S5 = 0; S6 = 0;
 # Parameters:      
    %s
 """ % parameters_str
@@ -46,36 +46,32 @@ class TestModelFitter(unittest.TestCase):
     def testConstructor(self):
         if IGNORE_TEST:
             return
-        true = isinstance(self.fitter.roadrunner_model,
-             tellurium.roadrunner.extended_roadrunner
-             .ExtendedRoadRunner)
-        self.assertTrue(true)
-        self.assertGreater(len(self.fitter.timeseries), 0)
+        self.assertIsNone(self.fitter.roadrunner_model)
+        self.assertGreater(len(self.fitter.observed_ts), 0)
         #
-        for variable in self.fitter.selected_variable_names:
+        for variable in self.fitter.selected_columns:
             self.assertTrue(variable in VARIABLE_NAMES)
-        #
-        self.assertTrue(isinstance(
-              self.fitter.unoptimized_residual_variance, float))
 
     def testSimulate(self):
         if IGNORE_TEST:
             return
-        timeseries = self.fitter.simulate()
-        diff = sum([t1 - t2 for t1, t2 in 
-              zip(timeseries[TIME], self.fitter.timeseries["time"])])
-        self.assertTrue(np.isclose(diff, 0))
+        self.fitter._initializeRoadrunnerModel()
+        self.fitter._simulate()
+        self.assertTrue(self.fitter.observed_ts.isEqualShape(
+              self.fitter.fitted_ts))
 
     def testResiduals(self):
         if IGNORE_TEST:
             return
+        self.fitter._initializeRoadrunnerModel()
         arr = self.fitter._residuals(None)
+        self.assertTrue(self.fitter.observed_ts.isEqualShape(
+              self.fitter.residual_ts))
         self.assertEqual(len(arr),
-              len(self.fitter.timeseries.colnames)*
-              len(self.fitter.timeseries))
+              len(self.fitter.observed_ts)*len(self.fitter.observed_ts.colnames))
 
     def checkParameterValues(self):
-        dct = self.fitter.minimizer.params.valuesdict()
+        dct = self.fitter.params.valuesdict()
         self.assertEqual(len(dct), len(self.fitter.parameters_to_fit))
         #
         for value in dct.values():
@@ -108,9 +104,10 @@ class TestModelFitter(unittest.TestCase):
         fitter1.fitModel()
         fitted_model = fitter1.getFittedModel()
         fitter2 = ModelFitter(fitted_model, self.timeseries, None)
+        fitter2.fitModel()
         # Should get same fit without changing the parameters
-        self.assertTrue(np.isclose(fitter1.optimized_residual_variance,
-              fitter2.unoptimized_residual_variance))
+        self.assertTrue(np.isclose(np.var(fitter1.residual_ts.flattenValues()),
+              np.var(fitter2.residual_ts.flattenValues())))
         
 
 if __name__ == '__main__':
