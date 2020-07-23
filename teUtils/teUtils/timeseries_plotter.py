@@ -1,4 +1,10 @@
+# -*- coding: utf-8 -*-
 """
+Created on Tue Jul  7 14:24:09 2020
+
+@author: hsauro
+@author: joseph-hellerstein
+
     A TimeseriesPlotter visualizes timeseries data, especially for comparing
     time series.
     
@@ -10,7 +16,7 @@
     Usage:
 """
 
-from named_timeseries import NamedTimeseries, TIME
+from teUtils.named_timeseries import NamedTimeseries, TIME
 
 import copy
 import matplotlib.pyplot as plt

@@ -42,10 +42,17 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from . import odePrint
-from . import plotting
-from . import prettyTabular
-from . import buildNetworks
-from . import scanning
-from . import fitModel
-
+try:
+    from . import odePrint
+    from . import plotting
+    from . import prettyTabular
+    from . import buildNetworks
+    from . import scanning
+    from . import model_fitter
+except:
+    from teUtils import odePrint
+    from teUtils import plotting
+    from teUtils import prettyTabular
+    from teUtils import buildNetworks
+    from teUtils import scanning
+    from teUtils import model_fitter

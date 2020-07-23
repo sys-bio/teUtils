@@ -1,5 +1,13 @@
-from model_fitter import ModelFitter
-from named_timeseries import NamedTimeseries, TIME
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jul  7 14:24:09 2020
+
+@author: hsauro
+@author: joseph-hellerstein
+"""
+
+from teUtils.model_fitter import ModelFitter
+from teUtils.named_timeseries import NamedTimeseries, TIME
 
 import numpy as np
 import os

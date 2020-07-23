@@ -3,6 +3,7 @@
 Created on Tue Jul  7 14:24:09 2020
 
 @author: hsauro
+@author: joseph-hellerstein
 
 A ModelFitter estimates parameters of a roadrunner model by using observed values
 of floating species concentrations to construct fitted values with 
@@ -29,7 +30,7 @@ Usage
    print(f.residual_ts)
 """
 
-from named_timeseries import NamedTimeseries, TIME, mkNamedTimeseries
+from teUtils.named_timeseries import NamedTimeseries, TIME, mkNamedTimeseries
 
 import lmfit; 
 import numpy as np

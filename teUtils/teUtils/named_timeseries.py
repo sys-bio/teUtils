@@ -1,4 +1,10 @@
+# -*- coding: utf-8 -*-
 """
+Created on Tue Jul  7 14:24:09 2020
+
+@author: hsauro
+@author: joseph-hellerstein
+
 A NamedTimeseries is a container of multiple vairables that are obtained at the
 same timepoints. Variables can be accessed by time using ("[", "]").
 Various properties of the common timepoints can be accessed, such as start

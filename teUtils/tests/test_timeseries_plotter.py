@@ -1,6 +1,14 @@
-from named_timeseries import NamedTimeseries, mkNamedTimeseries, TIME
-import named_timeseries
-from timeseries_plotter import PlotOptions, TimeseriesPlotter
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jul  7 14:24:09 2020
+
+@author: hsauro
+@author: joseph-hellerstein
+"""
+
+from teUtils.named_timeseries import NamedTimeseries, mkNamedTimeseries, TIME
+import teUtils.named_timeseries as named_timeseries
+from teUtils.timeseries_plotter import PlotOptions, TimeseriesPlotter
 
 import numpy as np
 import os

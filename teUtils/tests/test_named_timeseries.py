@@ -1,5 +1,13 @@
-from named_timeseries import NamedTimeseries, mkNamedTimeseries
-import named_timeseries
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jul  7 14:24:09 2020
+
+@author: hsauro
+@author: joseph-hellerstein
+"""
+
+from teUtils.named_timeseries import NamedTimeseries, mkNamedTimeseries
+import teUtils.named_timeseries as named_timeseries
 
 import numpy as np
 import os

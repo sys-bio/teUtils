@@ -1,12 +1,12 @@
 from setuptools import setup
 
-with open("README.txt", "r") as fh:
+with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name='teUtils',    # This is the name of your PyPI-package.
     packages=['teUtils'],
-    version='0.84',        # Update the version number for new releases
+    version='0.85',        # Update the version number for new releases
     #scripts=['teutilities'],    # The name of your scipt, and also the command you'll be using for calling it
     author='H M Sauro',
     author_email='hsauro@uw.edu',
@@ -21,7 +21,8 @@ setup(
        'Operating System :: OS Independent',
     ],
     install_requires=[
-        'tabulate',
+        'tabulate', 'libroadrunner', 'lmfit',
+        'numpy', 'tellurium',
     ],
     python_requires='>=3.6',
 )
