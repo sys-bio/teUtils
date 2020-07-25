@@ -309,7 +309,7 @@ class TestNamedTimeseries(unittest.TestCase):
         def test(values, reference):
             df = pd.DataFrame({TIME: TIMES, VALUE: values})
             ts = NamedTimeseries(dataframe=df)
-            results = ts.getTimes(VALUE, reference)
+            results = ts.getTimesForValue(VALUE, reference)
             for time in results:
                 idx1 = int(time)
                 idx2 = idx1 + 1

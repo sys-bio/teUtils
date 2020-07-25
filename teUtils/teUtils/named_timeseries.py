@@ -525,7 +525,7 @@ class NamedTimeseries(object):
             return False
         return np.shape(self.values) == np.shape(other_ts.values)
 
-    def getTimes(self, column, reference):
+    def getTimesForValue(self, column, reference):
         """
         Finds the times at which the column assumes the specified value.
         Does linear interpolation to find times.
