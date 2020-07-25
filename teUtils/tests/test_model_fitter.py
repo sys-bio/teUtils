@@ -14,6 +14,8 @@ import numpy as np
 import os
 import tellurium
 import unittest
+import matplotlib
+matplotlib.use( 'tkagg' )
 
 
 IGNORE_TEST = False
@@ -106,7 +108,6 @@ class TestModelFitter(unittest.TestCase):
               model_fitter.METHOD_BOTH,
               model_fitter.METHOD_DIFFERENTIAL_EVOLUTION]:
             test(method)
-    
 
     def testGetFittedParameters(self):
         if IGNORE_TEST:
@@ -119,7 +120,7 @@ class TestModelFitter(unittest.TestCase):
         if IGNORE_TEST:
             return
         fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
-              list(PARAMETER_DCT.keys()))
+              list(PARAMETER_DCT.keys()), is_plot=IS_PLOT)
         fitter1.fitModel()
         fitted_model = fitter1.getFittedModel()
         fitter2 = ModelFitter(fitted_model, self.timeseries, None)
@@ -127,6 +128,30 @@ class TestModelFitter(unittest.TestCase):
         # Should get same fit without changing the parameters
         self.assertTrue(np.isclose(np.var(fitter1.residual_ts.flattenValues()),
               np.var(fitter2.residual_ts.flattenValues())))
+
+    def testReportFit(self):
+        if IGNORE_TEST:
+            return
+        fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
+              list(PARAMETER_DCT.keys()), is_plot=IS_PLOT)
+        fitter1.fitModel()
+        result = fitter1.reportFit()
+
+    def testPlotResiduals(self):
+        if IGNORE_TEST:
+            return
+        fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
+              list(PARAMETER_DCT.keys()), is_plot=IS_PLOT)
+        fitter1.fitModel()
+        fitter1.plotResiduals(num_col=3, num_row=2)
+
+    def testPlotFit(self):
+        if IGNORE_TEST:
+            return
+        fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
+              list(PARAMETER_DCT.keys()), is_plot=IS_PLOT)
+        fitter1.fitModel()
+        fitter1.plotFit(num_col=3, num_row=2)
         
 
 if __name__ == '__main__':

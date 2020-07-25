@@ -31,6 +31,7 @@ Usage
 """
 
 from teUtils.named_timeseries import NamedTimeseries, TIME, mkNamedTimeseries
+from teUtils.timeseries_plotter import TimeseriesPlotter, PlotOptions
 
 import lmfit; 
 import numpy as np
@@ -52,6 +53,7 @@ class ModelFitter(object):
                  selected_columns=None, method=METHOD_BOTH,
                  parameter_lower_bound=PARAMETER_LOWER_BOUND,
                  parameter_upper_bound=PARAMETER_UPPER_BOUND,
+                 is_plot=True
                  ):      
         """
         Parameters
@@ -86,6 +88,7 @@ class ModelFitter(object):
             selected_columns = self.observed_ts.colnames
         self.selected_columns = selected_columns
         self._method = method
+        self._is_plot = is_plot
         # The following are calculated during fitting
         self.roadrunner_model = None
         self.minimizer = None
@@ -223,3 +226,21 @@ class ModelFitter(object):
            params.add(parameter, value=value, 
                  min=self._lower_bound, max=self._upper_bound)
         return params
+
+    def reportFit(self):
+        if self.minimizer_result is None:
+            raise ValueError("Must do fitModel before reportFit.")
+        return str(lmfit.fit_report(self.minimizer_result))
+
+    def plotResiduals(self, **kwargs):
+        options = PlotOptions()
+        plotter = TimeseriesPlotter(is_plot=self._is_plot)
+        options.marker1 = "o"
+        plotter.plotTimeSingle(self.residual_ts, options=options, **kwargs)
+
+    def plotFit(self, **kwargs):
+        options = PlotOptions()
+        plotter = TimeseriesPlotter(is_plot=self._is_plot)
+        options.marker2 = "o"
+        plotter.plotTimeSingle(self.fitted_ts, timeseries2=self.observed_ts,
+              options=options, **kwargs)
