@@ -527,13 +527,14 @@ class NamedTimeseries(object):
 
     def getTimes(self, column, reference):
         """
-        Finds the times at which the column assumes the specified values.
+        Finds the times at which the column assumes the specified value.
         Does linear interpolation to find times.
 
         Parameters
         ----------
         column: str
         reference: float
+            value that is searched/interpolated
         
         Returns
         ------

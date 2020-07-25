@@ -305,20 +305,23 @@ class TestNamedTimeseries(unittest.TestCase):
             return
         SIZE = 10
         VALUE = "values"
-        REFERENCE = 10
-        times = np.array(range(SIZE))
-        values = (times -5)**2
-        df = pd.DataFrame({TIME: times, VALUE: values})
-        ts = NamedTimeseries(dataframe=df)
-        times = ts.getTimes(VALUE, REFERENCE)
-        self.assertEqual(len(times), 2)
-        for time in times:
-            idx1 = int(time)
-            idx2 = idx1 + 1
-            small = min(ts[VALUE][idx1], ts[VALUE][idx2])
-            large = max(ts[VALUE][idx1], ts[VALUE][idx2])
-            self.assertLess(small, REFERENCE)
-            self.assertGreater(large, REFERENCE)
+        TIMES = np.array(range(SIZE))
+        def test(values, reference):
+            df = pd.DataFrame({TIME: TIMES, VALUE: values})
+            ts = NamedTimeseries(dataframe=df)
+            results = ts.getTimes(VALUE, reference)
+            for time in results:
+                idx1 = int(time)
+                idx2 = idx1 + 1
+                small = min(ts[VALUE][idx1], ts[VALUE][idx2])
+                large = max(ts[VALUE][idx1], ts[VALUE][idx2])
+                self.assertLessEqual(small, reference)
+                self.assertGreaterEqual(large, reference)
+        #
+        values = (TIMES-5)**2
+        test(values, 10)  # 2 times
+        test(-values, 5)  # Single maxk
+        
             
 
 if __name__ == '__main__':
