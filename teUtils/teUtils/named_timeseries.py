@@ -145,7 +145,10 @@ class NamedTimeseries(object):
                 all_colnames = cleanColnames(named_array.colnames)
                 self.values = named_array
             elif dataframe is not None:
-                df = dataframe.reset_index()
+                if dataframe.index.name == TIME:
+                    df = dataframe.reset_index()
+                else:
+                    df = dataframe
                 all_colnames = df.columns.tolist()
                 self.values = df.to_numpy()
             else:
@@ -521,3 +524,58 @@ class NamedTimeseries(object):
         if len(diff) > 0:
             return False
         return np.shape(self.values) == np.shape(other_ts.values)
+
+    def getTimes(self, column, reference):
+        """
+        Finds the times at which the column assumes the specified values.
+        Does linear interpolation to find times.
+
+        Parameters
+        ----------
+        column: str
+        reference: float
+        
+        Returns
+        ------
+        float
+        """
+        SMALL_FRAC = 10e-6
+        value_arr = self[column]
+        time_arr = self[TIME]
+        values = [1 if v > reference + SMALL_FRAC else -1 if v < reference - SMALL_FRAC
+              else 0 for v in value_arr]
+        last = 0
+        times = []
+        # Look for when cross 0
+        for idx, value  in enumerate(values):
+            if value == 0:
+                # Found an exact match
+                times.append(time_arr[idx])
+            elif last == 0:
+                # Do nothing
+                pass         
+            elif last == value:
+                # Does not cross 0
+                pass
+            elif last != value:
+                # Interpolate
+                if last < value:
+                  idx_lrg = idx
+                  idx_sml = idx - 1
+                else:
+                  idx_lrg = idx - 1
+                  idx_sml = idx
+                frac = (reference - value_arr[idx_sml])/(
+                      value_arr[idx_lrg] - value_arr[idx_sml])
+                time_diff = time_arr[idx_lrg] - time_arr[idx_sml]
+                time = time_arr[idx_sml] + frac*time_diff
+                times.append(time)
+            else:
+                raise RuntimeError("Should not get here")
+            last = value
+        return times
+            
+            
+        
+
+

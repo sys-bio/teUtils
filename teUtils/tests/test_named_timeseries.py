@@ -11,6 +11,7 @@ import teUtils.named_timeseries as named_timeseries
 
 import numpy as np
 import os
+import pandas as pd
 import tellurium as te
 import unittest
 
@@ -298,7 +299,27 @@ class TestNamedTimeseries(unittest.TestCase):
         ts = self.timeseries.concatenateColumns(self.timeseries)
         ts1 = ts.subsetColumns(*self.timeseries.colnames)
         self.assertTrue(self.timeseries.equals(ts1))
-   
+
+    def testGetTimes(self):
+        if IGNORE_TEST:
+            return
+        SIZE = 10
+        VALUE = "values"
+        REFERENCE = 10
+        times = np.array(range(SIZE))
+        values = (times -5)**2
+        df = pd.DataFrame({TIME: times, VALUE: values})
+        ts = NamedTimeseries(dataframe=df)
+        times = ts.getTimes(VALUE, REFERENCE)
+        self.assertEqual(len(times), 2)
+        for time in times:
+            idx1 = int(time)
+            idx2 = idx1 + 1
+            small = min(ts[VALUE][idx1], ts[VALUE][idx2])
+            large = max(ts[VALUE][idx1], ts[VALUE][idx2])
+            self.assertLess(small, REFERENCE)
+            self.assertGreater(large, REFERENCE)
+            
 
 if __name__ == '__main__':
   unittest.main()
