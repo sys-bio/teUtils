@@ -61,12 +61,17 @@ class TestNamedTimeseries(unittest.TestCase):
         if IGNORE_TEST:
             return
         COLNAMES = [TIME, "S1", "S2"]
-        def test(timeseries):
-            for name in COLNAMES:
+        def test(timeseries, colnames=COLNAMES):
+            for name in colnames:
                 self.assertTrue(np.isclose(sum(timeseries[name]
                       - self.timeseries[name]), 0))
         #
         new_timeseries = NamedTimeseries(colnames=COLNAMES,
+              array=self.timeseries[COLNAMES])
+        test(new_timeseries)
+        # Check can use different cases for TIME
+        new_timeseries = NamedTimeseries(
+              colnames= ["Time", "S1", "S2"],
               array=self.timeseries[COLNAMES])
         test(new_timeseries)
 

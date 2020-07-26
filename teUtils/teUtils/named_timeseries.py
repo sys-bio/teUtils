@@ -154,8 +154,10 @@ class NamedTimeseries(object):
             else:
                 msg = "Source should be a file path, colnames & array"
                 raise ValueError(msg)
-            if not TIME in all_colnames:
-                raise ValueError("Must have a time column")
+            time_idxs = [i for i, c in enumerate(all_colnames) if c.lower() == TIME]
+            if len(time_idxs) != 1:
+                raise ValueError("Must have exactly one time column")
+            all_colnames[time_idxs[0]] = TIME
             self.all_colnames = []  # all column names
             self.colnames = []  # Names of non-time columns
             self._index_dct = {} # index for columns
