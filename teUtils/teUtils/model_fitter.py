@@ -27,7 +27,7 @@ Usage
    # Print observed, fitted and residual values
    print(f.observed_ts)
    print(f.fitted_ts)
-   print(f.residual_ts)
+   print(f.residuals_ts)
 """
 
 from teUtils.named_timeseries import NamedTimeseries, TIME, mkNamedTimeseries
@@ -95,13 +95,7 @@ class ModelFitter(object):
         self.minimizer_result = None  # Results of minimization
         self.params = None
         self.fitted_ts = None
-        self.residual_ts = self.observed_ts.copy()
-
-    def _calculateResidualVariance(self, timeseries):
-        residuals = self.observed_ts[self.selected_columns].flatten()  \
-              - timeseries[self.selected_columns].flatten()
-        residuals = [float(v) for v in residuals]
-        return np.var(residuals)
+        self.residuals_ts = self.observed_ts.copy()
      
     def _initializeRoadrunnerModel(self):
         """
@@ -152,10 +146,10 @@ class ModelFitter(object):
         1-d ndarray of residuals
         """
         self._simulate(params=params)
-        cols = self.residual_ts.colnames
-        self.residual_ts[cols] = self.observed_ts[cols] - self.fitted_ts[cols]
-        arr = self.residual_ts[self.selected_columns]
-        self.residual_ts[self.selected_columns] = arr
+        cols = self.residuals_ts.colnames
+        self.residuals_ts[cols] = self.observed_ts[cols] - self.fitted_ts[cols]
+        arr = self.residuals_ts[self.selected_columns]
+        self.residuals_ts[self.selected_columns] = arr
         return arr.flatten()
         
     def fitModel(self):
@@ -193,13 +187,18 @@ class ModelFitter(object):
         Example:
               f.getFittedParameters ()
         """
-        if self.minimizer is None:
-            raise ValueError("Must fit model before extracting fitted parameters")
+        self._checkFit()
         return [self.params[p].value for p in self.parameters_to_fit]
 
     def getFittedModel(self):
-        if self.roadrunner_model is None:
-            raise ValueError("Must fit model before you get a fitted model.")
+        """
+        Provides the roadrunner model with fitted parameters
+    
+        Returns
+        -------
+        ExtendedRoadrunner
+        """
+        self._checkFit()
         self.roadrunner_model.reset()
         self._setupModel(params=self.params)
         return self.roadrunner_model
@@ -227,18 +226,48 @@ class ModelFitter(object):
                  min=self._lower_bound, max=self._upper_bound)
         return params
 
+    def _checkFit(self):
+        if self.params is None:
+            raise ValueError("Must use fitModel before using this.")
+
     def reportFit(self):
+        """
+        Provides details of the parameter fit.
+    
+        Returns
+        -------
+        str
+        """
+        self._checkFit()
         if self.minimizer_result is None:
             raise ValueError("Must do fitModel before reportFit.")
         return str(lmfit.fit_report(self.minimizer_result))
 
     def plotResiduals(self, **kwargs):
+        """
+        Plots residuals of a fit over time.
+    
+        Parameters
+        ----------
+        kwargs: dict
+           plot options
+        """
+        self._checkFit()
         options = PlotOptions()
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
         options.marker1 = "o"
-        plotter.plotTimeSingle(self.residual_ts, options=options, **kwargs)
+        plotter.plotTimeSingle(self.residuals_ts, options=options, **kwargs)
 
     def plotFit(self, **kwargs):
+        """
+        Plots the fit with observed data over time.
+    
+        Parameters
+        ----------
+        kwargs: dict
+           plot options
+        """
+        self._checkFit()
         options = PlotOptions()
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
         options.marker2 = "o"

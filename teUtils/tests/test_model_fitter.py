@@ -77,7 +77,7 @@ class TestModelFitter(unittest.TestCase):
         self.fitter._initializeRoadrunnerModel()
         arr = self.fitter._residuals(None)
         self.assertTrue(self.fitter.observed_ts.isEqualShape(
-              self.fitter.residual_ts))
+              self.fitter.residuals_ts))
         self.assertEqual(len(arr),
               len(self.fitter.observed_ts)*len(self.fitter.observed_ts.colnames))
 
@@ -126,8 +126,8 @@ class TestModelFitter(unittest.TestCase):
         fitter2 = ModelFitter(fitted_model, self.timeseries, None)
         fitter2.fitModel()
         # Should get same fit without changing the parameters
-        self.assertTrue(np.isclose(np.var(fitter1.residual_ts.flattenValues()),
-              np.var(fitter2.residual_ts.flattenValues())))
+        self.assertTrue(np.isclose(np.var(fitter1.residuals_ts.flattenValues()),
+              np.var(fitter2.residuals_ts.flattenValues())))
 
     def testReportFit(self):
         if IGNORE_TEST:
