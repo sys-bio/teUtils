@@ -48,6 +48,7 @@ try:
     from . import prettyTabular
     from . import buildNetworks
     from . import scanning
+    from . import fileUtils
     from . import model_fitter
 except:
     from teUtils import odePrint
@@ -55,4 +56,5 @@ except:
     from teUtils import prettyTabular
     from teUtils import buildNetworks
     from teUtils import scanning
+    from teUtils import fileUtils
     from teUtils import model_fitter
