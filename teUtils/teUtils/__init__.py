@@ -41,5 +41,6 @@ from . import plotting
 from . import prettyTabular
 from . import buildNetworks
 from . import scanning
+from . import fileUtils
 from . import fitter
 
