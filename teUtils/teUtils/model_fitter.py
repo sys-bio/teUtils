@@ -228,7 +228,7 @@ class ModelFitter(object):
 
     def _checkFit(self):
         if self.params is None:
-            raise ValueError("Must use fitModel before using this.")
+            raise ValueError("Must use fitModel before using this method.")
 
     def reportFit(self):
         """
@@ -258,18 +258,24 @@ class ModelFitter(object):
         options.marker1 = "o"
         plotter.plotTimeSingle(self.residuals_ts, options=options, **kwargs)
 
-    def plotFit(self, **kwargs):
+    def plotFit(self, is_multiple=False, **kwargs):
         """
         Plots the fit with observed data over time.
     
         Parameters
         ----------
+        is_multiple: bool
+            plots all variables on a single plot
         kwargs: dict
-           plot options
+            plot options
         """
         self._checkFit()
         options = PlotOptions()
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
         options.marker2 = "o"
-        plotter.plotTimeSingle(self.fitted_ts, timeseries2=self.observed_ts,
-              options=options, **kwargs)
+        if is_multiple:
+            plotter.plotTimeMultiple(self.fitted_ts, timeseries2=self.observed_ts,
+                  options=options, **kwargs)
+        else:
+            plotter.plotTimeSingle(self.fitted_ts, timeseries2=self.observed_ts,
+                  options=options, **kwargs)
