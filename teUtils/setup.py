@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 setup(
     name='teUtils',    # This is the name of your PyPI-package.
     packages=['teUtils'],
-    version='0.85',        # Update the version number for new releases
+    version='0.88',        # Update the version number for new releases
     #scripts=['teutilities'],    # The name of your scipt, and also the command you'll be using for calling it
     author='H M Sauro',
     author_email='hsauro@uw.edu',
