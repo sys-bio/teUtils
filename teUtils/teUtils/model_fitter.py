@@ -250,8 +250,25 @@ class ModelFitter(object):
     
         Parameters
         ----------
-        kwargs: dict
-           plot options
+        kwargs: dict. keyword with default values:
+            columns: List of columns to plot
+            figsize: (horizontal width, vertical height)
+            legend: Tuple of str for legend
+            num_col: Number of columns of plots in figure
+            num_row: Number of rows of plots in figure
+            marker1: Marker for timerseries1
+            marker2: Marker for timeseries2
+            num_row: rows of plots
+            num_col: columns of plots
+            timeseries2: second timeseries
+            title: plot title
+            suptitle: Figure title
+            xlabel: x axis title
+            xlim: order pair of lower and upper
+            xticklabels: list of labels for x ticks
+            ylabel: label for x axis
+            ylim: order pair of lower and upper
+            yticklabels: list of labels for y ticks
         """
         self._checkFit()
         options = PlotOptions()
@@ -269,7 +286,24 @@ class ModelFitter(object):
         is_multiple: bool
             plots all variables on a single plot
         kwargs: dict
-            plot options
+            columns: List of columns to plot
+            figsize: (horizontal width, vertical height)
+            legend: Tuple of str for legend
+            num_col: Number of columns of plots in figure
+            num_row: Number of rows of plots in figure
+            marker1: Marker for timerseries1
+            marker2: Marker for timeseries2
+            num_row: rows of plots
+            num_col: columns of plots
+            timeseries2: second timeseries
+            title: plot title
+            suptitle: Figure title
+            xlabel: x axis title
+            xlim: order pair of lower and upper
+            xticklabels: list of labels for x ticks
+            ylabel: label for x axis
+            ylim: order pair of lower and upper
+            yticklabels: list of labels for y ticks
         """
         self._checkFit()
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
@@ -293,7 +327,24 @@ class ModelFitter(object):
         Parameters
         ----------
         kwargs: dict
-           plot options
+            columns: List of columns to plot
+            figsize: (horizontal width, vertical height)
+            legend: Tuple of str for legend
+            num_col: Number of columns of plots in figure
+            num_row: Number of rows of plots in figure
+            marker1: Marker for timerseries1
+            marker2: Marker for timeseries2
+            num_row: rows of plots
+            num_col: columns of plots
+            timeseries2: second timeseries
+            title: plot title
+            suptitle: Figure title
+            xlabel: x axis title
+            xlim: order pair of lower and upper
+            xticklabels: list of labels for x ticks
+            ylabel: label for x axis
+            ylim: order pair of lower and upper
+            yticklabels: list of labels for y ticks
         """
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
         self._addKeyword(kwargs, tp.MARKER1, "o")
