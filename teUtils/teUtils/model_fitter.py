@@ -278,8 +278,7 @@ class ModelFitter(object):
             plotter.plotTimeMultiple(self.fitted_ts, timeseries2=self.observed_ts,
                   **kwargs)
         else:
-            if not tp.LEGEND in kwargs:
-                kwargs[tp.LEGEND] = ["observed", "fited"]
+            self._addKeyword(kwargs, tp.LEGEND, ["observed", "fitted"])
             plotter.plotTimeSingle(self.fitted_ts, timeseries2=self.observed_ts,
                   **kwargs)
 
