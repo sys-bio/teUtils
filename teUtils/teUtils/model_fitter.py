@@ -273,8 +273,7 @@ class ModelFitter(object):
         """
         self._checkFit()
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
-        if not tp.MARKER2 in kwargs:
-            kwargs[tp.MARKER2] = "o"
+        self._addKeyword(kwargs, tp.MARKER2, "o")
         if is_multiple:
             plotter.plotTimeMultiple(self.fitted_ts, timeseries2=self.observed_ts,
                   **kwargs)
@@ -283,3 +282,22 @@ class ModelFitter(object):
                 kwargs[tp.LEGEND] = ["observed", "fited"]
             plotter.plotTimeSingle(self.fitted_ts, timeseries2=self.observed_ts,
                   **kwargs)
+
+    def _addKeyword(self, kwargs, key, value):
+        if not key in kwargs:
+            kwargs[key] = value
+
+    def plotAll(self, **kwargs):
+        """
+        Plots fitted and observed values on a single plot.
+    
+        Parameters
+        ----------
+        kwargs: dict
+           plot options
+        """
+        plotter = TimeseriesPlotter(is_plot=self._is_plot)
+        self._addKeyword(kwargs, tp.MARKER1, "o")
+        plotter.plotTimeMultiple(self.observed_ts, timeseries2=self.fitted_ts, num_col=1, num_row=1,
+              **kwargs)
+        
