@@ -262,19 +262,19 @@ class NamedTimeseries(object):
 
     def __getitem__(self, reference):
         """
-            Returns data for the requested variables or rows.
-            Columns are specified by a str or list-str.
-            Rows are indicated by an int, list-int, or slice.
-            
-            Parameters
-            ---------
-            variable_names: str/list-str/slice/list-int/int
-    
-            Returns
-            -------
-            np.array/NamedTimeseries
-                np.ndarray for column type reference
-                NamedTimeseries for row type reference
+        Returns data for the requested variables or rows.
+        Columns are specified by a str or list-str.
+        Rows are indicated by an int, list-int, or slice.
+        
+        Parameters
+        ---------
+        variable_names: str/list-str/slice/list-int/int
+
+        Returns
+        -------
+        np.array/NamedTimeseries
+            np.ndarray for column type reference
+            NamedTimeseries for row type reference
         """
         # indicate types
         is_int = False
@@ -284,6 +284,8 @@ class NamedTimeseries(object):
         is_list_str = False
         if isinstance(reference, int):
             is_int = True
+        elif isinstance(reference, str):
+            is_str = True
         elif isinstance(reference, list):
             if isinstance(reference[0], int):
                 is_list_int = True
@@ -304,6 +306,20 @@ class NamedTimeseries(object):
             return NamedTimeseries(colnames=self.all_colnames,
                   array=self.values[indices, :])
         else:
+            if is_str:
+                if reference.lower() == TIME:
+                    reference = TIME
+            if is_list_str:
+                time_strs = [c for c in reference if c.lower() == TIME]
+                if len(time_strs) == 1:
+                    ref = time_strs[0]
+                    idx = reference.index(ref)
+                    reference.insert(idx, TIME)
+                    reference.remove(ref)
+                elif len(time_strs) == 0:
+                    pass
+                else:
+                    raise ValueError("Reference to multiple different time columns.")
             indices = self._getColumnIndices(reference)
             return self.values[:, indices]
 
