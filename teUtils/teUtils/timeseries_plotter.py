@@ -71,6 +71,27 @@ class _Positioner(object):
  
 #########################
 class PlotOptions(object):
+    """
+    Class that manages plot options. Options are:
+        columns: List of columns to plot
+        figsize: (horizontal width, vertical height)
+        legend: Tuple of str for legend
+        num_col: Number of columns of plots in figure
+        num_row: Number of rows of plots in figure
+        marker1: Marker for timerseries1
+        marker2: Marker for timeseries2
+        num_row: rows of plots
+        num_col: columns of plots
+        timeseries2: second timeseries
+        title: plot title
+        suptitle: Figure title
+        xlabel: x axis title
+        xlim: order pair of lower and upper
+        xticklabels: list of labels for x ticks
+        ylabel: label for x axis
+        ylim: order pair of lower and upper
+        yticklabels: list of labels for y ticks
+    """
 
     def __init__(self):
         self.columns = []  # Columns to plot
@@ -238,7 +259,7 @@ class TimeseriesPlotter(object):
         ---------
         timeseries1: NamedTimeseries
         kwargs: dict
-            plot options. See PlotOptions
+            See PlotOptions (help(PlotOptions))
                
         Usage
         ____
@@ -286,7 +307,7 @@ class TimeseriesPlotter(object):
         ---------
         timeseries1: NamedTimeseries
         kwargs: dict
-            plot options. See PlotOptions
+            See PlotOptions (help(PlotOptions))
         """
         max_col = 2 if TIMESERIES2 in kwargs else 1
         options = self._initializeRowColumn(timeseries1, max_col=max_col, **kwargs)
@@ -334,7 +355,7 @@ class TimeseriesPlotter(object):
         ---------
         timeseries: NamedTimeseries
         kwargs: dict
-            plot options. See PlotOptions
+            See PlotOptions (help(PlotOptions))
         """
         options = self._initializeRowColumn(timeseries,
               max_col=len(pairs), **kwargs)
