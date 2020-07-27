@@ -25,6 +25,16 @@ import numpy as np
 
 LABEL1 = "1"
 LABEL2 = "2"
+COLORS = ['r', 'g', 'b', 'c', 'pink', 'grey']
+
+# Options
+NUM_ROW = "num_row"
+NUM_COL = "num_col"
+COLUMNS = "columns"
+TIMESERIES2 = "timeseries2"
+MARKER1 = "marker1"
+MARKER2 = "marker2"
+LEGEND = "legend"
 
 
 ########################################
@@ -32,13 +42,18 @@ class _Positioner(object):
     # Determines the position of a plot
 
     def __init__(self, num_plot, num_row=1, num_col=None):
+        assigned = lambda v: not v in [None, 0]
+        #
         self.num_row = num_row
         self.num_col = num_col
         self.num_plot = num_plot
-        if self.num_row is None:
+        if (not assigned(self.num_row)) and assigned(self.num_col):
             self.num_row = int(num_plot/num_col)
-        if self.num_col is None:
+        elif (not assigned(self.num_col)) and assigned(self.num_row):
             self.num_col = int(num_plot/num_row)
+        elif (not assigned(self.num_col)) and (not assigned(self.num_row)):
+            if self.num_plot != self.num_row*self.num_col:
+                raise ValueError("Number of plots != num_row*num_col")
         self.row = 0  # Current row
         self.col = 0  # Current column
 
@@ -58,25 +73,47 @@ class _Positioner(object):
 class PlotOptions(object):
 
     def __init__(self):
-        self.xlabel = "time"
-        self.ylabel = None
+        self.columns = []  # Columns to plot
+        self.figsize = (8, 6)
+        self.legend = None # Tuple of str for legend
+        self._num_col = None  # Default value
+        self._num_row = 1  # Default value
+        self.marker1 = None  # Marker for the first plot
+        self.marker2 = None
+        self.num_row = None
+        self.num_col = None
+        self.timeseries2 = None
         self.title = None
-        self.ylim = None
+        self.suptitle = None
+        self.xlabel = "time"
         self.xlim = None
         self.xticklabels = None
+        self.ylabel = None
+        self.ylim = None
         self.yticklabels = None
-        self.legend = None
-        self.suptitle = None
-        self.marker1 = None
-        self.marker2 = None
-        self.figsize = (8, 6)
 
-    def set(self, attribute, value):
-        if not attribute in self.__dict__.keys():
-            raise ValueError("Unknown PlotOptions: %s" % attribute)
-        # Don't override a user specification
-        if self.__getattribute__(attribute) is None:
-            self.__setattr__(attribute, value)
+    def set(self, attribute, value, is_override=True):
+        if attribute in self.__dict__.keys():
+            if is_override or (self.__getattribute__(attribute) is None):
+                self.__setattr__(attribute, value)
+        else:
+            raise ValueError("Unknown plot option: %s" % attribute)
+
+    def setDict(self, dct, excludes=[]):
+        """
+        Changes setting based on attributes, values in a dictionary.
+        Only those attributes that are initialized are consumed.
+
+        Parameters
+        ----------
+        dct: dict
+            dictionary of attribute value pairs
+        excludes: list-sstr
+            attributes not to be set
+        """
+        for attribute, value in dct.items():
+            if not attribute in excludes:
+                self.set(attribute, value, is_override=True)
 
     def do(self, ax):
         ax.set_xlabel(self.xlabel)
@@ -99,11 +136,10 @@ class PlotOptions(object):
 ########################################
 class TimeseriesPlotter(object):
           
-    def __init__(self, options=PlotOptions(), is_plot=True):
+    def __init__(self, is_plot=True):
         """
         Parameters
         ---------
-        options: PlotOptions
         is_plot: boolean
             display the plot
                
@@ -113,11 +149,87 @@ class TimeseriesPlotter(object):
         plotter = TimeseriesPlotter(timeseries)
         plotter.plotTimeSingle()  # Single variable plots for one timeseries
         """
-        self.options = options
         self.is_plot = is_plot
 
-    def plotTimeSingle(self, timeseries1, num_row=1, num_col=None, 
-          columns=None, timeseries2=None, options=PlotOptions()):
+    def _setup(self, timeseries1, options=PlotOptions(), **kwargs):
+        """
+        Sets up plot information.
+
+        Parameters
+        ---------
+        is_plot: boolean
+            display the plot
+
+        Returns
+        -------
+        PlotOptions, figure, axes
+
+        Notes
+        -----
+        1. Values must be set for options.num_row, options.num_col
+               
+        """
+        options.setDict(kwargs, excludes=[NUM_ROW, NUM_COL])  # Record the options
+        if len(options.columns) == 0:
+            options.columns = timeseries1.colnames
+        #
+        if options.figsize is not None:
+            fig, axes = plt.subplots(options.num_row, options.num_col,
+                  figsize=options.figsize)
+            plt.subplots_adjust(wspace=0.5)
+        else:
+            fig, axes = plt.subplots(options.num_row, options.num_col)
+        if "matplotlib" in str(type(axes)):
+            axes = np.array([axes])
+        if axes.ndim == 1:
+            axes = np.reshape(axes, (options.num_row, options.num_col))
+        elif axes.ndim == 2:
+            pass
+        else:
+            raise RuntimeError("Should not get here")
+        return options, fig, axes
+
+    def _initializeRowColumn(self, timeseries1, max_col=None, **kwargs):
+        """
+        Determines values for number of rows and columns.
+
+        Returns
+        -------
+        PlotOptions
+            assigns values to options.num_row, options.num_col
+        """
+        options = PlotOptions()
+        if max_col is None:
+            if COLUMNS in kwargs:
+                max_col = len(kwargs[COLUMNS])
+            else:
+                max_col = len(timeseries1.colnames)
+        # States
+        has_col = False
+        has_row = False
+        if NUM_ROW in kwargs:
+            options.num_row = kwargs[NUM_ROW]
+            has_row = True
+        if NUM_COL in kwargs:
+            options.num_col = kwargs[NUM_COL]
+            has_col = True
+        # Assignments based on state
+        if has_row and has_col:
+            # Have been assigned
+            pass
+        elif has_row and (not has_col):
+            options.num_col = int(max_col/options.num_row)
+        elif (not has_row) and has_col:
+            options.num_row = int(max_col/options.num_col)
+        else:
+           options.num_row = 1
+           options.num_col = max_col
+        if max_col > options.num_row*options.num_col:
+           options.num_row += 1
+        #
+        return options
+
+    def plotTimeSingle(self, timeseries1, **kwargs):
         """
         Constructs plots of single columns, possibly with a second
         timeseries.
@@ -125,40 +237,23 @@ class TimeseriesPlotter(object):
         Parameters
         ---------
         timeseries1: NamedTimeseries
-        num_row: int
-            number of rows in the plot
-        num_col: int
-            number of columns in the plot
-            default is the number of columns
-        columns: list-str
-            list of columns in the timeseries
-        timeseries2: NamedTimeseries
-            second timeseries with the same columns and times
-        options: PlotOptions
+        kwargs: dict
+            plot options. See PlotOptions
                
         Usage
         ____
             
         """
-        if columns is None:
-            columns = timeseries1.colnames
-        positioner = _Positioner(len(columns), num_row=num_row,
-            num_col=num_col)
-        #
-        if options.figsize is not None:
-            fig, axes = plt.subplots(positioner.num_row, positioner.num_col,
-                  figsize=options.figsize)
-            plt.subplots_adjust(wspace=0.5)
-        else:
-            fig, axes = plt.subplots(positioner.num_row, positioner.num_col)
-        if len(np.shape(axes)) == 1:
-            axes = np.reshape(axes, (positioner.num_row, positioner.num_col))
+        options = self._initializeRowColumn(timeseries1, **kwargs)
+        options, fig, axes = self._setup(timeseries1, options=options, **kwargs)
+        positioner = _Positioner(len(options.columns), options.num_row, options.num_col)
         base_options = copy.deepcopy(options)
-        for idx, variable in enumerate(columns):
+        for idx, variable in enumerate(options.columns):
             options = copy.deepcopy(base_options)
             row, col = positioner.pos(idx)
             ax = axes[row, col]
-            options.set("ylabel", "concentration")
+            if options.ylabel is None:
+                options.set("ylabel", "concentration")
             options.title = variable
             if not positioner.isFirstColumn():
                 options.ylabel =  ""
@@ -170,19 +265,19 @@ class TimeseriesPlotter(object):
             else:
                 ax.scatter(timeseries1[TIME], timeseries1[variable], color="blue", label=LABEL1,
                       marker=options.marker1)
-            if timeseries2 is not None:
+            if options.timeseries2 is not None:
                 if options.marker2 is None:
-                    ax.plot(timeseries2[TIME], timeseries2[variable], color="red", label=LABEL2)
+                    ax.plot(options.timeseries2[TIME], options.timeseries2[variable], color="red", label=LABEL2)
                 else:
-                    ax.scatter(timeseries2[TIME], timeseries2[variable], color="red", label=LABEL2,
+                    ax.scatter(options.timeseries2[TIME], options.timeseries2[variable], color="red", label=LABEL2,
                           marker=options.marker2)
-                options.set("legend", [LABEL1, LABEL2])
+                if options.legend is None:
+                    options.set("legend", [LABEL1, LABEL2])
             options.do(ax)
         if self.is_plot:
             plt.show()
 
-    def plotTimeMultiple(self, timeseries1,
-          columns=None, timeseries2=None, options=PlotOptions()):
+    def plotTimeMultiple(self, timeseries1, **kwargs):
         """
         Constructs a plot with all columns in a timeseries.
         If there is a second timeseries, then there are 2 plots.
@@ -190,43 +285,47 @@ class TimeseriesPlotter(object):
         Parameters
         ---------
         timeseries1: NamedTimeseries
-        columns: list-str
-            list of columns in the timeseries
-        timeseries2: NamedTimeseries
-            second timeseries with the same columns and times
-        options: PlotOptions
-               
-        Usage
-        ____
-            
+        kwargs: dict
+            plot options. See PlotOptions
         """
-        if columns is None:
-            columns = timeseries1.colnames
+        max_col = 2 if TIMESERIES2 in kwargs else 1
+        options = self._initializeRowColumn(timeseries1, max_col=max_col, **kwargs)
+        if (NUM_ROW in kwargs) and (NUM_COL in kwargs):
+            if (kwargs[NUM_ROW] == 1) and (kwargs[NUM_COL] == 1):
+                options.num_row = 1
+                options.num_col = 1
+        options, fig, axes = self._setup(timeseries1, options=options, **kwargs)
         #
-        def multiPlot(timeseries, ax):
-            df = timeseries.to_dataframe()[columns]
-            df.plot(ax=ax)
+        def multiPlot(timeseries, ax, marker=None):
+            if marker is None:
+                for idx, col in enumerate(timeseries.colnames):
+                    ax.plot(timeseries[TIME], timeseries[col], color=COLORS[idx])
+            else:
+                for idx, col in enumerate(timeseries.colnames):
+                    ax.scatter(timeseries[TIME], timeseries[col], color=COLORS[idx],
+                          marker=marker)
+            options.legend = timeseries.colnames
             options.do(ax)
         #
-        if timeseries2 is not None:
-            if options.figsize is not None:
-                fig, axes = plt.subplots(2, figsize=options.figsize)
-            else:
-                fig, axes = plt.subplots(2)
-            for idx, ts in enumerate([timeseries1, timeseries2]):
-                multiPlot(ts, axes[idx])
-                options.do(axes[idx])
+        if options.timeseries2 is not None:
+            if len(axes.flatten()) == 1:
+                options.num_row = 2
+                options.num_col = 1
+                axes = np.array([ axes[0,0], axes[0,0] ])
+                axes = np.reshape(axes, (options.num_row, options.num_col))
+            positioner = _Positioner(2, options.num_row, options.num_col)
+            markers = [options.marker1, options.marker2]
+            for idx, ts in enumerate([timeseries1, options.timeseries2]):
+                row, col = positioner.pos(idx)
+                ax = axes[row, col]
+                multiPlot(ts, ax, markers[idx])
+                options.do(ax)
         else:
-            if options.figsize is not None:
-                fig, ax = plt.subplots(figsize=options.figsize)
-            else:
-                fig, ax = plt.subplots()
-            multiPlot(timeseries1, ax)
+            multiPlot(timeseries1, axes[0, 0], options.marker1)
         if self.is_plot:
             plt.show()
 
-    def plotValuePairs(self, timeseries, pairs, num_row=1, num_col=None,
-          options=PlotOptions()):
+    def plotValuePairs(self, timeseries, pairs, **kwargs):
         """
         Constructs plots of values of column pairs for a single
         timeseries.
@@ -234,30 +333,13 @@ class TimeseriesPlotter(object):
         Parameters
         ---------
         timeseries: NamedTimeseries
-        num_row: int
-            number of rows in the plot
-        num_col: int
-            number of columns in the plot
-            default is the number of pairs 
-        pairs: list-tuple-str
-            list of pairs of columns
-        options: PlotOptions
-               
-        Usage
-        ____
-            
+        kwargs: dict
+            plot options. See PlotOptions
         """
-        positioner = _Positioner(len(pairs), num_row=num_row, num_col=num_col)
-        #
-        if options.figsize is not None:
-            fig, axes = plt.subplots(positioner.num_row, positioner.num_col,
-                  figsize=options.figsize)
-            plt.subplots_adjust(wspace=0.5)
-        else:
-            fig, axes = plt.subplots(num_row, num_col)
-        if (len(np.shape(axes)) == 1) or (len(np.shape(axes)) == 0):
-            axes = np.reshape(axes, (positioner.num_row, positioner.num_col))
-        #
+        options = self._initializeRowColumn(timeseries,
+              max_col=len(pairs), **kwargs)
+        options, fig, axes = self._setup(timeseries, options=options, **kwargs)
+        positioner = _Positioner(len(options.columns), options.num_row, options.num_col)
         base_options = copy.deepcopy(options)
         for idx, pair in enumerate(pairs):
             options = copy.deepcopy(base_options)
@@ -279,4 +361,3 @@ class TimeseriesPlotter(object):
             options.do(ax)
         if self.is_plot:
             plt.show()
-        

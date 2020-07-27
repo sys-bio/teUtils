@@ -32,6 +32,7 @@ Usage
 
 from teUtils.named_timeseries import NamedTimeseries, TIME, mkNamedTimeseries
 from teUtils.timeseries_plotter import TimeseriesPlotter, PlotOptions
+from teUtils import timeseries_plotter as tp
 
 import lmfit; 
 import numpy as np
@@ -255,8 +256,9 @@ class ModelFitter(object):
         self._checkFit()
         options = PlotOptions()
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
-        options.marker1 = "o"
-        plotter.plotTimeSingle(self.residuals_ts, options=options, **kwargs)
+        if not tp.MARKER1 in kwargs:
+            kwargs[tp.MARKER1] = "o"
+        plotter.plotTimeSingle(self.residuals_ts, **kwargs)
 
     def plotFit(self, is_multiple=False, **kwargs):
         """
@@ -270,12 +272,14 @@ class ModelFitter(object):
             plot options
         """
         self._checkFit()
-        options = PlotOptions()
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
-        options.marker2 = "o"
+        if not tp.MARKER2 in kwargs:
+            kwargs[tp.MARKER2] = "o"
         if is_multiple:
             plotter.plotTimeMultiple(self.fitted_ts, timeseries2=self.observed_ts,
-                  options=options, **kwargs)
+                  **kwargs)
         else:
+            if not tp.LEGEND in kwargs:
+                kwargs[tp.LEGEND] = ["observed", "fited"]
             plotter.plotTimeSingle(self.fitted_ts, timeseries2=self.observed_ts,
-                  options=options, **kwargs)
+                  **kwargs)
