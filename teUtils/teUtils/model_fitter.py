@@ -244,32 +244,19 @@ class ModelFitter(object):
             raise ValueError("Must do fitModel before reportFit.")
         return str(lmfit.fit_report(self.minimizer_result))
 
-    def plotResiduals(self, **kwargs):
+    def plotResiduals(self, is_help=False, **kwargs):
         """
         Plots residuals of a fit over time.
     
         Parameters
         ----------
-        kwargs: dict. keyword with default values:
-            columns: List of columns to plot
-            figsize: (horizontal width, vertical height)
-            legend: Tuple of str for legend
-            num_col: Number of columns of plots in figure
-            num_row: Number of rows of plots in figure
-            marker1: Marker for timerseries1
-            marker2: Marker for timeseries2
-            num_row: rows of plots
-            num_col: columns of plots
-            timeseries2: second timeseries
-            title: plot title
-            suptitle: Figure title
-            xlabel: x axis title
-            xlim: order pair of lower and upper
-            xticklabels: list of labels for x ticks
-            ylabel: label for x axis
-            ylim: order pair of lower and upper
-            yticklabels: list of labels for y ticks
+        kwargs: dict. Plotting options.
+        is_help: bool
+            To see plot options: plotResiduals(help=True)
         """
+        if is_help:
+            print(PlotOptions())
+            return
         self._checkFit()
         options = PlotOptions()
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
@@ -277,7 +264,7 @@ class ModelFitter(object):
             kwargs[tp.MARKER1] = "o"
         plotter.plotTimeSingle(self.residuals_ts, **kwargs)
 
-    def plotFit(self, is_multiple=False, **kwargs):
+    def plotFit(self, is_multiple=False, is_help=False, **kwargs):
         """
         Plots the fit with observed data over time.
     
@@ -285,26 +272,13 @@ class ModelFitter(object):
         ----------
         is_multiple: bool
             plots all variables on a single plot
-        kwargs: dict
-            columns: List of columns to plot
-            figsize: (horizontal width, vertical height)
-            legend: Tuple of str for legend
-            num_col: Number of columns of plots in figure
-            num_row: Number of rows of plots in figure
-            marker1: Marker for timerseries1
-            marker2: Marker for timeseries2
-            num_row: rows of plots
-            num_col: columns of plots
-            timeseries2: second timeseries
-            title: plot title
-            suptitle: Figure title
-            xlabel: x axis title
-            xlim: order pair of lower and upper
-            xticklabels: list of labels for x ticks
-            ylabel: label for x axis
-            ylim: order pair of lower and upper
-            yticklabels: list of labels for y ticks
+        kwargs: dict. Plotting options.
+        is_help: bool
+            To see plot options: plotResiduals(help=True)
         """
+        if is_help:
+            print(PlotOptions())
+            return
         self._checkFit()
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
         self._addKeyword(kwargs, tp.MARKER2, "o")
@@ -320,32 +294,19 @@ class ModelFitter(object):
         if not key in kwargs:
             kwargs[key] = value
 
-    def plotAll(self, **kwargs):
+    def plotAll(self, is_help=False, **kwargs):
         """
         Plots fitted and observed values on a single plot.
     
         Parameters
         ----------
-        kwargs: dict
-            columns: List of columns to plot
-            figsize: (horizontal width, vertical height)
-            legend: Tuple of str for legend
-            num_col: Number of columns of plots in figure
-            num_row: Number of rows of plots in figure
-            marker1: Marker for timerseries1
-            marker2: Marker for timeseries2
-            num_row: rows of plots
-            num_col: columns of plots
-            timeseries2: second timeseries
-            title: plot title
-            suptitle: Figure title
-            xlabel: x axis title
-            xlim: order pair of lower and upper
-            xticklabels: list of labels for x ticks
-            ylabel: label for x axis
-            ylim: order pair of lower and upper
-            yticklabels: list of labels for y ticks
+        kwargs: dict. Plotting options.
+        is_help: bool
+            To see plot options: plotResiduals(help=True)
         """
+        if is_help:
+            print(PlotOptions())
+            return
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
         self._addKeyword(kwargs, tp.MARKER1, "o")
         plotter.plotTimeMultiple(self.observed_ts, timeseries2=self.fitted_ts, num_col=1, num_row=1,

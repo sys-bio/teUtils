@@ -26,6 +26,9 @@ import numpy as np
 LABEL1 = "1"
 LABEL2 = "2"
 COLORS = ['r', 'g', 'b', 'c', 'pink', 'grey']
+# Ensure lots of colors
+COLORS.extend(COLORS)
+COLORS.extend(COLORS)
 
 # Options
 NUM_ROW = "num_row"
@@ -72,25 +75,7 @@ class _Positioner(object):
 #########################
 class PlotOptions(object):
     """
-    Class that manages plot options. Options are:
-        columns: List of columns to plot
-        figsize: (horizontal width, vertical height)
-        legend: Tuple of str for legend
-        num_col: Number of columns of plots in figure
-        num_row: Number of rows of plots in figure
-        marker1: Marker for timerseries1
-        marker2: Marker for timeseries2
-        num_row: rows of plots
-        num_col: columns of plots
-        timeseries2: second timeseries
-        title: plot title
-        suptitle: Figure title
-        xlabel: x axis title
-        xlim: order pair of lower and upper
-        xticklabels: list of labels for x ticks
-        ylabel: label for x axis
-        ylim: order pair of lower and upper
-        yticklabels: list of labels for y ticks
+    Class that manages plot options.
     """
 
     def __init__(self):
@@ -112,6 +97,28 @@ class PlotOptions(object):
         self.ylabel = None
         self.ylim = None  # order pair of lower and upper
         self.yticklabels = None
+
+    def __str__(self):
+        stg = """
+            Supported plotting options are:
+                columns: List of columns to plot
+                figsize: (horizontal width, vertical height)
+                legend: Tuple of str for legend
+                marker1: Marker for timerseries1
+                marker2: Marker for timeseries2
+                num_row: rows of plots
+                num_col: columns of plots
+                timeseries2: second timeseries
+                title: plot title
+                suptitle: Figure title
+                xlabel: x axis title
+                xlim: order pair of lower and upper
+                xticklabels: list of labels for x ticks
+                ylabel: label for x axis
+                ylim: order pair of lower and upper
+                yticklabels: list of labels for y ticks
+            """
+        return stg
 
     def set(self, attribute, value, is_override=True):
         if attribute in self.__dict__.keys():
