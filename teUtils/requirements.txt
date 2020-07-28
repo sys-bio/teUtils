@@ -3,5 +3,5 @@ lmfit
 nose
 numpy
 tabulate
-csv
+python-csv
 tellurium
