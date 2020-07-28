@@ -153,13 +153,13 @@ class TestModelFitter(unittest.TestCase):
         fitter1.fitModel()
         fitter1.plotFit(num_col=3, num_row=2)
 
-    def testPlotMultiple(self):
+    def testPlotFitAll(self):
         if IGNORE_TEST:
             return
         fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
               list(PARAMETER_DCT.keys()), is_plot=IS_PLOT)
         fitter1.fitModel()
-        fitter1.plotAll()
+        fitter1.plotFitAll()
         
 
 if __name__ == '__main__':

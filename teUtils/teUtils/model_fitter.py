@@ -294,7 +294,7 @@ class ModelFitter(object):
         if not key in kwargs:
             kwargs[key] = value
 
-    def plotAll(self, is_help=False, **kwargs):
+    def plotFitAll(self, is_help=False, **kwargs):
         """
         Plots fitted and observed values on a single plot.
     

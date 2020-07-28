@@ -57,6 +57,7 @@ class TesTimeseriesPlotter(unittest.TestCase):
     def testPlotSingle1(self):
         if IGNORE_TEST:
             return
+        self.plotter.plotTimeSingle(self.timeseries, num_col=2)
         self.plotter.plotTimeSingle(self.timeseries, num_col=4)
         self.plotter.plotTimeSingle(self.timeseries, columns=["S1", "S2", "S3"], num_row=2)
         self.plotter.plotTimeSingle(self.timeseries, num_row=2, num_col=3, ylabel="xxx")
