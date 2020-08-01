@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" Build Module for creating random network models """
+""" A module for creating random network models """
 
 import tellurium as _te
 import random as _random
