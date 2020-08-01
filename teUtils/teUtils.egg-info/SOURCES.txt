@@ -1,9 +1,12 @@
 LICENSE.txt
 MANIFEST.in
+README.md
 setup.cfg
 setup.py
 teUtils/__init__.py
+teUtils/_version.py
 teUtils/buildNetworks.py
+teUtils/fileUtils.py
 teUtils/model_fitter.py
 teUtils/named_timeseries.py
 teUtils/odePrint.py

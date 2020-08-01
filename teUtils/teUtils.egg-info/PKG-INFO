@@ -1,9 +1,9 @@
-Metadata-Version: 1.2
+Metadata-Version: 2.1
 Name: teUtils
-Version: 0.85
+Version: 0.972
 Summary: Utilities for Tellurium
 Home-page: http://tellurium.analogmachine.org
-Author: H M Sauro
+Author: H M Sauro, J Hellerstein
 Author-email: hsauro@uw.edu
 License: MIT
 Description: # Utilities for Tellurium
@@ -59,3 +59,4 @@ Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Operating System :: OS Independent
 Requires-Python: >=3.6
+Description-Content-Type: text/markdown

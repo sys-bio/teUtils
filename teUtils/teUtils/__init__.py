@@ -43,6 +43,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 try:
+  from . import _version
+except:
+    from teUtils import _version
+
+__version__ = _version.__version__
+
+try:
     from . import odePrint
     from . import plotting
     from . import prettyTabular
