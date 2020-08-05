@@ -155,11 +155,12 @@ class TestModelFitter(unittest.TestCase):
 
     def testPlotFitAll(self):
         if IGNORE_TEST:
-            return
+          return
         fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
               list(PARAMETER_DCT.keys()), is_plot=IS_PLOT)
         fitter1.fitModel()
         fitter1.plotFitAll()
+        fitter1.plotFitAll(is_multiple=True)
         
 
 if __name__ == '__main__':

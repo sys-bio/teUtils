@@ -264,7 +264,7 @@ class ModelFitter(object):
             kwargs[tp.MARKER1] = "o"
         plotter.plotTimeSingle(self.residuals_ts, **kwargs)
 
-    def plotFit(self, is_multiple=False, is_help=False, **kwargs):
+    def plotFitAll(self, is_multiple=False, is_help=False, **kwargs):
         """
         Plots the fit with observed data over time.
     
@@ -293,22 +293,4 @@ class ModelFitter(object):
     def _addKeyword(self, kwargs, key, value):
         if not key in kwargs:
             kwargs[key] = value
-
-    def plotFitAll(self, is_help=False, **kwargs):
-        """
-        Plots fitted and observed values on a single plot.
-    
-        Parameters
-        ----------
-        kwargs: dict. Plotting options.
-        is_help: bool
-            To see plot options: plotResiduals(help=True)
-        """
-        if is_help:
-            print(PlotOptions())
-            return
-        plotter = TimeseriesPlotter(is_plot=self._is_plot)
-        self._addKeyword(kwargs, tp.MARKER1, "o")
-        plotter.plotTimeMultiple(self.observed_ts, timeseries2=self.fitted_ts, num_col=1, num_row=1,
-              **kwargs)
         
