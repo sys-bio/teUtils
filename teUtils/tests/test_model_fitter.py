@@ -132,6 +132,10 @@ class TestModelFitter(unittest.TestCase):
         self.fitter.fitModel()
         values = self.fitter.getFittedParameters()
         _ = self.checkParameterValues()
+        #
+        self.fitter.bootstrap(num_iteration=3)
+        values = self.fitter.getFittedParameters()
+        _ = self.checkParameterValues()
 
     def testGetFittedModel(self):
         if IGNORE_TEST:
@@ -178,6 +182,36 @@ class TestModelFitter(unittest.TestCase):
         fitter1.fitModel()
         fitter1.plotFitAll()
         fitter1.plotFitAll(is_multiple=True)
+
+    def testBoostrap(self):
+        if IGNORE_TEST:
+            return
+        self.fitter.fitModel()
+        self.fitter.bootstrap(num_iteration=10)
+        NUM_STD = 3
+        result = self.fitter.bootstrap_result
+        for p in self.fitter.parameters_to_fit:
+            is_lower_ok = result.mean_dct[p]  \
+                  - NUM_STD*result.std_dct[p]  \
+                  < PARAMETER_DCT[p]
+            is_upper_ok = result.mean_dct[p]  \
+                  + NUM_STD*result.std_dct[p]  \
+                  > PARAMETER_DCT[p]
+            self.assertTrue(is_lower_ok)
+            self.assertTrue(is_upper_ok)
+
+    def testGetFittedParameterStds(self):
+        if IGNORE_TEST:
+            return
+        self.fitter.fitModel()
+        with self.assertRaises(ValueError):
+            _ = self.fitter.getFittedParameterStds()
+        #
+        self.fitter.bootstrap(num_iteration=3)
+        stds = self.fitter.getFittedParameterStds()
+        for std in stds:
+            self.assertTrue(isinstance(std, float))
+        
         
 
 if __name__ == '__main__':

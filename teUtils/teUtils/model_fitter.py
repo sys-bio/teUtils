@@ -53,8 +53,10 @@ class BootstrapResult():
     """Result from bootstrap"""
     def __init__(self, parameters, mean_values, std_values):
         self.parameters = parameters
-        self.mean_values = mean_values
-        self.std_values = std_values
+        self.mean_dct = {p: v for p, v in zip(
+              self.parameters, mean_values)}
+        self.std_dct = {p: v for p, v in zip(
+              self.parameters, std_values)}
 
 
 class ModelFitter(object):
@@ -106,6 +108,7 @@ class ModelFitter(object):
         self.params = None  # params property in lmfit.minimizer
         self.fitted_ts = None
         self.residuals_ts = None  # Residuals for selected_columns
+        self.bootstrap_result = None  # Result from bootstrapping
      
     def _initializeRoadrunnerModel(self):
         """
@@ -193,13 +196,30 @@ class ModelFitter(object):
 
     def getFittedParameters(self):
         """
-        Returns an array of the fitted parameters 
+        Returns a list of values for fitted
               
-        Example:
-              f.getFittedParameters ()
+        Example
+        -------
+              f.getFittedParameters()
         """
         self._checkFit()
-        return [self.params[p].value for p in self.parameters_to_fit]
+        if self.bootstrap_result is None:
+            return [self.params[p].value for p in self.parameters_to_fit]
+        else:
+            return self.bootstrap_result.mean_dct.values()
+
+    def getFittedParameterStds(self):
+        """
+        Returns the standard deviations for fitted values.
+              
+        Example
+        -------
+              f.getFittedParameterStds()
+        """
+        self._checkFit()
+        if self.bootstrap_result is None:
+            raise ValueError("Must use bootstrap first.")
+        return list(self.bootstrap_result.std_dct.values())
 
     def getFittedModel(self):
         """
@@ -214,7 +234,7 @@ class ModelFitter(object):
         self._setupModel(params=self.params)
         return self.roadrunner_model
 
-    def bootstrap(self, num_iteration=100):
+    def bootstrap(self, num_iteration=10):
         """
         Constructs a bootstrap estimate of parameter values.
     
@@ -229,25 +249,45 @@ class ModelFitter(object):
             parameters: list-str
             mean_values: list-float
             std_values: list-float
+
+              
+        Example
+        -------
+            f.bootstrap()
         """
         self._checkFit()
         parameter_values = {p: [] for p in self.parameters_to_fit}
+        num_row = len(self.observed_ts)
+        num_col = len(self.selected_columns)
         for _ in range(num_iteration):
             # Construct new observations from residuals
-            new_observed_ts[self.selected_columns] = np.random.choice(
-                  self.observed_ts, len(self.observed_ts, replace=True)  \
-                  + self.fitted_ts[self.selected_columns]
+            residuals_arr = self.residuals_ts.flatten()
+            fitted_arr = self.fitted_ts[self.selected_columns].flatten()
+            new_observed_arr = np.random.choice(
+                  residuals_arr, len(residuals_arr), replace=True) + fitted_arr
+            new_observed_arr = np.array([v if v >= 0 else 0
+                  for v in new_observed_arr])
+            new_observed_ts = self.observed_ts.copy()
+            new_observed_ts[self.selected_columns] = np.reshape(
+                  new_observed_arr, (num_row, num_col))
             # Do a fit with these observeds
-            new_fitter = ModelFitter(self.roadrunner_model, new_observed_ts,
+            new_fitter = ModelFitter(self.roadrunner_model,
+                  new_observed_ts,
                   self.parameters_to_fit,
-                  selected_columns=self.selected_columns, method=self._method,
-                  parameter_lower_bound=self.parameter_lower_bound,
-                  parameter_upper_bound=self.parameter_upper_bound,
-                  is_plot=self.is_plot)
-            new_fitter.fit()
-            [parameter_values[p].append(new_fitter.params.valuesdict[p])
-                  for p in self.parameters_to_fit]
-            # Save the results
+                  selected_columns=self.selected_columns,
+                  method=self._method,
+                  parameter_lower_bound=self._lower_bound,
+                  parameter_upper_bound=self._upper_bound,
+                  is_plot=self._is_plot)
+            new_fitter.fitModel()
+            dct = new_fitter.params.valuesdict()
+            [parameter_values[p].append(dct[p]) for p in self.parameters_to_fit]
+        self.bootstrap_result = BootstrapResult(parameters=self.parameters_to_fit,
+              mean_values=[np.mean(parameter_values[p])
+                    for p in self.parameters_to_fit],
+              std_values=[np.std(parameter_values[p])
+                    for p in self.parameters_to_fit])
+        return self.bootstrap_result
 
         
 
@@ -333,7 +373,7 @@ class ModelFitter(object):
             plotter.plotTimeMultiple(self.fitted_ts, timeseries2=self.observed_ts,
                   **kwargs)
         else:
-            self._addKeyword(kwargs, tp.LEGEND, ["observed", "fitted"])
+            self._addKeyword(kwargs, tp.LEGEND, ["fitted", "observed"])
             plotter.plotTimeSingle(self.fitted_ts, timeseries2=self.observed_ts,
                   **kwargs)
 
