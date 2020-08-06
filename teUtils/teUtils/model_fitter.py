@@ -51,12 +51,24 @@ METHOD_LEASTSQR = "leastsqr"
 class BootstrapResult():
 
     """Result from bootstrap"""
-    def __init__(self, parameters, mean_values, std_values):
-        self.parameters = parameters
-        self.mean_dct = {p: v for p, v in zip(
-              self.parameters, mean_values)}
-        self.std_dct = {p: v for p, v in zip(
-              self.parameters, std_values)}
+    def __init__(self, parameter_dct):
+        """
+        Parameters
+        ----------
+        parameter_dct: dict
+            key: parameter name
+            value: list of values
+        """
+        # population of parameter values
+        self.parameter_dct = dict(parameter_dct)
+        # list of parameters
+        self.parameters = list(self.parameter_dct.keys())
+        # means of parameter values
+        self.mean_dct = {p: np.mean(parameter_dct[p])
+              for p in self.parameters}
+        # standard deviation of parameter values
+        self.std_dct = {p: np.std(parameter_dct[p])
+              for p in self.parameters}
 
 
 class ModelFitter(object):
@@ -234,7 +246,8 @@ class ModelFitter(object):
         self._setupModel(params=self.params)
         return self.roadrunner_model
 
-    def bootstrap(self, num_iteration=10):
+    def bootstrap(self, num_iteration=10,
+          report_interval=None):
         """
         Constructs a bootstrap estimate of parameter values.
     
@@ -242,6 +255,8 @@ class ModelFitter(object):
         ----------
         num_iteration: int
             number of bootstrap iterations
+        report_interval: int
+            number of iterations between progress reports
         
         Returns
         -------
@@ -256,10 +271,10 @@ class ModelFitter(object):
             f.bootstrap()
         """
         self._checkFit()
-        parameter_values = {p: [] for p in self.parameters_to_fit}
+        parameter_dct = {p: [] for p in self.parameters_to_fit}
         num_row = len(self.observed_ts)
         num_col = len(self.selected_columns)
-        for _ in range(num_iteration):
+        for iteration in range(num_iteration):
             # Construct new observations from residuals
             residuals_arr = self.residuals_ts.flatten()
             fitted_arr = self.fitted_ts[self.selected_columns].flatten()
@@ -281,15 +296,12 @@ class ModelFitter(object):
                   is_plot=self._is_plot)
             new_fitter.fitModel()
             dct = new_fitter.params.valuesdict()
-            [parameter_values[p].append(dct[p]) for p in self.parameters_to_fit]
-        self.bootstrap_result = BootstrapResult(parameters=self.parameters_to_fit,
-              mean_values=[np.mean(parameter_values[p])
-                    for p in self.parameters_to_fit],
-              std_values=[np.std(parameter_values[p])
-                    for p in self.parameters_to_fit])
+            [parameter_dct[p].append(dct[p]) for p in self.parameters_to_fit]
+            if report_interval is not None:
+                if iteration % report_interval == 0:
+                    print("bootstrap completed %d iterations" % (iteration + 1))
+        self.bootstrap_result = BootstrapResult(parameter_dct)
         return self.bootstrap_result
-
-        
 
     def _setupModel(self, params=None):
         """
