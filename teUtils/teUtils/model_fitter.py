@@ -48,6 +48,15 @@ METHOD_DIFFERENTIAL_EVOLUTION = "differential_evolution"
 METHOD_LEASTSQR = "leastsqr"
 
 
+class BootstrapResult():
+
+    """Result from bootstrap"""
+    def __init__(self, parameters, mean_values, std_values):
+        self.parameters = parameters
+        self.mean_values = mean_values
+        self.std_values = std_values
+
+
 class ModelFitter(object):
           
     def __init__(self, model_specification, observed, parameters_to_fit,
@@ -92,11 +101,13 @@ class ModelFitter(object):
         self._is_plot = is_plot
         # The following are calculated during fitting
         self.roadrunner_model = None
-        self.minimizer = None
+        self.minimizer = None  # lmfit.minimizer
         self.minimizer_result = None  # Results of minimization
-        self.params = None
+        self.params = None  # params property in lmfit.minimizer
         self.fitted_ts = None
         self.residuals_ts = self.observed_ts.copy()
+        self.residuals_ts = self.residuals_ts.subsetColumns(
+              self.selected_columns)
      
     def _initializeRoadrunnerModel(self):
         """
@@ -203,6 +214,39 @@ class ModelFitter(object):
         self.roadrunner_model.reset()
         self._setupModel(params=self.params)
         return self.roadrunner_model
+
+    def bootstrap(self, num_iteration=100):
+        """
+        Constructs a bootstrap estimate of parameter values.
+    
+        Parameters
+        ----------
+        num_iteration: int
+            number of bootstrap iterations
+        
+        Returns
+        -------
+        BootstrapResult: properties
+            parameters: list-str
+            mean_values: list-float
+            std_values: list-float
+        """
+        self._checkFit()
+        parameter_values = {p: [] for p in self.parameters_to_fit}
+        for _ in range(num_iteration):
+            # Construct new observations from residuals
+            #new_observed_ts = ...
+            # Do a fit with these observeds
+            new_fitter = ModelFitter(self.roadrunner_model, new_observed_ts,
+                 self.parameters_to_fit,
+                 selected_columns=self.selected_columns, method=self._method,
+                 parameter_lower_bound=self.parameter_lower_bound,
+                 parameter_upper_bound=self.parameter_upper_bound,
+                 is_plot=self.is_plot)
+            new_fitter.fit()
+            # Save the results
+
+        
 
     def _setupModel(self, params=None):
         """

@@ -146,7 +146,7 @@ class TestNamedTimeseries(unittest.TestCase):
     def testFlattenValues(self):
         if IGNORE_TEST:
             return
-        values = self.timeseries.flattenValues()
+        values = self.timeseries.flatten()
         self.assertTrue(np.isclose(sum(values - 
               self.timeseries.values[:, 1:].flatten()), 0))
 

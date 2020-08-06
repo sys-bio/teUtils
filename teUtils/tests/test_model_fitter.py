@@ -31,6 +31,7 @@ VARIABLE_NAMES = ["S%d" % d for d in range(1, 7)]
 parameters_strs = ["%s=%d" % (k, v) for k,v 
       in PARAMETER_DCT.items()]
 parameters_str = "; ".join(parameters_strs)
+COLUMNS = ["S%d" % d for d in range(1, 7)]
 ANTIMONY_MODEL = """
 # Reactions   
     J1: S1 -> S2; k1*S1
@@ -89,13 +90,13 @@ class TestModelFitter(unittest.TestCase):
             self.assertTrue(isinstance(value, float))
         return dct
 
-    def testFit(self):
+    def testFit1(self):
         if IGNORE_TEST:
             return
         def test(method):
             fitter = ModelFitter(ANTIMONY_MODEL, self.timeseries,
                   list(PARAMETER_DCT.keys()), method=method)
-            self.fitter.fitModel()
+            fitter.fitModel()
             PARAMETER = "k2"
             diff = np.abs(PARAMETER_DCT[PARAMETER]
                   - dct[PARAMETER])
@@ -108,6 +109,22 @@ class TestModelFitter(unittest.TestCase):
               model_fitter.METHOD_BOTH,
               model_fitter.METHOD_DIFFERENTIAL_EVOLUTION]:
             test(method)
+
+    def testFit2(self):
+        if IGNORE_TEST:
+            return
+        def calcResidualStd(selected_columns):
+            columns = self.timeseries.colnames[:3]
+            fitter = ModelFitter(ANTIMONY_MODEL, self.timeseries,
+                  list(PARAMETER_DCT.keys()), selected_columns=selected_columns)
+            fitter.fitModel()
+            return np.std(fitter.residuals_ts.flatten())
+        #
+        CASES = [COLUMNS[0], COLUMNS[:3], COLUMNS]
+        stds = [calcResidualStd(c) for c in CASES]
+        # Variance should decrease with more columns
+        self.assertGreater(stds[0], stds[1])
+        self.assertGreater(stds[1], stds[2])
 
     def testGetFittedParameters(self):
         if IGNORE_TEST:
@@ -126,8 +143,8 @@ class TestModelFitter(unittest.TestCase):
         fitter2 = ModelFitter(fitted_model, self.timeseries, None)
         fitter2.fitModel()
         # Should get same fit without changing the parameters
-        self.assertTrue(np.isclose(np.var(fitter1.residuals_ts.flattenValues()),
-              np.var(fitter2.residuals_ts.flattenValues())))
+        self.assertTrue(np.isclose(np.var(fitter1.residuals_ts.flatten()),
+              np.var(fitter2.residuals_ts.flatten())))
 
     def testReportFit(self):
         if IGNORE_TEST:
@@ -151,11 +168,11 @@ class TestModelFitter(unittest.TestCase):
         fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
               list(PARAMETER_DCT.keys()), is_plot=IS_PLOT)
         fitter1.fitModel()
-        fitter1.plotFit(num_col=3, num_row=2)
+        fitter1.plotFitAll(num_col=3, num_row=2)
 
     def testPlotFitAll(self):
         if IGNORE_TEST:
-          return
+            return
         fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
               list(PARAMETER_DCT.keys()), is_plot=IS_PLOT)
         fitter1.fitModel()

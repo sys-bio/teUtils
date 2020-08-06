@@ -382,7 +382,7 @@ class NamedTimeseries(object):
         #
         return names, values
 
-    def flattenValues(self):
+    def flatten(self):
         """
         Creates a one dimensional array of values
         
@@ -448,14 +448,19 @@ class NamedTimeseries(object):
         df = df.reset_index()
         df.to_csv(path, index=False)
 
-    def concatenateColumns(self, *others):
+    def _getTimeseriesOrList(self, others):
+        if isinstance(others, NamedTimeseries):
+            others = [others]
+        return others
+
+    def concatenateColumns(self, others):
         """
         Creates a NamedTimeseries that is the column concatenation of the current
         with others. Duplicate column names are resolved by adding a "_".
 
         Parameters
         ----------
-        others: list-NamedTimeseries
+        others: single or list-NamedTimeseries
         
         Returns
         ------
@@ -465,6 +470,7 @@ class NamedTimeseries(object):
         -----
         new_ts = ts.concatenateColumns(ts1, ts2, ts3)
         """
+        others = self._getTimeseriesOrList(others)
         dfs = [self.to_dataframe()]
         colnames = list(self.colnames)
         for ts in others:
@@ -480,14 +486,14 @@ class NamedTimeseries(object):
         df_concat = pd.concat(dfs, axis=1)
         return NamedTimeseries(dataframe=df_concat)
 
-    def concatenateRows(self, *others):
+    def concatenateRows(self, others):
         """
         Creates a NamedTimeseries that is the concatenation of the current
         rows with others.
 
         Parameters
         ----------
-        others: list-NamedTimeseries
+        others: single or list-NamedTimeseries
         
         Returns
         ------
@@ -497,6 +503,7 @@ class NamedTimeseries(object):
         -----
         new_ts = ts.concatenateRows(ts1, ts2, ts3)
         """
+        others = self._getTimeseriesOrList(others)
         dfs = [self.to_dataframe()]
         for ts in others:
             diff = set(self.all_colnames).symmetric_difference(ts.all_colnames)
@@ -507,13 +514,19 @@ class NamedTimeseries(object):
         df_concat = pd.concat(dfs, axis=0)
         return NamedTimeseries(dataframe=df_concat)
 
-    def subsetColumns(self, *colnames):
+    def _getStringOrListstring(self, arg):
+        if isinstance(arg, str):
+            return [arg]
+        else:
+            return arg
+
+    def subsetColumns(self, colnames):
         """
         Creates a NamedTimeseries consisting of a subset of columns.
 
         Parameters
         ----------
-        colnames: list of column names
+        colnames: single column name or list of column names
         
         Returns
         ------
@@ -523,8 +536,9 @@ class NamedTimeseries(object):
         -----
         new_ts = ts.subsetColumns("S1", "S2")  # The new timeseries only has S1, S2
         """
+        colnames = self._getStringOrListstring(colnames)
         df = self.to_dataframe()
-        return NamedTimeseries(dataframe=df[list(colnames)])
+        return NamedTimeseries(dataframe=df[colnames])
 
     def isEqualShape(self, other_ts):
         """
