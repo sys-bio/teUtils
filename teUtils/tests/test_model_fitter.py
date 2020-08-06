@@ -15,7 +15,7 @@ import os
 import tellurium
 import unittest
 import matplotlib
-matplotlib.use( 'tkagg' )
+#matplotlib.use( 'tkagg' )
 
 
 IGNORE_TEST = False
