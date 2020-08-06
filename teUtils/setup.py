@@ -42,7 +42,7 @@ setup(
     ],
     install_requires=[
         'tabulate', 'libroadrunner', 'lmfit',
-        'numpy', 'tellurium',
+        'numpy', 'tellurium', 'pandas', 'nose',
     ],
     python_requires='>=3.6',
 )
