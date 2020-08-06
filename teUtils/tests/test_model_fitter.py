@@ -188,7 +188,7 @@ class TestModelFitter(unittest.TestCase):
             return
         self.fitter.fitModel()
         self.fitter.bootstrap(num_iteration=10)
-        NUM_STD = 3
+        NUM_STD = 10
         result = self.fitter.bootstrap_result
         for p in self.fitter.parameters_to_fit:
             is_lower_ok = result.mean_dct[p]  \
