@@ -234,15 +234,19 @@ class ModelFitter(object):
         parameter_values = {p: [] for p in self.parameters_to_fit}
         for _ in range(num_iteration):
             # Construct new observations from residuals
-            #new_observed_ts = ...
+            new_observed_ts[self.selected_columns] = np.random.choice(
+                  self.observed_ts, len(self.observed_ts, replace=True)  \
+                  + self.fitted_ts[self.selected_columns]
             # Do a fit with these observeds
             new_fitter = ModelFitter(self.roadrunner_model, new_observed_ts,
-                 self.parameters_to_fit,
-                 selected_columns=self.selected_columns, method=self._method,
-                 parameter_lower_bound=self.parameter_lower_bound,
-                 parameter_upper_bound=self.parameter_upper_bound,
-                 is_plot=self.is_plot)
+                  self.parameters_to_fit,
+                  selected_columns=self.selected_columns, method=self._method,
+                  parameter_lower_bound=self.parameter_lower_bound,
+                  parameter_upper_bound=self.parameter_upper_bound,
+                  is_plot=self.is_plot)
             new_fitter.fit()
+            [parameter_values[p].append(new_fitter.params.valuesdict[p])
+                  for p in self.parameters_to_fit]
             # Save the results
 
         
