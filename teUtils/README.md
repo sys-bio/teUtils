@@ -1,3 +1,5 @@
+<img src="https://api.travis-ci.org/sys-bio/teUtils.svg?branch=master" width="100"/>
+
 # Utilities for Tellurium
 
 This repo includes a number of useful utilities for Tellurium users.

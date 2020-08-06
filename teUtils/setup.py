@@ -41,8 +41,12 @@ setup(
        'Operating System :: OS Independent',
     ],
     install_requires=[
-        'tabulate', 'lmfit',
-        'numpy', 'tellurium', 'pandas', 'nose',
+        'tabulate', 
+        'lmfit',
+        'numpy', 
+        'tellurium=2.1.5',
+        'pandas',
+        'nose',
     ],
     python_requires='>=3.6',
 )
