@@ -44,7 +44,7 @@ setup(
         'tabulate', 
         'lmfit',
         'numpy', 
-        'tellurium=2.1.5',
+        'tellurium==2.1.5',
         'pandas',
         'nose',
     ],
