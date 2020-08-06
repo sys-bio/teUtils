@@ -105,9 +105,7 @@ class ModelFitter(object):
         self.minimizer_result = None  # Results of minimization
         self.params = None  # params property in lmfit.minimizer
         self.fitted_ts = None
-        self.residuals_ts = self.observed_ts.copy()
-        self.residuals_ts = self.residuals_ts.subsetColumns(
-              self.selected_columns)
+        self.residuals_ts = None  # Residuals for selected_columns
      
     def _initializeRoadrunnerModel(self):
         """
@@ -158,11 +156,12 @@ class ModelFitter(object):
         1-d ndarray of residuals
         """
         self._simulate(params=params)
-        cols = self.residuals_ts.colnames
-        self.residuals_ts[cols] = self.observed_ts[cols] - self.fitted_ts[cols]
-        arr = self.residuals_ts[self.selected_columns]
-        self.residuals_ts[self.selected_columns] = arr
-        return arr.flatten()
+        cols = self.selected_columns
+        if self.residuals_ts is None:
+            self.residuals_ts = self.observed_ts.subsetColumns(cols)
+        self.residuals_ts[cols] = self.observed_ts[cols]  \
+              - self.fitted_ts[cols]
+        return self.residuals_ts.flatten()
         
     def fitModel(self):
         """
