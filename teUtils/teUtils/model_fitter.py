@@ -257,18 +257,12 @@ class ModelFitter(object):
             number of bootstrap iterations
         report_interval: int
             number of iterations between progress reports
-        
-        Returns
-        -------
-        BootstrapResult: properties
-            parameters: list-str
-            mean_values: list-float
-            std_values: list-float
-
               
         Example
         -------
             f.bootstrap()
+            f.getFittedParameters()  # Mean values
+            f.getFittedParameterStds()  # Standard deviations of values
         """
         self._checkFit()
         parameter_dct = {p: [] for p in self.parameters_to_fit}
@@ -301,7 +295,6 @@ class ModelFitter(object):
                 if iteration % report_interval == 0:
                     print("bootstrap completed %d iterations" % (iteration + 1))
         self.bootstrap_result = BootstrapResult(parameter_dct)
-        return self.bootstrap_result
 
     def _setupModel(self, params=None):
         """

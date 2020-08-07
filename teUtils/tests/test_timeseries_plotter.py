@@ -19,7 +19,6 @@ import matplotlib
 
 IGNORE_TEST = False
 IS_PLOT = False
-#matplotlib.use( 'tkagg' )
 DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
 NUM_ROW = tp.NUM_ROW
