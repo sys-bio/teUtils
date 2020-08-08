@@ -10,7 +10,8 @@ install:
   - pip install --upgrade pip
   - cd teUtils
   - pip install numpy>=1.19
-  - pip install tellurium==2.1.5
+  - pip install --upgrade numpy>=1.19
+  - pip install tellurium
   - pip install codecov
   - python setup.py install
 
