@@ -13,8 +13,8 @@ import tellurium as te
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 ANTIMONY_MODEL = """
     $Xo -> S1; vo;
     S1 -> S2; k1*S1 - k2*S2;
@@ -31,7 +31,8 @@ class TestScanning(unittest.TestCase):
         self.rr_model = te.loada(ANTIMONY_MODEL)
 
     def testSimpleTImeCourseScan(self):
-        # TESTING
+        if IGNORE_TEST:
+            return
         NUM_SCAN = 3
         result = scanning.simpleTimeCourseScan (
               self.rr_model, 'k2', 'S1', 3, 12, 3)

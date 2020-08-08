@@ -246,7 +246,6 @@ class TestNamedTimeseries(unittest.TestCase):
             return
         # Create from file
         timeseries = NamedTimeseries(csv_path=TEST_DATA_PATH)
-        print(timeseries)  # dispaly a tabular view of the timeseries
         # NamedTimeseries can use len function
         length = len(timeseries)  # number of rows
         # Extract the numpy array values using indexing
@@ -286,11 +285,12 @@ class TestNamedTimeseries(unittest.TestCase):
         new_names = ["%s_" % c for c in self.timeseries.colnames]
         self.assertTrue(named_timeseries.arrayEquals(ts[new_names],
               self.timeseries[self.timeseries.colnames]))
-        self.assertEquals(len(ts), len(self.timeseries))
+        self.assertEqual(len(ts), len(self.timeseries))
         self.assertTrue(named_timeseries.arrayEquals(ts[TIME],
               self.timeseries[TIME]))
         #
-        ts = self.timeseries.concatenateColumns(self.timeseries, self.timeseries)
+        ts = self.timeseries.concatenateColumns(
+              [self.timeseries, self.timeseries])
         self.assertEqual(3*len(self.timeseries.colnames), len(ts.colnames))
 
     def testConcatenateRows(self):
@@ -303,14 +303,15 @@ class TestNamedTimeseries(unittest.TestCase):
         ts1 = ts[length:]
         self.assertTrue(self.timeseries.equals(ts1))
         #
-        ts = self.timeseries.concatenateRows(self.timeseries, self.timeseries)
+        ts = self.timeseries.concatenateRows(
+              [self.timeseries, self.timeseries])
         self.assertEqual(3*len(self.timeseries), len(ts))
 
     def testSubsetColumns(self):
         if IGNORE_TEST:
             return
         ts = self.timeseries.concatenateColumns(self.timeseries)
-        ts1 = ts.subsetColumns(*self.timeseries.colnames)
+        ts1 = ts.subsetColumns(self.timeseries.colnames)
         self.assertTrue(self.timeseries.equals(ts1))
 
     def testGetTimes(self):
