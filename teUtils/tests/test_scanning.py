@@ -16,12 +16,13 @@ import unittest
 IGNORE_TEST = False
 IS_PLOT = False
 ANTIMONY_MODEL = """
-    $Xo -> S1; vo;
+    $X0 -> S1; v0;
     S1 -> S2; k1*S1 - k2*S2;
     S2 -> $X1; k3*S2;
     
-    vo = 1
+    v0 = 1
     k1 = 2; k2 = 0.6; k3 = 3;
+    S1 = 0; S2 = 0; X1 = 0; X0 = 0;
     """
 
 
