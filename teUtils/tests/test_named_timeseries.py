@@ -16,8 +16,8 @@ import tellurium as te
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 VARIABLE_NAMES = ["S%d" % d for d in range(1, 7)]
 DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
@@ -89,7 +89,8 @@ class TestNamedTimeseries(unittest.TestCase):
         self.assertEqual(len(self.timeseries), LENGTH)
 
     def testGetitem(self):
-        # TESTING
+        if IGNORE_TEST:
+            return
         times = self.timeseries[TIME]
         # Access time column with different case
         refs = ["TiMe", "S1"]
