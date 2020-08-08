@@ -1,7 +1,9 @@
 <img src="https://api.travis-ci.org/sys-bio/teUtils.svg?branch=master" width="100"/>
 
+<a href="https://codecov.io/gh/sys-bio/teUtils">
+  <img src="https://codecov.io/gh/sys-bio/teUtils/branch/master/graph/badge.svg" />
+</a>
 
-[![codecov](https://codecov.io/gh/sys-bio/teUtils/branch/master/graph/badge.svg)](https://codecov.io/gh/sys-bio/teUtils)
 
 
 # Utilities for Tellurium
