@@ -35,6 +35,7 @@ from teUtils.timeseries_plotter import TimeseriesPlotter, PlotOptions
 from teUtils import timeseries_plotter as tp
 from teUtils import helpers
 
+import copy
 import lmfit; 
 import numpy as np
 import roadrunner
@@ -179,11 +180,15 @@ class ModelFitter(object):
               - self.fitted_ts[cols]
         return self.residuals_ts.flatten()
         
-    def fitModel(self):
+    def fitModel(self, params=None):
         """
         Fits the model by adjusting values of parameters based on
         differences between simulated and provided values of
         floating species.
+
+        Parameters
+        ----------
+        params: lmfit.Parameters
               
         Example:
               f.fitModel()
@@ -193,7 +198,8 @@ class ModelFitter(object):
             # Compute fit and residuals for base model
             _ = self._residuals(None)
         else:
-            params = self._initializeParams()
+            if params is None:
+                params = self._initializeParams()
             # Fit the model to the data
             # Use two algorithms:
             #   Global differential evolution to get us close to minimum
@@ -206,6 +212,9 @@ class ModelFitter(object):
                 self.minimizer_result = minimizer.minimize(method='leastsqr')
             self.params = self.minimizer_result.params
             self.minimizer = minimizer
+            if not self.minimizer.success:
+                msg = "*** Minimizer failed for this model and data."
+                raise ValueError(msg)
 
     def getFittedParameters(self):
         """
@@ -247,7 +256,52 @@ class ModelFitter(object):
         self._setupModel(params=self.params)
         return self.roadrunner_model
 
-    def bootstrap(self, num_iteration=10,
+    def calcResidualsStd(self):
+        return np.std(self.residuals_ts[self.selected_columns])
+
+    def calcNewObserved(self):
+        """
+        Calculates synthetic observations. All observed values must be
+        non-negative.
+        
+        Returns
+        -------
+        NamedTimeseries
+            new synthetic observations
+        """
+        MAX_ITERATION = 1000
+        self._checkFit()
+        num_row = len(self.observed_ts)
+        num_col = len(self.selected_columns)
+        #
+        residuals_arr = self.residuals_ts.flatten()
+        fitted_arr = self.fitted_ts[self.selected_columns].flatten()
+        all_idxs = list(range(len(fitted_arr)))
+        length = len(all_idxs)
+        sel_idxs = []
+        new_observed_arr = np.repeat(np.nan, length)
+        num_iteration = 0
+        while len(sel_idxs) < length:
+            num_iteration += 1
+            if num_iteration > MAX_ITERATION:
+                msg = "No suitable synthetic observed values for bootstrap."
+                raise ValueError(msg)
+            missing_idxs = [s for s in set(all_idxs).difference(sel_idxs)]
+            num_missing = len(missing_idxs)
+            new_observed_arr[missing_idxs] = np.random.choice(
+                  residuals_arr[missing_idxs], num_missing, replace=True)  \
+                  + fitted_arr[missing_idxs]
+            sel_idxs = [i for i, v in enumerate(new_observed_arr) if v >= 0]
+            if len(sel_idxs) == length:
+                break
+        #
+        new_observed_ts = self.observed_ts.copy()
+        new_observed_ts[self.selected_columns] = np.reshape(
+              new_observed_arr, (num_row, num_col))
+        #
+        return new_observed_ts
+
+    def bootstrap(self, num_iteration=10, max_incr_residual_std=0.50,
           report_interval=None):
         """
         Constructs a bootstrap estimate of parameter values.
@@ -256,6 +310,9 @@ class ModelFitter(object):
         ----------
         num_iteration: int
             number of bootstrap iterations
+        max_incr_residual_std: float
+            maximum fractional increase in the residual std
+            from the original fit to consider this fit sucessful
         report_interval: int
             number of iterations between progress reports
               
@@ -265,36 +322,46 @@ class ModelFitter(object):
             f.getFittedParameters()  # Mean values
             f.getFittedParameterStds()  # Standard deviations of values
         """
+
+
+        ITERATION_MULTIPLIER = 10  # Determines maximum iterations
         self._checkFit()
         parameter_dct = {p: [] for p in self.parameters_to_fit}
-        num_row = len(self.observed_ts)
-        num_col = len(self.selected_columns)
-        for iteration in range(num_iteration):
-            # Construct new observations from residuals
-            residuals_arr = self.residuals_ts.flatten()
-            fitted_arr = self.fitted_ts[self.selected_columns].flatten()
-            new_observed_arr = np.random.choice(
-                  residuals_arr, len(residuals_arr), replace=True) + fitted_arr
-            new_observed_arr = np.array([v if v >= 0 else 0
-                  for v in new_observed_arr])
-            new_observed_ts = self.observed_ts.copy()
-            new_observed_ts[self.selected_columns] = np.reshape(
-                  new_observed_arr, (num_row, num_col))
+        base_residual_std = self.calcResidualsStd()
+        count = 0
+        for _ in range(num_iteration*ITERATION_MULTIPLIER):
+            if count > num_iteration:
+                # Performed the iterations
+                break
+            try:
+                new_observed_ts = self.calcNewObserved()
+            except ValueError:
+                # Couldn't find valid synthetic observations
+                continue
             # Do a fit with these observeds
             new_fitter = ModelFitter(self.roadrunner_model,
                   new_observed_ts,
                   self.parameters_to_fit,
                   selected_columns=self.selected_columns,
-                  method=self._method,
+                  method=METHOD_LEASTSQR,
                   parameter_lower_bound=self._lower_bound,
                   parameter_upper_bound=self._upper_bound,
                   is_plot=self._is_plot)
-            new_fitter.fitModel()
+            try:
+                new_fitter.fitModel(params=self.params)
+            except ValueError:
+                # Problem with the fit. Don't count it.
+                continue
+            new_residual_std = new_fitter.calcResidualsStd()
+            if new_residual_std > base_residual_std*(1 + max_incr_residual_std):
+                # Standard deviation of residuals is unacceaptable as a valid fit
+                continue
+            count += 1
             dct = new_fitter.params.valuesdict()
             [parameter_dct[p].append(dct[p]) for p in self.parameters_to_fit]
             if report_interval is not None:
-                if iteration % report_interval == 0:
-                    print("bootstrap completed %d iterations" % (iteration + 1))
+                if count % report_interval == 0:
+                    print("bootstrap completed %d iterations" % (count + 1))
         self.bootstrap_result = BootstrapResult(parameter_dct)
 
     def _setupModel(self, params=None):

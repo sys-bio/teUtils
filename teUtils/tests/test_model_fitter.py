@@ -10,11 +10,12 @@ from teUtils.model_fitter import ModelFitter
 from teUtils import model_fitter
 from teUtils.named_timeseries import NamedTimeseries, TIME
 
+import matplotlib
 import numpy as np
 import os
 import tellurium
+import time
 import unittest
-import matplotlib
 
 
 IGNORE_TEST = False
@@ -31,6 +32,14 @@ parameters_strs = ["%s=%d" % (k, v) for k,v
       in PARAMETER_DCT.items()]
 parameters_str = "; ".join(parameters_strs)
 COLUMNS = ["S%d" % d for d in range(1, 7)]
+ANTIMONY_MODEL_BENCHMARK = """
+# Reactions   
+    J1: S1 -> S2; k1*S1
+    J2: S2 -> S3; k2*S2
+# Species initializations     
+    S1 = 10; S2 = 0;
+    k1 = 1; k2 = 2
+"""
 ANTIMONY_MODEL = """
 # Reactions   
     J1: S1 -> S2; k1*S1
@@ -182,12 +191,22 @@ class TestModelFitter(unittest.TestCase):
         fitter1.plotFitAll()
         fitter1.plotFitAll(is_multiple=True)
 
+    def testCalcNewObserved(self):
+        if IGNORE_TEST:
+            return
+        self.fitter.fitModel()
+        self.fitter.calcNewObserved()
+        ts = self.fitter.calcNewObserved()
+        self.assertEqual(len(ts), len(self.fitter.observed_ts))
+        self.assertGreater(ts["S1"][0], ts["S6"][0])
+        self.assertGreater(ts["S6"][-1], ts["S1"][-1])
+
     def testBoostrap(self):
         if IGNORE_TEST:
             return
         self.fitter.fitModel()
-        self.fitter.bootstrap(num_iteration=10,
-              report_interval=2)
+        self.fitter.bootstrap(num_iteration=100,
+              report_interval=25)
         NUM_STD = 10
         result = self.fitter.bootstrap_result
         for p in self.fitter.parameters_to_fit:
@@ -199,6 +218,17 @@ class TestModelFitter(unittest.TestCase):
                   > PARAMETER_DCT[p]
             self.assertTrue(is_lower_ok)
             self.assertTrue(is_upper_ok)
+
+    def testBoostrapBenchmark1(self):
+        if IGNORE_TEST:
+            return
+        self.fitter.fitModel()
+        start_time = time.time()
+        self.fitter.bootstrap(num_iteration=1000)
+        elapsed_time = time.time() - start_time
+        msg = "\n***6 stage network with 6000 iterations ran in %4.1f sec\n"  \
+              % elapsed_time
+        print(msg)
 
     def testGetFittedParameterStds(self):
         if IGNORE_TEST:
