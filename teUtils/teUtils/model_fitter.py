@@ -33,6 +33,7 @@ Usage
 from teUtils.named_timeseries import NamedTimeseries, TIME, mkNamedTimeseries
 from teUtils.timeseries_plotter import TimeseriesPlotter, PlotOptions
 from teUtils import timeseries_plotter as tp
+from teUtils import helpers
 
 import lmfit; 
 import numpy as np
@@ -336,19 +337,15 @@ class ModelFitter(object):
             raise ValueError("Must do fitModel before reportFit.")
         return str(lmfit.fit_report(self.minimizer_result))
 
-    def plotResiduals(self, is_help=False, **kwargs):
+    def plotResiduals(self, **kwargs):
         """
         Plots residuals of a fit over time.
     
         Parameters
         ----------
         kwargs: dict. Plotting options.
-        is_help: bool
-            To see plot options: plotResiduals(help=True)
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
         """
-        if is_help:
-            print(PlotOptions())
-            return
         self._checkFit()
         options = PlotOptions()
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
@@ -356,7 +353,7 @@ class ModelFitter(object):
             kwargs[tp.MARKER1] = "o"
         plotter.plotTimeSingle(self.residuals_ts, **kwargs)
 
-    def plotFitAll(self, is_multiple=False, is_help=False, **kwargs):
+    def plotFitAll(self, is_multiple=False, **kwargs):
         """
         Plots the fit with observed data over time.
     
@@ -365,12 +362,8 @@ class ModelFitter(object):
         is_multiple: bool
             plots all variables on a single plot
         kwargs: dict. Plotting options.
-        is_help: bool
-            To see plot options: plotResiduals(help=True)
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
         """
-        if is_help:
-            print(PlotOptions())
-            return
         self._checkFit()
         plotter = TimeseriesPlotter(is_plot=self._is_plot)
         self._addKeyword(kwargs, tp.MARKER2, "o")
@@ -385,4 +378,7 @@ class ModelFitter(object):
     def _addKeyword(self, kwargs, key, value):
         if not key in kwargs:
             kwargs[key] = value
-        
+       
+
+# Update the docstrings 
+helpers.updatePlotDocstring(ModelFitter)

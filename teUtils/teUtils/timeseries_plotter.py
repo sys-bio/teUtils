@@ -12,17 +12,18 @@ Created on Tue Jul  7 14:24:09 2020
     can be varied:
       single or multiple columns in a plot
       one or two timeseries plot
-    
-    Usage:
 """
 
 from teUtils.named_timeseries import NamedTimeseries, TIME
+from teUtils import helpers
 
 import copy
 import matplotlib.pyplot as plt
 import numpy as np
 
 
+PLOT = "plot"  # identifies a plotting function
+EXPAND_KEYPHRASE = "Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)"
 LABEL1 = "1"
 LABEL2 = "2"
 COLORS = ['r', 'g', 'b', 'c', 'pink', 'grey']
@@ -42,7 +43,7 @@ LEGEND = "legend"
 
 ########################################
 class _Positioner(object):
-    # Determines the position of a plot
+    """ Determines the position of a plot """
 
     def __init__(self, num_plot, num_row=1, num_col=None):
         assigned = lambda v: not v in [None, 0]
@@ -266,11 +267,12 @@ class TimeseriesPlotter(object):
         ---------
         timeseries1: NamedTimeseries
         kwargs: dict
-            See PlotOptions (help(PlotOptions))
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
                
-        Usage
-        ____
-            
+        Example
+        -------
+        plotter = TimeseriesPlotter()
+        plotter.plotTimeSingle(timeseries)
         """
         options = self._initializeRowColumn(timeseries1, **kwargs)
         options, fig, axes = self._setup(timeseries1, options=options, **kwargs)
@@ -314,7 +316,7 @@ class TimeseriesPlotter(object):
         ---------
         timeseries1: NamedTimeseries
         kwargs: dict
-            See PlotOptions (help(PlotOptions))
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
         """
         max_col = 2 if TIMESERIES2 in kwargs else 1
         options = self._initializeRowColumn(timeseries1, max_col=max_col, **kwargs)
@@ -362,7 +364,7 @@ class TimeseriesPlotter(object):
         ---------
         timeseries: NamedTimeseries
         kwargs: dict
-            See PlotOptions (help(PlotOptions))
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
         """
         options = self._initializeRowColumn(timeseries,
               max_col=len(pairs), **kwargs)
@@ -389,3 +391,7 @@ class TimeseriesPlotter(object):
             options.do(ax)
         if self.is_plot:
             plt.show()
+
+
+# Update docstrings
+helpers.updatePlotDocstring(TimeseriesPlotter)
