@@ -56,8 +56,8 @@ class TesTimeseriesPlotter(unittest.TestCase):
     def testPlotSingle1(self):
         if IGNORE_TEST:
             return
-        self.plotter.plotTimeSingle(self.timeseries, num_col=2)
         self.plotter.plotTimeSingle(self.timeseries, num_col=4)
+        self.plotter.plotTimeSingle(self.timeseries, num_col=2)
         self.plotter.plotTimeSingle(self.timeseries, columns=["S1", "S2", "S3"], num_row=2)
         self.plotter.plotTimeSingle(self.timeseries, num_row=2, num_col=3, ylabel="xxx")
         self.plotter.plotTimeSingle(self.timeseries, columns=["S1", "S2"])
@@ -90,10 +90,10 @@ class TesTimeseriesPlotter(unittest.TestCase):
         if IGNORE_TEST:
             return
         ts2 = self.mkTimeseries()
+        self.plotter.plotTimeMultiple(self.timeseries, timeseries2=ts2, suptitle="Testing")
         self.plotter.plotTimeMultiple(self.timeseries, timeseries2=ts2, suptitle="Testing", 
               num_row=1, num_col=1,
               marker2="o")
-        self.plotter.plotTimeMultiple(self.timeseries, timeseries2=ts2, suptitle="Testing")
         self.plotter.plotTimeMultiple(self.timeseries, timeseries2=ts2, suptitle="Testing", 
               num_row=2,
               marker2="o")
@@ -129,4 +129,5 @@ class TestPlotOptions(unittest.TestCase):
             self.options.setDict(dct)
 
 if __name__ == '__main__':
-  unittest.main()
+    matplotlib.use('TkAgg')
+    unittest.main()

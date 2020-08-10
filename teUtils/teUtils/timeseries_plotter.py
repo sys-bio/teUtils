@@ -45,12 +45,30 @@ LEGEND = "legend"
 class _Positioner(object):
     """ Determines the position of a plot """
 
-    def __init__(self, num_plot, num_row=1, num_col=None):
+    def __init__(self, num_plot, num_row=1, num_col=None, is_triangle=False):
+        """
+        Positions plots within a figure.
+ 
+        Parameters
+        ----------
+        num_plot: int
+            number of plots
+        num_row: int
+            number of rows of plots
+        num_col: int
+            number of columns of plots
+        is_triangle: bool
+            create a lower triangular matrix
+        
+        Returns
+        -------
+        """
         assigned = lambda v: not v in [None, 0]
         #
         self.num_row = num_row
         self.num_col = num_col
         self.num_plot = num_plot
+        self.is_triangle = is_triangle
         if (not assigned(self.num_row)) and assigned(self.num_col):
             self.num_row = int(num_plot/num_col)
         elif (not assigned(self.num_col)) and assigned(self.num_row):
@@ -62,8 +80,23 @@ class _Positioner(object):
         self.col = 0  # Current column
 
     def pos(self, index):
-        self.row = index // self.num_col
-        self.col = index % self.num_col
+        self.row = None
+        self.col = None
+        if self.is_triangle:
+            # Number of rows for each column
+            rows = [self.num_row - v for v in range(self.num_row)]
+            for col in range(self.num_col):
+                max_index = sum(rows[:col+1])
+                if index <= max_index:
+                    self.col = col
+                    self.row = self.num_row - (max_index - index)
+                    break
+        else:
+            # Fill each cell in the matrix of plots
+            self.row = index // self.num_col
+            self.col = index % self.num_col
+        if self.row is None:
+            raise RuntimeError("Failed to assign position")
         return self.row, self.col
 
     def isFirstColumn(self):
@@ -180,7 +213,7 @@ class TimeseriesPlotter(object):
         """
         self.is_plot = is_plot
 
-    def _setup(self, timeseries1, options=PlotOptions(), **kwargs):
+    def _setup(self, timeseries1, num_plot, options=PlotOptions(), **kwargs):
         """
         Sets up plot information.
 
@@ -192,6 +225,7 @@ class TimeseriesPlotter(object):
         Returns
         -------
         PlotOptions, figure, axes
+            axes: plot axes or np.nan to fill array
 
         Notes
         -----
@@ -202,20 +236,21 @@ class TimeseriesPlotter(object):
         if len(options.columns) == 0:
             options.columns = timeseries1.colnames
         #
-        if options.figsize is not None:
-            fig, axes = plt.subplots(options.num_row, options.num_col,
-                  figsize=options.figsize)
-            plt.subplots_adjust(wspace=0.5)
+        if options.figsize is None:
+             options.figsize = plt.gca().figure.get_size_inches()
+        fig = plt.figure(figsize=options.figsize)
+        if options.num_row*options.num_col == 1:
+            axes = np.array([plt.subplot(1, 1, 1)])
         else:
-            fig, axes = plt.subplots(options.num_row, options.num_col)
-        if "matplotlib" in str(type(axes)):
-            axes = np.array([axes])
-        if axes.ndim == 1:
-            axes = np.reshape(axes, (options.num_row, options.num_col))
-        elif axes.ndim == 2:
-            pass
-        else:
-            raise RuntimeError("Should not get here")
+            axes = np.array([plt.subplot(options.num_row, options.num_col, i)
+                  for i in range(1, num_plot+1)])
+        # Reshape as a 2-d array
+        num_pos = options.num_row*options.num_col
+        if num_plot < num_pos:
+            num_nan = num_pos - num_plot
+            axes = np.concatenate([axes, np.repeat(np.nan, num_nan)])
+        axes = np.reshape(axes, (options.num_row, options.num_col))
+        plt.subplots_adjust(wspace=0.5)
         return options, fig, axes
 
     def _initializeRowColumn(self, timeseries1, max_col=None, **kwargs):
@@ -275,13 +310,17 @@ class TimeseriesPlotter(object):
         plotter.plotTimeSingle(timeseries)
         """
         options = self._initializeRowColumn(timeseries1, **kwargs)
-        options, fig, axes = self._setup(timeseries1, options=options, **kwargs)
-        positioner = _Positioner(len(options.columns), options.num_row, options.num_col)
+        num_plot = len(options.columns)  # Number of plots
+        options, fig, axes = self._setup(timeseries1, num_plot,
+              options=options, **kwargs)
+        positioner = _Positioner(num_plot, options.num_row, options.num_col)
         base_options = copy.deepcopy(options)
         for idx, variable in enumerate(options.columns):
             options = copy.deepcopy(base_options)
             row, col = positioner.pos(idx)
-            ax = axes[row, col]
+            ax = plt.subplot2grid(
+                  (options.num_row, options.num_col), (row, col))
+            #ax = axes[row, col]
             if options.ylabel is None:
                 options.set("ylabel", "concentration")
             options.title = variable
@@ -318,13 +357,15 @@ class TimeseriesPlotter(object):
         kwargs: dict
             Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
         """
-        max_col = 2 if TIMESERIES2 in kwargs else 1
+        num_plot = 2 if TIMESERIES2 in kwargs else 1
+        max_col = num_plot
         options = self._initializeRowColumn(timeseries1, max_col=max_col, **kwargs)
         if (NUM_ROW in kwargs) and (NUM_COL in kwargs):
             if (kwargs[NUM_ROW] == 1) and (kwargs[NUM_COL] == 1):
                 options.num_row = 1
                 options.num_col = 1
-        options, fig, axes = self._setup(timeseries1, options=options, **kwargs)
+        options, fig, axes = self._setup(timeseries1, num_plot,
+              options=options, **kwargs)
         #
         def multiPlot(timeseries, ax, marker=None):
             if marker is None:
@@ -343,7 +384,7 @@ class TimeseriesPlotter(object):
                 options.num_col = 1
                 axes = np.array([ axes[0,0], axes[0,0] ])
                 axes = np.reshape(axes, (options.num_row, options.num_col))
-            positioner = _Positioner(2, options.num_row, options.num_col)
+            positioner = _Positioner(num_plot, options.num_row, options.num_col)
             markers = [options.marker1, options.marker2]
             for idx, ts in enumerate([timeseries1, options.timeseries2]):
                 row, col = positioner.pos(idx)
@@ -368,8 +409,10 @@ class TimeseriesPlotter(object):
         """
         options = self._initializeRowColumn(timeseries,
               max_col=len(pairs), **kwargs)
-        options, fig, axes = self._setup(timeseries, options=options, **kwargs)
-        positioner = _Positioner(len(options.columns), options.num_row, options.num_col)
+        num_plot = len(pairs)
+        options, fig, axes = self._setup(timeseries, num_plot,
+              options=options, **kwargs)
+        positioner = _Positioner(num_plot, options.num_row, options.num_col)
         base_options = copy.deepcopy(options)
         for idx, pair in enumerate(pairs):
             options = copy.deepcopy(base_options)

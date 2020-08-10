@@ -18,8 +18,8 @@ import time
 import unittest
 
 
-IGNORE_TEST = False
-IS_PLOT = False
+IGNORE_TEST = True
+IS_PLOT = True
 PARAMETER_DCT = {
       "k1": 1,
       "k2": 2,
@@ -61,7 +61,7 @@ class TestModelFitter(unittest.TestCase):
     def setUp(self):
         self.timeseries = NamedTimeseries(TEST_DATA_PATH)
         self.fitter = ModelFitter(ANTIMONY_MODEL, self.timeseries,
-              list(PARAMETER_DCT.keys()))
+              list(PARAMETER_DCT.keys()), is_plot=IS_PLOT)
 
     def testConstructor(self):
         if IGNORE_TEST:
@@ -241,8 +241,15 @@ class TestModelFitter(unittest.TestCase):
         stds = self.fitter.getFittedParameterStds()
         for std in stds:
             self.assertTrue(isinstance(std, float))
+
+    def testPlotParameterEstimates(self):
+        # TESTING
+        self.fitter.fitModel()
+        self.fitter.bootstrap(num_iteration=100)
+        self.fitter.plotParameterEstimates(num_col=2, ylim=[0, 10])
         
         
 
 if __name__ == '__main__':
-  unittest.main()
+    matplotlib.use('TkAgg')
+    unittest.main()

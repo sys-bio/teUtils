@@ -31,6 +31,7 @@ Usage
 """
 
 from teUtils.named_timeseries import NamedTimeseries, TIME, mkNamedTimeseries
+from teUtils import named_timeseries
 from teUtils.timeseries_plotter import TimeseriesPlotter, PlotOptions
 from teUtils import timeseries_plotter as tp
 from teUtils import helpers
@@ -38,6 +39,7 @@ from teUtils import helpers
 import copy
 import lmfit; 
 import numpy as np
+import pandas as pd
 import roadrunner
 import tellurium as te
 
@@ -445,6 +447,32 @@ class ModelFitter(object):
     def _addKeyword(self, kwargs, key, value):
         if not key in kwargs:
             kwargs[key] = value
+
+    def plotParameterEstimates(self, **kwargs):
+        """
+        Does pairwise plots of parameter estimates.
+        
+        Parameters
+        ----------
+        kwargs: dict
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+        """
+        if self.bootstrap_result is None:
+            raise ValueError("Must run bootstrap before plotting parameter estimates.")
+        df = pd.DataFrame(self.bootstrap_result.parameter_dct)
+        df.index.name = named_timeseries.TIME
+        ts = NamedTimeseries(dataframe=df)
+        plotter = TimeseriesPlotter()
+        # Construct pairs
+        names = list(self.bootstrap_result.parameter_dct.keys())
+        pairs = []
+        compares = list(names)
+        for name in names:
+            compares.remove(name)
+            pairs.extend([(name, c) for c in compares])
+        #
+        plotter.plotValuePairs(ts, pairs, **kwargs)
+        
        
 
 # Update the docstrings 
