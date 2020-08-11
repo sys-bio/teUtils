@@ -30,7 +30,9 @@ COLORS = ['r', 'g', 'b', 'c', 'pink', 'grey']
 # Ensure lots of colors
 COLORS.extend(COLORS)
 COLORS.extend(COLORS)
-
+# Title positions
+POS_MID = 0.5
+POS_TOP = 0.9
 # Options
 NUM_ROW = "num_row"
 NUM_COL = "num_col"
@@ -39,6 +41,7 @@ TIMESERIES2 = "timeseries2"
 MARKER1 = "marker1"
 MARKER2 = "marker2"
 LEGEND = "legend"
+TITLE_POSITION = "title_position"
    
  
 #########################
@@ -59,6 +62,7 @@ class PlotOptions(object):
         self.num_col = None  # columns of plots
         self.timeseries2 = None  # second timeseries
         self.title = None
+        self.title_position = None  # Relative position in plot (x, y)
         self.suptitle = None  # Figure title
         self.xlabel = "time"  # x axis title
         self.xlim = None  # order pair of lower and upper
@@ -82,6 +86,7 @@ class PlotOptions(object):
                 num_col: columns of plots
                 timeseries2: second timeseries
                 title: plot title
+                title_position: relative position in plot (x, y)
                 suptitle: Figure title
                 xlabel: x axis title
                 xlim: order pair of lower and upper
@@ -140,7 +145,12 @@ class PlotOptions(object):
     def do(self, ax):
         ax.set_xlabel(self.xlabel)
         ax.set_ylabel(self.ylabel)
-        ax.set_title(self.title)
+        if self.title_position is None:
+            ax.set_title(self.title)
+        else:
+            ax.set_title(self.title, 
+                  position=self.title_position,
+                  transform=ax.transAxes)
         if self.xlim is not None:
             ax.set_xlim(self.xlim)
         if self.ylim is not None:
@@ -239,6 +249,14 @@ class LayoutManager(object):
     def isFirstColumn(self, index):
         _, col = self._calcRowColumn(index)
         return col == 0
+
+    def isFirstRow(self, index):
+        row, _ = self._calcRowColumn(index)
+        return row == 0
+
+    def isLastCol(self, index):
+        _, col = self._calcRowColumn(index)
+        return col == self.options.num_col - 1
 
     def isLastRow(self, index):
         row, _ = self._calcRowColumn(index)
@@ -398,7 +416,7 @@ class TimeseriesPlotter(object):
         else:
             options.num_col = int(np.ceil(num_plot/options.num_row))
         # Create the LayoutManager
-        layout = self.mkManager(options, num_plot)
+        layout = self._mkManager(options, num_plot)
         # Construct the plots
         base_options = copy.deepcopy(options)
         for index, variable in enumerate(options.columns):
@@ -465,7 +483,7 @@ class TimeseriesPlotter(object):
             else:
                 options.num_row = int(np.ceil(2/options.num_col))
         # Create the LayoutManager
-        layout = self.mkManager(options, num_plot)
+        layout = self._mkManager(options, num_plot)
         # Construct the plots
         multiPlot(timeseries1, layout.getAxis(0), marker = options.marker1)
         if options.timeseries2 is not None:
@@ -474,14 +492,19 @@ class TimeseriesPlotter(object):
         if self.is_plot:
             plt.show()
 
-    def mkManager(self, options, num_plot):
+    def _mkManager(self, options, num_plot, is_lower_triangular=False):
         if num_plot == 1:
             layout = LayoutManagerSingle(options, num_plot)
+        elif is_lower_triangular:
+            options.title_position = (POS_MID, POS_TOP)
+            layout = LayoutManagerLowerTriangular(options, num_plot)
         else:
+            options.title_position = (POS_MID, POS_TOP)
             layout = LayoutManagerMatrix(options, num_plot)
         return layout
 
-    def plotValuePairs(self, timeseries, pairs, **kwargs):
+    def plotValuePairs(self, timeseries, pairs, 
+        is_lower_triangular=False, **kwargs):
         """
         Constructs plots of values of column pairs for a single
         timeseries.
@@ -494,24 +517,29 @@ class TimeseriesPlotter(object):
         """
         num_plot = len(pairs)
         options = self._mkPlotOptions(timeseries, max_col=num_plot, **kwargs)
-        layout = self.mkManager(options, num_plot)
+        layout = self._mkManager(options, num_plot,
+              is_lower_triangular==is_lower_triangular)
         base_options = copy.deepcopy(options)
         for index, pair in enumerate(pairs):
             options = copy.deepcopy(base_options)
-            var1 = pair[0]
-            var2 = pair[1]
+            x_var = pair[0]
+            y_var = pair[1]
             ax = layout.getAxis(index)
-            options.xlabel = var1
-            options.ylabel = var2
-            options.title = "%s v. %s" % (var1, var2)
-            if not layout.isFirstColumn(index):
-                options.ylabel =  ""
-                options.set("ylabel", "")
-            if not layout.isLastRow(index):
-                options.xlabel =  ""
-            ax.scatter(timeseries[var1], timeseries[var2], marker='o')
-            options.xlabel = var1
-            options.ylabel = var2
+            if is_lower_triangular:
+                if layout.isLastRow(index):
+                    options.xlabel = x_var
+                else:
+                    options.title = ""
+                if layout.isFirstColumn(index):
+                    options.ylabel = y_var
+                else:
+                    options.ylabel = ""
+            else:
+                # Matrix plot
+                options.xlabel = ""
+                options.ylabel = ""
+                options.title = "%s v. %s" % (x_var, y_var)
+            ax.scatter(timeseries[x_var], timeseries[y_var], marker='o')
             options.do(ax)
         if self.is_plot:
             plt.show()

@@ -245,6 +245,7 @@ class TestModelFitter(unittest.TestCase):
     def testPlotParameterEstimates(self):
         if IGNORE_TEST:
             return
+        return
         self.fitter.fitModel()
         self.fitter.bootstrap(num_iteration=100)
         self.fitter.plotParameterEstimates(num_col=2, ylim=[0, 10])

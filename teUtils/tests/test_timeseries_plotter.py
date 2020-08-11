@@ -107,7 +107,8 @@ class TestTimeseriesPlotter(unittest.TestCase):
         if IGNORE_TEST:
             return
         ts2 = self.mkTimeseries()
-        self.plotter.plotValuePairs(self.timeseries, [("S1", "S2"), ("S2", "S3"), ("S4", "S5")],
+        self.plotter.plotValuePairs(self.timeseries, 
+              [("S1", "S2"), ("S2", "S3"), ("S4", "S5")],
               num_col=2, num_row=2)
         self.plotter.plotValuePairs(self.timeseries, [("S1", "S2"), ("S2", "S3")], num_row=2)
         self.plotter.plotValuePairs(self.timeseries, [("S1", "S2")])
