@@ -448,12 +448,14 @@ class ModelFitter(object):
         if not key in kwargs:
             kwargs[key] = value
 
-    def plotParameterEstimates(self, **kwargs):
+    def plotParameterEstimatePairs(self, parameters=None, **kwargs):
         """
         Does pairwise plots of parameter estimates.
         
         Parameters
         ----------
+        parameters: list-str
+            List of parameters to do pairwise plots
         kwargs: dict
             Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
         """

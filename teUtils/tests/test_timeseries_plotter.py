@@ -8,13 +8,15 @@ Created on Tue Jul  7 14:24:09 2020
 
 from teUtils.named_timeseries import NamedTimeseries, mkNamedTimeseries, TIME
 import teUtils.named_timeseries as named_timeseries
-from teUtils.timeseries_plotter import PlotOptions, TimeseriesPlotter
+from teUtils.timeseries_plotter import PlotOptions, TimeseriesPlotter,  \
+      LayoutManagerLowerTriangular
 from teUtils import timeseries_plotter as tp
 
 import numpy as np
 import os
 import unittest
 import matplotlib
+import matplotlib.pyplot as plt
 
 
 IGNORE_TEST = False
@@ -23,6 +25,9 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
 NUM_ROW = tp.NUM_ROW
 NUM_COL = tp.NUM_COL
+DEFAULT_NUM_ROW = 2
+DEFAULT_NUM_COL = 3
+DEFAULT_NUM_PLOT = 5
         
 
 class TestTimeseriesPlotter(unittest.TestCase):
@@ -126,6 +131,24 @@ class TestPlotOptions(unittest.TestCase):
         dct[DUMMY] = DUMMY_VALUE
         with self.assertRaises(ValueError):
             self.options.setDict(dct)
+        
+class TestLayoutManagerLowerTriangular(unittest.TestCase):
+
+    def setUp(self):
+        options = PlotOptions()
+        options.num_row = 2*DEFAULT_NUM_ROW
+        options.num_col = 3*DEFAULT_NUM_COL
+        self.layout = LayoutManagerLowerTriangular(options, DEFAULT_NUM_PLOT)
+
+    def testSetAxes(self):
+        if IGNORE_TEST:
+            return
+        fig, axes = self.layout._setAxes()
+        corners = [a.get_position().corners() for a in axes]
+        self.assertEqual(corners[0][0][0], corners[1][0][0])
+        if IS_PLOT:
+            plt.show()
+
 
 if __name__ == '__main__':
     matplotlib.use('TkAgg')

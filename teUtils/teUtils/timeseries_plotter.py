@@ -158,8 +158,12 @@ class PlotOptions(object):
 ########################################
 class LayoutManager(object):
     """
-    Manages the position of plots on the figure.
-    The top level class is abstract.
+    Manages the position of plots on the figure by creating
+    a mapping from a linear sequence of plots to positions
+    in a 2-dimensional grid.
+
+    The top level class is abstract. Subclasses must override
+    the method _setAxes that mplements the above mapping.
     """
 
     def __init__(self, options, num_plot):
@@ -180,6 +184,10 @@ class LayoutManager(object):
     def _initializeAxes(self):
         """
         Common codes for setAxes() methods.
+        
+        Returns
+        -------
+        Maplotlib.Figure, Matplotlib.Axes
         """
         figure = plt.figure(figsize=self.options.figsize)
         axes = []
@@ -188,8 +196,9 @@ class LayoutManager(object):
 
     def _setAxes(self):
         """
-        Sets up axes for plot. Must override. Axes are organized in the index
-        sequence appropriate for the organization of the figure.
+        Implements the mapping from a linear sequence to positions in
+        a two dimension grid for the figure.
+        Must override.
         
         Returns
         -------
@@ -299,10 +308,11 @@ class LayoutManagerLowerTriangular(LayoutManager):
         figure, axes = self._initializeAxes()
         for index in range(self.num_plot_position):
             row, col = self._calcRowColumn(index)
-            if is_lower_triangular and (row >= col):
+            if row >= col:
                 ax = plt.subplot2grid(
-                      (self.num_row, self.num_col), (row, col))
-                self.axes.append(ax)
+                      (self.options.num_row, self.options.num_col), (row, col))
+                axes.append(ax)
+        return figure, axes
 
 
 ########################################
@@ -388,20 +398,20 @@ class TimeseriesPlotter(object):
         else:
             options.num_col = int(np.ceil(num_plot/options.num_row))
         # Create the LayoutManager
-        manager = self.mkManager(options, num_plot)
+        layout = self.mkManager(options, num_plot)
         # Construct the plots
         base_options = copy.deepcopy(options)
         for index, variable in enumerate(options.columns):
             options = copy.deepcopy(base_options)
-            ax = manager.getAxis(index)
+            ax = layout.getAxis(index)
             #ax = axes[row, col]
             if options.ylabel is None:
                 options.set("ylabel", "concentration")
             options.title = variable
-            if not manager.isFirstColumn(index):
+            if not layout.isFirstColumn(index):
                 options.ylabel =  ""
                 options.set("ylabel", "")
-            if not manager.isLastRow(index):
+            if not layout.isLastRow(index):
                 options.xlabel =  ""
             if options.marker1 is None:
                 ax.plot(timeseries1[TIME], timeseries1[variable], color="blue", label=LABEL1)
@@ -455,21 +465,21 @@ class TimeseriesPlotter(object):
             else:
                 options.num_row = int(np.ceil(2/options.num_col))
         # Create the LayoutManager
-        manager = self.mkManager(options, num_plot)
+        layout = self.mkManager(options, num_plot)
         # Construct the plots
-        multiPlot(timeseries1, manager.getAxis(0), marker = options.marker1)
+        multiPlot(timeseries1, layout.getAxis(0), marker = options.marker1)
         if options.timeseries2 is not None:
-            ax = manager.getAxis(num_plot-1)
+            ax = layout.getAxis(num_plot-1)
             multiPlot(options.timeseries2, ax, marker = options.marker2)
         if self.is_plot:
             plt.show()
 
     def mkManager(self, options, num_plot):
         if num_plot == 1:
-            manager = LayoutManagerSingle(options, num_plot)
+            layout = LayoutManagerSingle(options, num_plot)
         else:
-            manager = LayoutManagerMatrix(options, num_plot)
-        return manager
+            layout = LayoutManagerMatrix(options, num_plot)
+        return layout
 
     def plotValuePairs(self, timeseries, pairs, **kwargs):
         """
@@ -484,20 +494,20 @@ class TimeseriesPlotter(object):
         """
         num_plot = len(pairs)
         options = self._mkPlotOptions(timeseries, max_col=num_plot, **kwargs)
-        manager = self.mkManager(options, num_plot)
+        layout = self.mkManager(options, num_plot)
         base_options = copy.deepcopy(options)
         for index, pair in enumerate(pairs):
             options = copy.deepcopy(base_options)
             var1 = pair[0]
             var2 = pair[1]
-            ax = manager.getAxis(index)
+            ax = layout.getAxis(index)
             options.xlabel = var1
             options.ylabel = var2
             options.title = "%s v. %s" % (var1, var2)
-            if not manager.isFirstColumn(index):
+            if not layout.isFirstColumn(index):
                 options.ylabel =  ""
                 options.set("ylabel", "")
-            if not manager.isLastRow(index):
+            if not layout.isLastRow(index):
                 options.xlabel =  ""
             ax.scatter(timeseries[var1], timeseries[var2], marker='o')
             options.xlabel = var1
