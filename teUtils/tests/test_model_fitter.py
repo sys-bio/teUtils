@@ -18,8 +18,8 @@ import time
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 PARAMETER_DCT = {
       "k1": 1,
       "k2": 2,
@@ -243,7 +243,8 @@ class TestModelFitter(unittest.TestCase):
             self.assertTrue(isinstance(std, float))
 
     def testPlotParameterEstimates(self):
-        # TESTING
+        if IGNORE_TEST:
+            return
         self.fitter.fitModel()
         self.fitter.bootstrap(num_iteration=100)
         self.fitter.plotParameterEstimates(num_col=2, ylim=[0, 10])

@@ -25,7 +25,7 @@ NUM_ROW = tp.NUM_ROW
 NUM_COL = tp.NUM_COL
         
 
-class TesTimeseriesPlotter(unittest.TestCase):
+class TestTimeseriesPlotter(unittest.TestCase):
 
     def setUp(self):
         self.timeseries = NamedTimeseries(csv_path=TEST_DATA_PATH)
@@ -40,9 +40,8 @@ class TesTimeseriesPlotter(unittest.TestCase):
         if IGNORE_TEST:
             return
         def test(max_col, **kwargs):
-            options = self.plotter._initializeRowColumn(self.timeseries,
+            options = self.plotter._mkPlotOptions(self.timeseries,
                    max_col=max_col, **kwargs)
-            self.assertLessEqual(max_col, options.num_row * options.num_col)
             if NUM_ROW in kwargs:
                 self.assertGreaterEqual(options.num_row, kwargs[NUM_ROW])
             if NUM_COL in kwargs:
@@ -56,9 +55,9 @@ class TesTimeseriesPlotter(unittest.TestCase):
     def testPlotSingle1(self):
         if IGNORE_TEST:
             return
+        self.plotter.plotTimeSingle(self.timeseries, columns=["S1", "S2", "S3"], num_row=2)
         self.plotter.plotTimeSingle(self.timeseries, num_col=4)
         self.plotter.plotTimeSingle(self.timeseries, num_col=2)
-        self.plotter.plotTimeSingle(self.timeseries, columns=["S1", "S2", "S3"], num_row=2)
         self.plotter.plotTimeSingle(self.timeseries, num_row=2, num_col=3, ylabel="xxx")
         self.plotter.plotTimeSingle(self.timeseries, columns=["S1", "S2"])
 
