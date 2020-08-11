@@ -464,7 +464,7 @@ class ModelFitter(object):
         df = pd.DataFrame(self.bootstrap_result.parameter_dct)
         df.index.name = named_timeseries.TIME
         ts = NamedTimeseries(dataframe=df)
-        plotter = TimeseriesPlotter()
+        plotter = TimeseriesPlotter(is_plot=self._is_plot)
         # Construct pairs
         names = list(self.bootstrap_result.parameter_dct.keys())
         pairs = []
@@ -473,7 +473,7 @@ class ModelFitter(object):
             compares.remove(name)
             pairs.extend([(name, c) for c in compares])
         #
-        plotter.plotValuePairs(ts, pairs, **kwargs)
+        plotter.plotValuePairs(ts, pairs, is_lower_triangular=True, **kwargs)
         
        
 

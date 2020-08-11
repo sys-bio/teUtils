@@ -54,6 +54,7 @@ ANTIMONY_MODEL = """
 """ % parameters_str
 DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
+BENCHMARK1_TIME = 15  # Actual is 12 sec
         
 
 class TestModelFitter(unittest.TestCase):
@@ -226,9 +227,7 @@ class TestModelFitter(unittest.TestCase):
         start_time = time.time()
         self.fitter.bootstrap(num_iteration=1000)
         elapsed_time = time.time() - start_time
-        msg = "\n***6 stage network with 6000 iterations ran in %4.1f sec\n"  \
-              % elapsed_time
-        print(msg)
+        self.assertLess(elapsed_time, BENCHMARK1_TIME)
 
     def testGetFittedParameterStds(self):
         if IGNORE_TEST:
@@ -245,10 +244,9 @@ class TestModelFitter(unittest.TestCase):
     def testPlotParameterEstimates(self):
         if IGNORE_TEST:
             return
-        return
         self.fitter.fitModel()
         self.fitter.bootstrap(num_iteration=100)
-        self.fitter.plotParameterEstimates(num_col=2, ylim=[0, 10])
+        self.fitter.plotParameterEstimatePairs(ylim=[0, 5], xlim=[0, 5])
         
         
 
