@@ -117,6 +117,7 @@ class ModelFitter(object):
         self.selected_columns = selected_columns
         self._method = method
         self._is_plot = is_plot
+        self._plotter = TimeseriesPlotter(is_plot=self._is_plot)
         # The following are calculated during fitting
         self.roadrunner_model = None
         self.minimizer = None  # lmfit.minimizer
@@ -417,10 +418,9 @@ class ModelFitter(object):
         """
         self._checkFit()
         options = PlotOptions()
-        plotter = TimeseriesPlotter(is_plot=self._is_plot)
         if not tp.MARKER1 in kwargs:
             kwargs[tp.MARKER1] = "o"
-        plotter.plotTimeSingle(self.residuals_ts, **kwargs)
+        self._plotter.plotTimeSingle(self.residuals_ts, **kwargs)
 
     def plotFitAll(self, is_multiple=False, **kwargs):
         """
@@ -434,19 +434,23 @@ class ModelFitter(object):
             Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
         """
         self._checkFit()
-        plotter = TimeseriesPlotter(is_plot=self._is_plot)
         self._addKeyword(kwargs, tp.MARKER2, "o")
         if is_multiple:
-            plotter.plotTimeMultiple(self.fitted_ts, timeseries2=self.observed_ts,
+            self._plotter.plotTimeMultiple(self.fitted_ts, timeseries2=self.observed_ts,
                   **kwargs)
         else:
             self._addKeyword(kwargs, tp.LEGEND, ["fitted", "observed"])
-            plotter.plotTimeSingle(self.fitted_ts, timeseries2=self.observed_ts,
+            self._plotter.plotTimeSingle(self.fitted_ts, timeseries2=self.observed_ts,
                   **kwargs)
 
     def _addKeyword(self, kwargs, key, value):
         if not key in kwargs:
             kwargs[key] = value
+
+    def _mkParameterDF(self):
+        df = pd.DataFrame(self.bootstrap_result.parameter_dct)
+        df.index.name = named_timeseries.TIME
+        return NamedTimeseries(dataframe=df)
 
     def plotParameterEstimatePairs(self, parameters=None, **kwargs):
         """
@@ -461,10 +465,7 @@ class ModelFitter(object):
         """
         if self.bootstrap_result is None:
             raise ValueError("Must run bootstrap before plotting parameter estimates.")
-        df = pd.DataFrame(self.bootstrap_result.parameter_dct)
-        df.index.name = named_timeseries.TIME
-        ts = NamedTimeseries(dataframe=df)
-        plotter = TimeseriesPlotter(is_plot=self._is_plot)
+        ts = self._mkParameterDF()
         # Construct pairs
         names = list(self.bootstrap_result.parameter_dct.keys())
         pairs = []
@@ -473,9 +474,24 @@ class ModelFitter(object):
             compares.remove(name)
             pairs.extend([(name, c) for c in compares])
         #
-        plotter.plotValuePairs(ts, pairs, is_lower_triangular=True, **kwargs)
+        self._plotter.plotValuePairs(ts, pairs, is_lower_triangular=True, **kwargs)
+
+    def plotParameterHistograms(self, parameters=None, **kwargs):
+        """
+        Plots histographs of parameter values from a bootstrap.
         
-       
+        Parameters
+        ----------
+        parameters: list-str
+            List of parameters to do pairwise plots
+        kwargs: dict
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+        """
+        if self.bootstrap_result is None:
+            raise ValueError("Must run bootstrap before plotting parameter estimates.")
+        ts = self._mkParameterDF()
+        self._plotter.plotHistograms(ts, **kwargs)
+        
 
 # Update the docstrings 
 helpers.updatePlotDocstring(ModelFitter)

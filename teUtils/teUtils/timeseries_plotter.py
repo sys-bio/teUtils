@@ -605,6 +605,38 @@ class TimeseriesPlotter(object):
         if self.is_plot:
             plt.show()
 
+    def plotHistograms(self, timeseries, **kwargs):
+        """
+        Constructs a matrix of histographs for timeseries values.
+
+        Parameters
+        ---------
+        timeseries: NamedTimeseries
+        kwargs: dict
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+        """
+        options = self._mkPlotOptionsMatrix(timeseries, **kwargs)
+        num_plot = len(options.columns)
+        layout = self._mkManager(options, num_plot)
+        base_options = copy.deepcopy(options)
+        for index, column in enumerate(options.columns):
+            options = copy.deepcopy(base_options)
+            ax = layout.getAxis(index)
+            if layout.isFirstColumn(index):
+                options.ylabel = "density"
+            if not layout.isFirstColumn(index):
+                options.ylabel = ""
+            if layout.isLastRow(index):
+                options.xlabel = "value"
+            else:
+                options.xlabel = ""
+            # Matrix plot
+            options.title = column
+            ax.hist(timeseries[column], density=True)
+            options.do(ax)
+        if self.is_plot:
+            plt.show()
+
 
 # Update docstrings
 helpers.updatePlotDocstring(TimeseriesPlotter)

@@ -112,6 +112,12 @@ class TestTimeseriesPlotter(unittest.TestCase):
               num_col=2, num_row=2)
         self.plotter.plotValuePairs(self.timeseries, [("S1", "S2"), ("S2", "S3")], num_row=2)
         self.plotter.plotValuePairs(self.timeseries, [("S1", "S2")])
+
+    def testPlotHistograms(self):
+        if IGNORE_TEST:
+            return
+        self.plotter.plotHistograms(self.timeseries, num_col=2)
+        
         
 class TestPlotOptions(unittest.TestCase):
 
@@ -139,12 +145,15 @@ class TestLayoutManagerLowerTriangular(unittest.TestCase):
         options = PlotOptions()
         options.num_row = 2*DEFAULT_NUM_ROW
         options.num_col = 3*DEFAULT_NUM_COL
-        self.layout = LayoutManagerLowerTriangular(options, DEFAULT_NUM_PLOT)
 
     def testSetAxes(self):
         if IGNORE_TEST:
             return
-        _, axes, _ = self.layout._setAxes()
+        options = PlotOptions()
+        options.num_col = 4
+        options.num_row = 4
+        layout = LayoutManagerLowerTriangular(options, DEFAULT_NUM_PLOT)
+        _, axes, _ = layout._setAxes()
         corners = [a.get_position().corners() for a in axes]
         self.assertEqual(corners[0][0][0], corners[1][0][0])
         if IS_PLOT:
