@@ -45,7 +45,7 @@ class TestTimeseriesPlotter(unittest.TestCase):
         if IGNORE_TEST:
             return
         def test(max_col, **kwargs):
-            options = self.plotter._mkPlotOptions(self.timeseries,
+            options = self.plotter._mkPlotOptionsMatrix(self.timeseries,
                    max_col=max_col, **kwargs)
             if NUM_ROW in kwargs:
                 self.assertGreaterEqual(options.num_row, kwargs[NUM_ROW])
@@ -144,7 +144,7 @@ class TestLayoutManagerLowerTriangular(unittest.TestCase):
     def testSetAxes(self):
         if IGNORE_TEST:
             return
-        fig, axes = self.layout._setAxes()
+        _, axes, _ = self.layout._setAxes()
         corners = [a.get_position().corners() for a in axes]
         self.assertEqual(corners[0][0][0], corners[1][0][0])
         if IS_PLOT:
