@@ -28,7 +28,7 @@
     This module provides a single method that can be used to build linear chaing network with random parmaetr values. The 
     user has a choice of either building a network based on mass-action or Michaelis-Menten kinetics
 
-    scanning
+    parameterScanning
     --------
 
     At the moment a single method to do a simple time course parameter scan
@@ -54,7 +54,7 @@ try:
     from . import plotting
     from . import prettyTabular
     from . import buildNetworks
-    from . import scanning
+    from . import parameterScanning
     from . import fileUtils
     from . import model_fitter
 except:
@@ -62,6 +62,6 @@ except:
     from teUtils import plotting
     from teUtils import prettyTabular
     from teUtils import buildNetworks
-    from teUtils import scanning
+    from teUtils import parameterScanning
     from teUtils import fileUtils
     from teUtils import model_fitter
