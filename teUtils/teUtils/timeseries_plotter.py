@@ -435,11 +435,17 @@ class TimeseriesPlotter(object):
             assigns values to options.num_row, options.num_col
         """
         size = len(pairs)
-        # Find the size of the matrix
-        for mm in range(size*size):
-            if 2*size - mm <= mm**2:
-                mat_size = mm
-                break
+        if size == 1:
+            mat_size = 1
+        else:
+            # Find the size of the matrix
+            mat_size = None
+            for mm in range(size**3):
+                if 2*size - mm <= mm**2:
+                    mat_size = mm
+                    break
+            if mat_size is None:
+                raise RuntimeError("Could not find matrix size.")
         # Assign options
         options = PlotOptions()
         options.num_row = mat_size

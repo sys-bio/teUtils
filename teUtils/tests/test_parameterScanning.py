@@ -6,7 +6,7 @@ Created on Aug 8, 2020
 @author: joseph-hellerstein
 """
 
-from teUtils import scanning
+from teUtils import parameterScanning
 
 import numpy as np
 import tellurium as te
@@ -35,7 +35,7 @@ class TestScanning(unittest.TestCase):
         if IGNORE_TEST:
             return
         NUM_SCAN = 3
-        result = scanning.simpleTimeCourseScan (
+        result = parameterScanning.simpleTimeCourseScan (
               self.rr_model, 'k2', 'S1', 3, 12, 3)
         self.assertTrue(isinstance(result, np.ndarray))
         self.assertEqual(np.shape(result)[1], NUM_SCAN+1)

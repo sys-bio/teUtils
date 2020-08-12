@@ -54,6 +54,7 @@ ANTIMONY_MODEL = """
 """ % parameters_str
 DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
+BENCHMARK_PATH = os.path.join(DIR, "groundtruth_2_step_0_1.txt")
 BENCHMARK1_TIME = 30 # Actual is 20 sec
         
 
@@ -255,6 +256,38 @@ class TestModelFitter(unittest.TestCase):
         self.fitter.bootstrap(num_iteration=100)
         self.fitter.plotParameterHistograms(ylim=[0, 5], xlim=[0, 6],
               bins=10, parameters=["k1", "k2"])
+
+    def testBug2(self):
+        if IGNORE_TEST:
+            return
+        import tellurium as te
+        import teUtils as tu
+        
+        r = te.loada("""
+            J1: S1 -> S2; k1*S1
+            J2: S2 -> S3; k2*S2
+           
+            S1 = 1; S2 = 0; S3 = 0;
+            k1 = 0; k2 = 0; 
+        """)
+        
+        fitter = tu.model_fitter.ModelFitter(r, BENCHMARK_PATH,
+              ["k1", "k2"], selected_columns=['S1', 'S3'], is_plot=IS_PLOT)
+        fitter.fitModel()
+        print(fitter.reportFit ())
+    
+        fitter.plotResiduals(figsize=(8,6))
+        fitter.plotFitAll(figsize=(10,6))
+        
+        #fitter.plotResiduals (num_col=3, num_row=1, figsize=(17,5))
+        #fitter.plotFit (num_col=3, num_row=1, figsize=(18, 6))
+        
+        print (fitter.getFittedParameters())  
+        
+        to = time.time()
+        fitter.bootstrap(num_iteration=600, report_interval=100)
+        fitter.plotParameterEstimatePairs(['k1', 'k2'])
+
         
         
 
