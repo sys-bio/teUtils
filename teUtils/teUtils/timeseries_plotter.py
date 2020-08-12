@@ -34,13 +34,14 @@ COLORS.extend(COLORS)
 POS_MID = 0.5
 POS_TOP = 0.9
 # Options
-NUM_ROW = "num_row"
-NUM_COL = "num_col"
+BINS = "bins"
 COLUMNS = "columns"
-TIMESERIES2 = "timeseries2"
+LEGEND = "legend"
 MARKER1 = "marker1"
 MARKER2 = "marker2"
-LEGEND = "legend"
+NUM_COL = "num_col"
+NUM_ROW = "num_row"
+TIMESERIES2 = "timeseries2"
 TITLE_POSITION = "title_position"
    
  
@@ -77,6 +78,7 @@ class PlotOptions(object):
     def __str__(self):
         stg = """
             Supported plotting options are:
+                bins: int for number of bins in a histogram plot
                 columns: List of columns to plot
                 figsize: (horizontal width, vertical height)
                 legend: Tuple of str for legend
@@ -86,7 +88,7 @@ class PlotOptions(object):
                 num_col: columns of plots
                 timeseries2: second timeseries
                 title: plot title
-                title_position: relative position in plot (x, y)
+                title_position: relative position in plot (x, y); x,y in [0, 1]; (0,0) is lower left.
                 suptitle: Figure title
                 xlabel: x axis title
                 xlim: order pair of lower and upper
@@ -615,6 +617,11 @@ class TimeseriesPlotter(object):
         kwargs: dict
             Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
         """
+        if BINS in kwargs.keys():
+            bins = kwargs[BINS]
+            del kwargs[BINS]
+        else:
+            bins = None
         options = self._mkPlotOptionsMatrix(timeseries, **kwargs)
         num_plot = len(options.columns)
         layout = self._mkManager(options, num_plot)
@@ -632,7 +639,10 @@ class TimeseriesPlotter(object):
                 options.xlabel = ""
             # Matrix plot
             options.title = column
-            ax.hist(timeseries[column], density=True)
+            if bins is None:
+                ax.hist(timeseries[column], density=True)
+            else:
+                ax.hist(timeseries[column], bins=bins, density=True)
             options.do(ax)
         if self.is_plot:
             plt.show()
