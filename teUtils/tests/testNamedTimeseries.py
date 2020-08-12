@@ -66,14 +66,14 @@ class TestNamedTimeseries(unittest.TestCase):
                 self.assertTrue(np.isclose(sum(timeseries[name]
                       - self.timeseries[name]), 0))
         #
-        new_timeseries = NamedTimeseries(colnames=COLNAMES,
+        newTS = NamedTimeseries(colnames=COLNAMES,
               array=self.timeseries[COLNAMES])
-        test(new_timeseries)
+        test(newTS)
         # Check can use different cases for TIME
-        new_timeseries = NamedTimeseries(
+        newTS = NamedTimeseries(
               colnames= ["Time", "S1", "S2"],
               array=self.timeseries[COLNAMES])
-        test(new_timeseries)
+        test(newTS)
 
     def testConstructorNamedArray(self):
         if IGNORE_TEST:
@@ -128,12 +128,12 @@ class TestNamedTimeseries(unittest.TestCase):
             self.assertTrue(all(trues))
         def checkMatrix(attribute):
             trues = []
-            for row_idx, row in enumerate(
+            for rowIdx, row in enumerate(
                   timeseries.__getattribute__(attribute)):
-                for col_idx, val in enumerate(row):
+                for colIdx, val in enumerate(row):
                     trues.append(val == 
                           self.timeseries.__getattribute__(attribute)[
-                          row_idx, col_idx])
+                          rowIdx, colIdx])
             self.assertTrue(all(trues))
         #
         for variable in ["start", "end"]:
@@ -154,8 +154,8 @@ class TestNamedTimeseries(unittest.TestCase):
     def testSelectTimes(self):
         if IGNORE_TEST:
             return
-        selector_function = lambda t: t > 2
-        array = self.timeseries.selectTimes(selector_function)
+        selectorFunction = lambda t: t > 2
+        array = self.timeseries.selectTimes(selectorFunction)
         self.assertLess(len(array), len(self.timeseries))
 
     def testMkNamedTimeseries(self):
@@ -163,14 +163,14 @@ class TestNamedTimeseries(unittest.TestCase):
             return
         # Create a new time series that subsets the old one
         colnames = ["time", "S1", "S2"]
-        new_timeseries = namedTimeseries.mkNamedTimeseries(
+        newTS = namedTimeseries.mkNamedTimeseries(
               colnames, self.timeseries[colnames])
-        self.assertEqual(len(self.timeseries), len(new_timeseries))
+        self.assertEqual(len(self.timeseries), len(newTS))
         # Create a new timeseries with a subset of times
         array = self.timeseries.selectTimes(lambda t: t > 2)
-        new_timeseries = namedTimeseries.mkNamedTimeseries(
-              self.timeseries.all_colnames, array)
-        self.assertGreater(len(self.timeseries), len(new_timeseries))
+        newTS = namedTimeseries.mkNamedTimeseries(
+              self.timeseries.allColnames, array)
+        self.assertGreater(len(self.timeseries), len(newTS))
         #
         ts = mkNamedTimeseries(self.timeseries)
         self.assertTrue(self.timeseries.equals(ts))
@@ -206,9 +206,9 @@ class TestNamedTimeseries(unittest.TestCase):
         if IGNORE_TEST:
             return
         self.assertTrue(self.timeseries.equals(self.timeseries))
-        new_timeseries = self.timeseries.copy()
-        new_timeseries["S1"] = -1
-        self.assertFalse(self.timeseries.equals(new_timeseries))
+        newTS = self.timeseries.copy()
+        newTS["S1"] = -1
+        self.assertFalse(self.timeseries.equals(newTS))
  
     def testCopy(self):
         if IGNORE_TEST:
@@ -239,7 +239,7 @@ class TestNamedTimeseries(unittest.TestCase):
         self.assertTrue(ts1.equals(ts2))
         #
         ts3 = self.timeseries[1]
-        self.assertEqual(np.shape(ts3.values), (1, len(ts2.all_colnames)))
+        self.assertEqual(np.shape(ts3.values), (1, len(ts2.allColnames)))
 
     def testExamples(self):
         if IGNORE_TEST:
@@ -249,14 +249,14 @@ class TestNamedTimeseries(unittest.TestCase):
         # NamedTimeseries can use len function
         length = len(timeseries)  # number of rows
         # Extract the numpy array values using indexing
-        time_values = timeseries["time"]
-        s1_values = timeseries["S1"]
+        timeValues = timeseries["time"]
+        s1Values = timeseries["S1"]
         # Get the start and end times
-        start_time = timeseries.start
-        end_time = timeseries.end
+        startTime = timeseries.start
+        endTime = timeseries.end
         # Create a new time series that subsets the variables of the old one
         colnames = ["time", "S1", "S2"]
-        new_timeseries = mkNamedTimeseries(colnames, timeseries[colnames])
+        newTS = mkNamedTimeseries(colnames, timeseries[colnames])
         # Create a new timeseries that excludes time 0
         ts2 = timeseries[1:] 
         # Create a new column variable
@@ -282,8 +282,8 @@ class TestNamedTimeseries(unittest.TestCase):
         if IGNORE_TEST:
             return
         ts = self.timeseries.concatenateColumns(self.timeseries)
-        new_names = ["%s_" % c for c in self.timeseries.colnames]
-        self.assertTrue(namedTimeseries.arrayEquals(ts[new_names],
+        newNames = ["%s_" % c for c in self.timeseries.colnames]
+        self.assertTrue(namedTimeseries.arrayEquals(ts[newNames],
               self.timeseries[self.timeseries.colnames]))
         self.assertEqual(len(ts), len(self.timeseries))
         self.assertTrue(namedTimeseries.arrayEquals(ts[TIME],
