@@ -254,7 +254,7 @@ class TestModelFitter(unittest.TestCase):
         self.fitter.fitModel()
         self.fitter.bootstrap(num_iteration=100)
         self.fitter.plotParameterHistograms(ylim=[0, 5], xlim=[0, 6],
-            num_col=3)
+              parameters=["k1", "k2"])
         
         
 

@@ -447,8 +447,10 @@ class ModelFitter(object):
         if not key in kwargs:
             kwargs[key] = value
 
-    def _mkParameterDF(self):
+    def _mkParameterDF(self, parameters=None):
         df = pd.DataFrame(self.bootstrap_result.parameter_dct)
+        if parameters is not None:
+            df = df[parameters]
         df.index.name = named_timeseries.TIME
         return NamedTimeseries(dataframe=df)
 
@@ -465,7 +467,7 @@ class ModelFitter(object):
         """
         if self.bootstrap_result is None:
             raise ValueError("Must run bootstrap before plotting parameter estimates.")
-        ts = self._mkParameterDF()
+        ts = self._mkParameterDF(parameters=parameters)
         # Construct pairs
         names = list(self.bootstrap_result.parameter_dct.keys())
         pairs = []
@@ -489,7 +491,7 @@ class ModelFitter(object):
         """
         if self.bootstrap_result is None:
             raise ValueError("Must run bootstrap before plotting parameter estimates.")
-        ts = self._mkParameterDF()
+        ts = self._mkParameterDF(parameters=parameters)
         self._plotter.plotHistograms(ts, **kwargs)
         
 
