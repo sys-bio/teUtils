@@ -191,7 +191,7 @@ class LayoutManager(object):
         self.num_plot = num_plot
         # Number of plot positions in the figure
         self.num_plot_position = self.options.num_row*self.options.num_col
-        self.figure, self.axes, self.row_col_list = self._setAxes()
+        self.figure, self.axes, self.axis_positions = self._setAxes()
 
     def _initializeAxes(self):
         """
@@ -249,19 +249,19 @@ class LayoutManager(object):
         return self.axes[index]
 
     def isFirstColumn(self, index):
-        _, col = self.row_col_list[index]
+        _, col = self.axis_positions[index]
         return col == 0
 
     def isFirstRow(self, index):
-        row, _ = self.row_col_list[index]
+        row, _ = self.axis_positions[index]
         return row == 0
 
     def isLastCol(self, index):
-        _, col = self.row_col_list[index]
+        _, col = self.axis_positions[index]
         return col == self.options.num_col - 1
 
     def isLastRow(self, index):
-        row, _ = self.row_col_list[index]
+        row, _ = self.axis_positions[index]
         return row == self.options.num_row - 1
 
 
@@ -301,15 +301,15 @@ class LayoutManagerMatrix(LayoutManager):
         Maplotlib.Figure, Matplotlib.Axes
         """
         figure, axes = self._initializeAxes()
-        row_col_list = []
+        axis_positions = []
         for index in range(self.num_plot_position):
             row, col = self._calcRowColumn(index)
             if index < self.num_plot:
                 ax = plt.subplot2grid( (self.options.num_row,
                       self.options.num_col), (row, col))
-                row_col_list.append((row, col))
+                axis_positions.append((row, col))
             axes.append(ax)
-        return figure, axes, row_col_list
+        return figure, axes, axis_positions
 
 
 ####
@@ -328,7 +328,7 @@ class LayoutManagerLowerTriangular(LayoutManager):
         Maplotlib.Figure, Matplotlib.Axes
         """
         figure, axes = self._initializeAxes()
-        row_col_list = []
+        axis_positions = []
         row = 0
         col = 0
         for index in range(self.num_plot_position):
@@ -336,14 +336,14 @@ class LayoutManagerLowerTriangular(LayoutManager):
                 ax = plt.subplot2grid(
                       (self.options.num_row, self.options.num_col), (row, col))
                 axes.append(ax)
-                row_col_list.append((row, col))
+                axis_positions.append((row, col))
             # Update row, col
             if row == self.options.num_row - 1:
                 row = 0
                 col += 1
             else:
                 row += 1
-        return figure, axes, row_col_list
+        return figure, axes, axis_positions
 
 
 ########################################
@@ -576,9 +576,10 @@ class TimeseriesPlotter(object):
             options = self._mkPlotOptionsLowerTriangular(
                   timeseries, pairs, **kwargs)
         else:
-            options = self._mkPlotOptionsMatrix(timeseries, max_col=num_plot, **kwargs)
+            options = self._mkPlotOptionsMatrix(timeseries,
+                  max_col=num_plot, **kwargs)
         layout = self._mkManager(options, num_plot,
-              is_lower_triangular==is_lower_triangular)
+              is_lower_triangular=is_lower_triangular)
         options.xlabel = ""
         base_options = copy.deepcopy(options)
         for index, pair in enumerate(pairs):

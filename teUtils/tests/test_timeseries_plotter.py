@@ -117,6 +117,12 @@ class TestTimeseriesPlotter(unittest.TestCase):
         if IGNORE_TEST:
             return
         self.plotter.plotHistograms(self.timeseries, num_col=2)
+
+    def testPlotValuePairsBug(self):
+        if IGNORE_TEST:
+            return
+        self.plotter.plotValuePairs(self.timeseries,
+              pairs=[("S1", "S2"), ("S1", "S6"), ("S2", "S3")], num_col=3)
         
         
 class TestPlotOptions(unittest.TestCase):
