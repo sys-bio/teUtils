@@ -54,7 +54,7 @@ ANTIMONY_MODEL = """
 """ % parameters_str
 DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
-BENCHMARK1_TIME = 15  # Actual is 12 sec
+BENCHMARK1_TIME = 30 # Actual is 20 sec
         
 
 class TestModelFitter(unittest.TestCase):
