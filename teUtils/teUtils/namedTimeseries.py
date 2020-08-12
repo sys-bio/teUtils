@@ -12,7 +12,7 @@ and end.
 
 Usage:
    # Create from file
-   timeseries = NamedTimeseries(csv_path="myfile.txt")
+   timeseries = NamedTimeseries(csvPath="myfile.txt")
    print(timeseries)  # dispaly a tabular view of the timeseries
    # NamedTimeseries can use len function
    length = len(timeseries)  # number of rows
@@ -24,7 +24,7 @@ Usage:
    end_time = timeseries.end
    # Create a new time series that subsets the variables of the old one
    colnames = ["time", "S1", "S2"]
-   new_timeseries = mkNamedTimeseries(colnames, timeseries[colnames])
+   newTimeseries = mkNamedTimeseries(colnames, timeseries[colnames])
    # Create a new timeseries that excludes time 0
    ts2 = timeseries[1:] 
    # Create a new column variable
@@ -60,7 +60,7 @@ def mkNamedTimeseries(*args):
         if isinstance(args[0], NamedTimeseries):
             return args[0]
         elif isinstance(args[0], str):
-            return NamedTimeseries(csv_path=args[0])
+            return NamedTimeseries(csvPath=args[0])
     raise ValueError("Specification for NameTimeseries: %s"
           % str(args))
     
@@ -103,32 +103,32 @@ def cleanColnames(colnames):
 class NamedTimeseries(object):
           
     def __init__(self,
-          csv_path=None,
+          csvPath=None,
           colnames=None, array=None,
-          named_array=None,
+          namedArray=None,
           dataframe=None,
           timeseries=None):
         """
             Parameters
             ---------
-            csv_path: str
+            csvPath: str
                 path to CSV file
             colnames: list-str
             array: np.ndarray
                 values corresponding to colnames
-            named_array: NamedArray
+            namedArray: NamedArray
             dataframe: pd.DataFrame
                 index: time
             timeseries: NamedTimeseries
                    
            Usage
            -----
-               data = NamedTimeseries(csv_path="mydata.csv")
+               data = NamedTimeseries(csvPath="mydata.csv")
          
            Notes
            -----
                At one of the following most be non-None:
-                 csv_path, colnames & array, dataframe, timeseries
+                 csvPath, colnames & array, dataframe, timeseries
         """
         if timeseries is not None:
             # Copy the existing object
@@ -136,14 +136,14 @@ class NamedTimeseries(object):
                 self.__setattr__(k, 
                       copy.deepcopy(timeseries.__dict__[k]))
         else:
-            if csv_path is not None:
-                all_colnames, self.values = self._load(csv_path)
+            if csvPath is not None:
+                all_colnames, self.values = self._load(csvPath)
             elif (colnames is not None) and (array is not None):
                 all_colnames = colnames
                 self.values = array
-            elif named_array is not None:
-                all_colnames = cleanColnames(named_array.colnames)
-                self.values = named_array
+            elif namedArray is not None:
+                all_colnames = cleanColnames(namedArray.colnames)
+                self.values = namedArray
             elif dataframe is not None:
                 if dataframe.index.name == TIME:
                     df = dataframe.reset_index()
@@ -188,7 +188,7 @@ class NamedTimeseries(object):
             reference: str or str/list-str
             value: scalar, array
         """
-        indices = self._getColumnIndices(reference, is_validate=False)
+        indices = self._getColumnIndices(reference, isValidate=False)
         if indices is None:
             # New column
             if not isinstance(reference, str):
@@ -220,14 +220,14 @@ class NamedTimeseries(object):
                 values = np.repeat(value, np.shape(self.values[:, indices]))
             self.values[:, indices] = values
 
-    def _getColumnIndices(self, reference, is_validate=True):
+    def _getColumnIndices(self, reference, isValidate=True):
         """
             Returns indices for reference.
             
             Parameters
             ---------
             variable_names: str/list-str
-            is_validate: boolean
+            isValidate: boolean
                 raise an error if index doesn't exist
     
             Returns
@@ -243,7 +243,7 @@ class NamedTimeseries(object):
             else:
                 raise (KeyKerror)
         except KeyError:
-            if is_validate:
+            if isValidate:
                 raise ValueError(
                       "NamedTimeseries invalid index: %s" % reference)
             else:
@@ -326,14 +326,14 @@ class NamedTimeseries(object):
     def __len__(self):
        return np.shape(self.values)[0]
        
-    def _load(self, file_path):
+    def _load(self, filePath):
         """
         Load data from a CSV file.
         
         Parameters
         ----------
         
-        file_path: str
+        filePath: str
               Path to the file containing time series data. Data should be arranged
               in columns, first colums representing time, remaining columns will
               be whatever timeseries data is avaialble.
@@ -345,14 +345,14 @@ class NamedTimeseries(object):
     def __len__(self):
        return np.shape(self.values)[0]
        
-    def _load(self, file_path):
+    def _load(self, filePath):
         """
         Load data from a CSV file.
         
         Parameters
         ----------
         
-        file_path: str
+        filePath: str
               Path to the file containing time series data. Data should be arranged
               in columns, first colums representing time, remaining columns will
               be whatever timeseries data is avaialble.
@@ -369,16 +369,16 @@ class NamedTimeseries(object):
         """
         # Open the data file and look for the header line         
         try:
-            with open(file_path, 'r') as f:
+            with open(filePath, 'r') as f:
                 reader = csv.reader(f, delimiter=DELIMITER)
                 variables_str = f.readline()
                 variables_str = variables_str.strip()
                 names = variables_str.split(DELIMITER)
                 values = np.array(list(reader)).astype(float)
         except IOError:
-            raise ValueError("There is a problem with the data path %s" % file_path)
+            raise ValueError("There is a problem with the data path %s" % filePath)
         if not all([isinstance(v, str) for v in names]):
-            raise ValueError('No column headers for file: %s' % file_path)
+            raise ValueError('No column headers for file: %s' % filePath)
         #
         return names, values
 
@@ -394,7 +394,7 @@ class NamedTimeseries(object):
         arr = self.values[:, indices]
         return arr.flatten()
 
-    def selectTimes(self, selector_function):
+    def selectTimes(self, selectorFunction):
         """
             Selects a subset of rows based on time values by using
             a boolean valued selector function.
@@ -402,7 +402,7 @@ class NamedTimeseries(object):
             Parameters
             ----------
      
-            selector_function: Function
+            selectorFunction: Function
                 argument: time value
                 returns: boolean
             
@@ -411,7 +411,7 @@ class NamedTimeseries(object):
             array
         """
         row_indices = [i for i, t in enumerate(self[TIME])
-              if selector_function(t)]
+              if selectorFunction(t)]
         col_indices = [i for i in self._index_dct.values()
               if self._index_dct[TIME] != i]
         array = self.values[row_indices, :]
@@ -540,22 +540,22 @@ class NamedTimeseries(object):
         df = self.to_dataframe()
         return NamedTimeseries(dataframe=df[colnames])
 
-    def isEqualShape(self, other_ts):
+    def isEqualShape(self, otherTS):
         """
         Verifies that data shape and column names are the same.
 
         Parameters
         ----------
-        other_ts: NamedTimeseries
+        otherTS: NamedTimeseries
         
         Returns
         ------
         boolean
         """
-        diff = set(self.colnames).symmetric_difference(other_ts.colnames)
+        diff = set(self.colnames).symmetric_difference(otherTS.colnames)
         if len(diff) > 0:
             return False
-        return np.shape(self.values) == np.shape(other_ts.values)
+        return np.shape(self.values) == np.shape(otherTS.values)
 
     def getTimesForValue(self, column, reference):
         """

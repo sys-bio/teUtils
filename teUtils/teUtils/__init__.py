@@ -64,4 +64,4 @@ except:
     from teUtils import buildNetworks
     from teUtils import parameterScanning
     from teUtils import fileUtils
-    from teUtils import model_fitter
+    #from teUtils import model_fitter
