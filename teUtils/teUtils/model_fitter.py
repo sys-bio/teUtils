@@ -333,6 +333,9 @@ class ModelFitter(object):
         base_residual_std = self.calcResidualsStd()
         count = 0
         for _ in range(num_iteration*ITERATION_MULTIPLIER):
+            if (report_interval is not None) and (count > 0):
+                if count % report_interval == 0:
+                    print("bootstrap completed %d iterations" % count)
             if count > num_iteration:
                 # Performed the iterations
                 break
@@ -362,9 +365,6 @@ class ModelFitter(object):
             count += 1
             dct = new_fitter.params.valuesdict()
             [parameter_dct[p].append(dct[p]) for p in self.parameters_to_fit]
-            if report_interval is not None:
-                if count % report_interval == 0:
-                    print("bootstrap completed %d iterations" % (count + 1))
         self.bootstrap_result = BootstrapResult(parameter_dct)
 
     def _setupModel(self, params=None):
