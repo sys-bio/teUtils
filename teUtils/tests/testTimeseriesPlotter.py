@@ -6,11 +6,11 @@ Created on Tue Jul  7 14:24:09 2020
 @author: joseph-hellerstein
 """
 
-from teUtils.named_timeseries import NamedTimeseries, mkNamedTimeseries, TIME
-import teUtils.named_timeseries as named_timeseries
-from teUtils.timeseries_plotter import PlotOptions, TimeseriesPlotter,  \
+from teUtils.namedTimeseries import NamedTimeseries, mkNamedTimeseries, TIME
+import teUtils.namedTimeseries as namedTimeseries
+from teUtils.timeseriesPlotter import PlotOptions, TimeseriesPlotter,  \
       LayoutManagerLowerTriangular
-from teUtils import timeseries_plotter as tp
+from teUtils import timeseriesPlotter as tp
 
 import numpy as np
 import os
@@ -33,24 +33,24 @@ DEFAULT_NUM_PLOT = 5
 class TestTimeseriesPlotter(unittest.TestCase):
 
     def setUp(self):
-        self.timeseries = NamedTimeseries(csv_path=TEST_DATA_PATH)
-        self.plotter = TimeseriesPlotter(is_plot=IS_PLOT)
+        self.timeseries = NamedTimeseries(csvPath=TEST_DATA_PATH)
+        self.plotter = TimeseriesPlotter(isPlot=IS_PLOT)
 
     def testConstructor1(self):
         if IGNORE_TEST:
             return
-        self.assertTrue(isinstance(self.plotter.is_plot, bool))
+        self.assertTrue(isinstance(self.plotter.isPlot, bool))
 
     def testInitializeRowColumn(self):
         if IGNORE_TEST:
             return
-        def test(max_col, **kwargs):
+        def test(maxCol, **kwargs):
             options = self.plotter._mkPlotOptionsMatrix(self.timeseries,
-                   max_col=max_col, **kwargs)
+                   maxCol=maxCol, **kwargs)
             if NUM_ROW in kwargs:
-                self.assertGreaterEqual(options.num_row, kwargs[NUM_ROW])
+                self.assertGreaterEqual(options.numRow, kwargs[NUM_ROW])
             if NUM_COL in kwargs:
-                self.assertEqual(options.num_col, kwargs[NUM_COL])
+                self.assertEqual(options.numCol, kwargs[NUM_COL])
         #
         test(3, **{})
         test(3, **{NUM_COL: 3})
@@ -60,10 +60,10 @@ class TestTimeseriesPlotter(unittest.TestCase):
     def testPlotSingle1(self):
         if IGNORE_TEST:
             return
-        self.plotter.plotTimeSingle(self.timeseries, columns=["S1", "S2", "S3"], num_row=2)
-        self.plotter.plotTimeSingle(self.timeseries, num_col=4)
-        self.plotter.plotTimeSingle(self.timeseries, num_col=2)
-        self.plotter.plotTimeSingle(self.timeseries, num_row=2, num_col=3, ylabel="xxx")
+        self.plotter.plotTimeSingle(self.timeseries, columns=["S1", "S2", "S3"], numRow=2)
+        self.plotter.plotTimeSingle(self.timeseries, numCol=4)
+        self.plotter.plotTimeSingle(self.timeseries, numCol=2)
+        self.plotter.plotTimeSingle(self.timeseries, numRow=2, numCol=3, ylabel="xxx")
         self.plotter.plotTimeSingle(self.timeseries, columns=["S1", "S2"])
 
     def mkTimeseries(self):
@@ -77,7 +77,7 @@ class TestTimeseriesPlotter(unittest.TestCase):
         ts2 = self.mkTimeseries()
         self.plotter.plotTimeSingle(self.timeseries, timeseries2=ts2, columns=["S1", "S2"])
         self.plotter.plotTimeSingle(self.timeseries, timeseries2=ts2)
-        self.plotter.plotTimeSingle(self.timeseries, timeseries2=ts2, num_row=2, num_col=3)
+        self.plotter.plotTimeSingle(self.timeseries, timeseries2=ts2, numRow=2, numCol=3)
 
     def testPlotSingle3(self):
         if IGNORE_TEST:
@@ -88,7 +88,7 @@ class TestTimeseriesPlotter(unittest.TestCase):
         if IGNORE_TEST:
             return
         ts2 = self.mkTimeseries()
-        self.plotter.plotTimeSingle(self.timeseries, timeseries2=ts2, num_row=2, num_col=3, marker2="o")
+        self.plotter.plotTimeSingle(self.timeseries, timeseries2=ts2, numRow=2, numCol=3, marker2="o")
 
     def testPlotMultiple1(self):
         if IGNORE_TEST:
@@ -96,10 +96,10 @@ class TestTimeseriesPlotter(unittest.TestCase):
         ts2 = self.mkTimeseries()
         self.plotter.plotTimeMultiple(self.timeseries, timeseries2=ts2, suptitle="Testing")
         self.plotter.plotTimeMultiple(self.timeseries, timeseries2=ts2, suptitle="Testing", 
-              num_row=1, num_col=1,
+              numRow=1, numCol=1,
               marker2="o")
         self.plotter.plotTimeMultiple(self.timeseries, timeseries2=ts2, suptitle="Testing", 
-              num_row=2,
+              numRow=2,
               marker2="o")
         self.plotter.plotTimeMultiple(self.timeseries, suptitle="Testing")
 
@@ -109,20 +109,20 @@ class TestTimeseriesPlotter(unittest.TestCase):
         ts2 = self.mkTimeseries()
         self.plotter.plotValuePairs(self.timeseries, 
               [("S1", "S2"), ("S2", "S3"), ("S4", "S5")],
-              num_col=2, num_row=2)
-        self.plotter.plotValuePairs(self.timeseries, [("S1", "S2"), ("S2", "S3")], num_row=2)
+              numCol=2, numRow=2)
+        self.plotter.plotValuePairs(self.timeseries, [("S1", "S2"), ("S2", "S3")], numRow=2)
         self.plotter.plotValuePairs(self.timeseries, [("S1", "S2")])
 
     def testPlotHistograms(self):
         if IGNORE_TEST:
             return
-        self.plotter.plotHistograms(self.timeseries, num_col=2)
+        self.plotter.plotHistograms(self.timeseries, numCol=2)
 
     def testPlotValuePairsBug(self):
         if IGNORE_TEST:
             return
         self.plotter.plotValuePairs(self.timeseries,
-              pairs=[("S1", "S2"), ("S1", "S6"), ("S2", "S3")], num_col=3)
+              pairs=[("S1", "S2"), ("S1", "S6"), ("S2", "S3")], numCol=3)
         
         
 class TestPlotOptions(unittest.TestCase):
@@ -149,15 +149,15 @@ class TestLayoutManagerLowerTriangular(unittest.TestCase):
 
     def setUp(self):
         options = PlotOptions()
-        options.num_row = 2*DEFAULT_NUM_ROW
-        options.num_col = 3*DEFAULT_NUM_COL
+        options.numRow = 2*DEFAULT_NUM_ROW
+        options.numCol = 3*DEFAULT_NUM_COL
 
     def testSetAxes(self):
         if IGNORE_TEST:
             return
         options = PlotOptions()
-        options.num_col = 4
-        options.num_row = 4
+        options.numCol = 4
+        options.numRow = 4
         layout = LayoutManagerLowerTriangular(options, DEFAULT_NUM_PLOT)
         _, axes, _ = layout._setAxes()
         corners = [a.get_position().corners() for a in axes]

@@ -15,7 +15,7 @@ def updatePlotDocstring(target, keyphrase=None):
     keyprhase: string searched for in docstring
     """
     # Place import here to avoid circular dependencies
-    from teUtils.timeseries_plotter import PlotOptions, EXPAND_KEYPHRASE
+    from teUtils.timeseriesPlotter import PlotOptions, EXPAND_KEYPHRASE
     plot_options = str(PlotOptions())
     def updateFunctionDocstring(func):
         docstring = func.__doc__

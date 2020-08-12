@@ -14,8 +14,8 @@ Created on Tue Jul  7 14:24:09 2020
       one or two timeseries plot
 """
 
-from teUtils.named_timeseries import NamedTimeseries, TIME
-from teUtils import helpers
+from teUtils.namedTimeseries import NamedTimeseries, TIME
+from teUtils import _helpers
 
 import copy
 import matplotlib.pyplot as plt
@@ -23,7 +23,7 @@ import numpy as np
 
 
 PLOT = "plot"  # identifies a plotting function
-EXPAND_KEYPHRASE = "Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)"
+EXPAND_KEYPHRASE = "Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)"
 LABEL1 = "1"
 LABEL2 = "2"
 COLORS = ['r', 'g', 'b', 'c', 'pink', 'grey']
@@ -39,10 +39,10 @@ COLUMNS = "columns"
 LEGEND = "legend"
 MARKER1 = "marker1"
 MARKER2 = "marker2"
-NUM_COL = "num_col"
-NUM_ROW = "num_row"
+NUM_COL = "numCol"
+NUM_ROW = "numRow"
 TIMESERIES2 = "timeseries2"
-TITLE_POSITION = "title_position"
+TITLE_POSITION = "titlePosition"
    
  
 #########################
@@ -55,15 +55,15 @@ class PlotOptions(object):
         self.columns = []  # Columns to plot
         self.figsize = (8, 6)
         self.legend = None # Tuple of str for legend
-        self.num_col = None  # Default value
-        self.num_row = 1  # Default value
+        self.numCol = None  # Default value
+        self.numRow = 1  # Default value
         self.marker1 = None  # Marker for timerseries1
         self.marker2 = None  # Marker for timeseries2
-        self.num_row = None  # rows of plots
-        self.num_col = None  # columns of plots
+        self.numRow = None  # rows of plots
+        self.numCol = None  # columns of plots
         self.timeseries2 = None  # second timeseries
         self.title = None
-        self.title_position = None  # Relative position in plot (x, y)
+        self.titlePosition = None  # Relative position in plot (x, y)
         self.suptitle = None  # Figure title
         self.xlabel = "time"  # x axis title
         self.xlim = None  # order pair of lower and upper
@@ -84,11 +84,11 @@ class PlotOptions(object):
                 legend: Tuple of str for legend
                 marker1: Marker for timerseries1
                 marker2: Marker for timeseries2
-                num_row: rows of plots
-                num_col: columns of plots
+                numRow: rows of plots
+                numCol: columns of plots
                 timeseries2: second timeseries
                 title: plot title
-                title_position: relative position in plot (x, y); x,y in [0, 1]; (0,0) is lower left.
+                titlePosition: relative position in plot (x, y); x,y in [0, 1]; (0,0) is lower left.
                 suptitle: Figure title
                 xlabel: x axis title
                 xlim: order pair of lower and upper
@@ -99,9 +99,9 @@ class PlotOptions(object):
             """
         return stg
 
-    def set(self, attribute, value, is_override=True):
+    def set(self, attribute, value, isOverride=True):
         if attribute in self.__dict__.keys():
-            if is_override or (self.__getattribute__(attribute) is None):
+            if isOverride or (self.__getattribute__(attribute) is None):
                 self.__setattr__(attribute, value)
         else:
             raise ValueError("Unknown plot option: %s" % attribute)
@@ -120,9 +120,9 @@ class PlotOptions(object):
         """
         for attribute, value in dct.items():
             if not attribute in excludes:
-                self.set(attribute, value, is_override=True)
+                self.set(attribute, value, isOverride=True)
 
-    def initialize(self, timeseries, num_row=None, num_col=None, **kwargs):
+    def initialize(self, timeseries, numRow=None, numCol=None, **kwargs):
         """
         Initializes information for plotting.
 
@@ -130,14 +130,14 @@ class PlotOptions(object):
         ---------
         timeseries: NamedTimeseries
             a timeseries to be plotted
-        num_row: int
-        num_cow: int
+        numRow: int
+        numCol: int
         kwargs: dict
         """
-        if num_row is not None:
-            self.num_row = num_row
-        if num_col is not None:
-            self.num_col = num_col
+        if numRow is not None:
+            self.numRow = numRow
+        if numCol is not None:
+            self.numCol = numCol
         self.setDict(kwargs, excludes=[NUM_ROW, NUM_COL])  # Record the options
         if len(self.columns) == 0:
             self.columns = timeseries.colnames
@@ -147,11 +147,11 @@ class PlotOptions(object):
     def do(self, ax):
         ax.set_xlabel(self.xlabel)
         ax.set_ylabel(self.ylabel)
-        if self.title_position is None:
+        if self.titlePosition is None:
             ax.set_title(self.title)
         else:
             ax.set_title(self.title, 
-                  position=self.title_position,
+                  position=self.titlePosition,
                   transform=ax.transAxes)
         if self.xlim is not None:
             ax.set_xlim(self.xlim)
@@ -178,7 +178,7 @@ class LayoutManager(object):
     the method _setAxes that mplements the above mapping.
     """
 
-    def __init__(self, options, num_plot):
+    def __init__(self, options, numPlot):
         """
         Manages allocation of space in subplot and sets up options
         accordingly.
@@ -188,10 +188,10 @@ class LayoutManager(object):
         options: PlotOptions
         """
         self.options = options
-        self.num_plot = num_plot
+        self.numPlot = numPlot
         # Number of plot positions in the figure
-        self.num_plot_position = self.options.num_row*self.options.num_col
-        self.figure, self.axes, self.axis_positions = self._setAxes()
+        self.numPlotPosition = self.options.numRow*self.options.numCol
+        self.figure, self.axes, self.axisPositions = self._setAxes()
 
     def _initializeAxes(self):
         """
@@ -230,8 +230,8 @@ class LayoutManager(object):
         -------
         int, int
         """
-        row = index // self.options.num_col
-        col = index % self.options.num_col
+        row = index // self.options.numCol
+        col = index % self.options.numCol
         return row, col
 
     def getAxis(self, index):
@@ -249,20 +249,20 @@ class LayoutManager(object):
         return self.axes[index]
 
     def isFirstColumn(self, index):
-        _, col = self.axis_positions[index]
+        _, col = self.axisPositions[index]
         return col == 0
 
     def isFirstRow(self, index):
-        row, _ = self.axis_positions[index]
+        row, _ = self.axisPositions[index]
         return row == 0
 
     def isLastCol(self, index):
-        _, col = self.axis_positions[index]
-        return col == self.options.num_col - 1
+        _, col = self.axisPositions[index]
+        return col == self.options.numCol - 1
 
     def isLastRow(self, index):
-        row, _ = self.axis_positions[index]
-        return row == self.options.num_row - 1
+        row, _ = self.axisPositions[index]
+        return row == self.options.numRow - 1
 
 
 ####
@@ -301,15 +301,15 @@ class LayoutManagerMatrix(LayoutManager):
         Maplotlib.Figure, Matplotlib.Axes
         """
         figure, axes = self._initializeAxes()
-        axis_positions = []
-        for index in range(self.num_plot_position):
+        axisPositions = []
+        for index in range(self.numPlotPosition):
             row, col = self._calcRowColumn(index)
-            if index < self.num_plot:
-                ax = plt.subplot2grid( (self.options.num_row,
-                      self.options.num_col), (row, col))
-                axis_positions.append((row, col))
+            if index < self.numPlot:
+                ax = plt.subplot2grid( (self.options.numRow,
+                      self.options.numCol), (row, col))
+                axisPositions.append((row, col))
             axes.append(ax)
-        return figure, axes, axis_positions
+        return figure, axes, axisPositions
 
 
 ####
@@ -328,95 +328,94 @@ class LayoutManagerLowerTriangular(LayoutManager):
         Maplotlib.Figure, Matplotlib.Axes
         """
         figure, axes = self._initializeAxes()
-        axis_positions = []
+        axisPositions = []
         row = 0
         col = 0
-        for index in range(self.num_plot_position):
+        for index in range(self.numPlotPosition):
             if row >= col:
                 ax = plt.subplot2grid(
-                      (self.options.num_row, self.options.num_col), (row, col))
+                      (self.options.numRow, self.options.numCol), (row, col))
                 axes.append(ax)
-                axis_positions.append((row, col))
+                axisPositions.append((row, col))
             # Update row, col
-            if row == self.options.num_row - 1:
+            if row == self.options.numRow - 1:
                 row = 0
                 col += 1
             else:
                 row += 1
-        return figure, axes, axis_positions
+        return figure, axes, axisPositions
 
 
 ########################################
 class TimeseriesPlotter(object):
           
-    def __init__(self, is_plot=True):
+    def __init__(self, isPlot=True):
         """
         Parameters
         ---------
-        is_plot: boolean
+        isPlot: boolean
             display the plot
                
-        Usage
-        ____
-            
+        Example
+        -------
         plotter = TimeseriesPlotter(timeseries)
         plotter.plotTimeSingle()  # Single variable plots for one timeseries
         """
-        self.is_plot = is_plot
+        self.isPlot = isPlot
 
-    def _mkPlotOptionsMatrix(self, timeseries1, max_col=None, **kwargs):
+    def _mkPlotOptionsMatrix(self, timeseries1, maxCol=None, **kwargs):
         """
         Creates PlotOptions for a dense matrix of plots.
         
         Parameters
         ----------
         timeseries1: NamedTimeseries
-        is_lower_triangular: bool
+        isLowerTriangular: bool
             is a lower triangular matix
-        max_col: int
+        maxCol: int
             maximum number of columns
         kwargs: dict
 
         Returns
         -------
         PlotOptions
-            assigns values to options.num_row, options.num_col
+            assigns values to options.numRow, options.numCol
         """
         options = PlotOptions()
-        if max_col is None:
+        if maxCol is None:
             if COLUMNS in kwargs:
-                max_col = len(kwargs[COLUMNS])
+                maxCol = len(kwargs[COLUMNS])
             else:
-                max_col = len(timeseries1.colnames)
+                maxCol = len(timeseries1.colnames)
         # States
-        has_row, has_col = self._getOptionState(kwargs, options)
+        hasRow, hasCol = self._getOptionState(kwargs, options)
         # Assignments based on state
-        if has_row and has_col:
+        if hasRow and hasCol:
             # Have been assigned
             pass
-        elif has_row and (not has_col):
-            options.num_col = int(max_col/options.num_row)
-        elif (not has_row) and has_col:
-            options.num_row = int(max_col/options.num_col)
+        elif hasRow and (not hasCol):
+            options.numCol = int(maxCol/options.numRow)
+        elif (not hasRow) and hasCol:
+            options.numRow = int(maxCol/options.numCol)
         else:
-           options.num_row = 1
-           options.num_col = max_col
-        if max_col > options.num_row*options.num_col:
-           options.num_row += 1
+           options.numRow = 1
+           options.numCol = maxCol
+        if maxCol > options.numRow*options.numCol:
+           options.numRow += 1
         options.initialize(timeseries1, **kwargs)
         #
         return options
 
     def _getOptionState(self, kwargs, options):
-        has_col = False
-        has_row = False
+        hasCol = False
+        hasRow = False
         if NUM_ROW in kwargs:
-            options.num_row = kwargs[NUM_ROW]
-            has_row = True
+            options.numRow = kwargs[NUM_ROW]
+            hasRow = True
         if NUM_COL in kwargs:
-            options.num_col = kwargs[NUM_COL]
-            has_col = True
-        return has_row, has_col
+            options.numCol = kwargs[NUM_COL]
+            hasCol = True
+        return hasRow, hasCol
 
     def _mkPlotOptionsLowerTriangular(self,
               timeseries1, pairs, **kwargs):
@@ -432,24 +431,24 @@ class TimeseriesPlotter(object):
         Returns
         -------
         PlotOptions
-            assigns values to options.num_row, options.num_col
+            assigns values to options.numRow, options.numCol
         """
         size = len(pairs)
         if size == 1:
-            mat_size = 1
+            matSize = 1
         else:
             # Find the size of the matrix
-            mat_size = None
+            matSize = None
             for mm in range(size**3):
                 if 2*size - mm <= mm**2:
-                    mat_size = mm
+                    matSize = mm
                     break
-            if mat_size is None:
+            if matSize is None:
                 raise RuntimeError("Could not find matrix size.")
         # Assign options
         options = PlotOptions()
-        options.num_row = mat_size
-        options.num_col = mat_size
+        options.numRow = matSize
+        options.numCol = matSize
         options.initialize(timeseries1, **kwargs)
         #
         return options
@@ -463,7 +462,7 @@ class TimeseriesPlotter(object):
         ---------
         timeseries1: NamedTimeseries
         kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
                
         Example
         -------
@@ -472,17 +471,17 @@ class TimeseriesPlotter(object):
         """
         # Adjust rows and columns
         options = self._mkPlotOptionsMatrix(timeseries1, **kwargs)
-        num_plot = len(options.columns)  # Number of plots
+        numPlot = len(options.columns)  # Number of plots
         if NUM_COL in kwargs.keys():
-            options.num_row = int(np.ceil(num_plot/options.num_col))
+            options.numRow = int(np.ceil(numPlot/options.numCol))
         else:
-            options.num_col = int(np.ceil(num_plot/options.num_row))
+            options.numCol = int(np.ceil(numPlot/options.numRow))
         # Create the LayoutManager
-        layout = self._mkManager(options, num_plot)
+        layout = self._mkManager(options, numPlot)
         # Construct the plots
-        base_options = copy.deepcopy(options)
+        baseOptions = copy.deepcopy(options)
         for index, variable in enumerate(options.columns):
-            options = copy.deepcopy(base_options)
+            options = copy.deepcopy(baseOptions)
             ax = layout.getAxis(index)
             #ax = axes[row, col]
             if options.ylabel is None:
@@ -507,7 +506,7 @@ class TimeseriesPlotter(object):
                 if options.legend is None:
                     options.set("legend", [LABEL1, LABEL2])
             options.do(ax)
-        if self.is_plot:
+        if self.isPlot:
             plt.show()
 
     def plotTimeMultiple(self, timeseries1, **kwargs):
@@ -519,7 +518,7 @@ class TimeseriesPlotter(object):
         ---------
         timeseries1: NamedTimeseries
         kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
         def multiPlot(timeseries, ax, marker=None):
             if marker is None:
@@ -532,41 +531,41 @@ class TimeseriesPlotter(object):
             options.legend = timeseries.colnames
             options.do(ax)
         #
-        num_plot = 2 if TIMESERIES2 in kwargs else 1
-        max_col = num_plot
-        options = self._mkPlotOptionsMatrix(timeseries1, max_col=max_col, **kwargs)
+        numPlot = 2 if TIMESERIES2 in kwargs else 1
+        maxCol = numPlot
+        options = self._mkPlotOptionsMatrix(timeseries1, maxCol=maxCol, **kwargs)
         # Update rows and columns
         if options.timeseries2 is None:
-            options.num_row = 1
-            options.num_col = 1
+            options.numRow = 1
+            options.numCol = 1
         else:
             if (NUM_ROW in kwargs):
-                options.num_col = int(np.ceil(2/options.num_row))
+                options.numCol = int(np.ceil(2/options.numRow))
             else:
-                options.num_row = int(np.ceil(2/options.num_col))
+                options.numRow = int(np.ceil(2/options.numCol))
         # Create the LayoutManager
-        layout = self._mkManager(options, num_plot)
+        layout = self._mkManager(options, numPlot)
         # Construct the plots
         multiPlot(timeseries1, layout.getAxis(0), marker = options.marker1)
         if options.timeseries2 is not None:
-            ax = layout.getAxis(num_plot-1)
+            ax = layout.getAxis(numPlot-1)
             multiPlot(options.timeseries2, ax, marker = options.marker2)
-        if self.is_plot:
+        if self.isPlot:
             plt.show()
 
-    def _mkManager(self, options, num_plot, is_lower_triangular=False):
-        if num_plot == 1:
-            layout = LayoutManagerSingle(options, num_plot)
-        elif is_lower_triangular:
-            options.title_position = (POS_MID, POS_TOP)
-            layout = LayoutManagerLowerTriangular(options, num_plot)
+    def _mkManager(self, options, numPlot, isLowerTriangular=False):
+        if numPlot == 1:
+            layout = LayoutManagerSingle(options, numPlot)
+        elif isLowerTriangular:
+            options.titlePosition = (POS_MID, POS_TOP)
+            layout = LayoutManagerLowerTriangular(options, numPlot)
         else:
-            options.title_position = (POS_MID, POS_TOP)
-            layout = LayoutManagerMatrix(options, num_plot)
+            options.titlePosition = (POS_MID, POS_TOP)
+            layout = LayoutManagerMatrix(options, numPlot)
         return layout
 
     def plotValuePairs(self, timeseries, pairs, 
-              is_lower_triangular=False, **kwargs):
+              isLowerTriangular=False, **kwargs):
         """
         Constructs plots of values of column pairs for a single
         timeseries.
@@ -575,32 +574,32 @@ class TimeseriesPlotter(object):
         ---------
         timeseries: NamedTimeseries
         kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
-        num_plot = len(pairs)
-        if is_lower_triangular:
+        numPlot = len(pairs)
+        if isLowerTriangular:
             options = self._mkPlotOptionsLowerTriangular(
                   timeseries, pairs, **kwargs)
         else:
             options = self._mkPlotOptionsMatrix(timeseries,
-                  max_col=num_plot, **kwargs)
-        layout = self._mkManager(options, num_plot,
-              is_lower_triangular=is_lower_triangular)
+                  maxCol=numPlot, **kwargs)
+        layout = self._mkManager(options, numPlot,
+              isLowerTriangular=isLowerTriangular)
         options.xlabel = ""
-        base_options = copy.deepcopy(options)
+        baseOptions = copy.deepcopy(options)
         for index, pair in enumerate(pairs):
-            options = copy.deepcopy(base_options)
-            x_var = pair[0]
-            y_var = pair[1]
+            options = copy.deepcopy(baseOptions)
+            xVar = pair[0]
+            yVar = pair[1]
             ax = layout.getAxis(index)
-            if is_lower_triangular:
+            if isLowerTriangular:
                 if layout.isLastRow(index):
-                    options.xlabel = x_var
+                    options.xlabel = xVar
                 else:
                     options.title = ""
                     options.xticklabels = []
                 if layout.isFirstColumn(index):
-                    options.ylabel = y_var
+                    options.ylabel = yVar
                 else:
                     options.ylabel = ""
                     options.yticklabels = []
@@ -608,10 +607,10 @@ class TimeseriesPlotter(object):
                 # Matrix plot
                 options.xlabel = ""
                 options.ylabel = ""
-                options.title = "%s v. %s" % (x_var, y_var)
-            ax.scatter(timeseries[x_var], timeseries[y_var], marker='o')
+                options.title = "%s v. %s" % (xVar, yVar)
+            ax.scatter(timeseries[xVar], timeseries[yVar], marker='o')
             options.do(ax)
-        if self.is_plot:
+        if self.isPlot:
             plt.show()
 
     def plotHistograms(self, timeseries, **kwargs):
@@ -622,7 +621,7 @@ class TimeseriesPlotter(object):
         ---------
         timeseries: NamedTimeseries
         kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
         if BINS in kwargs.keys():
             bins = kwargs[BINS]
@@ -630,11 +629,11 @@ class TimeseriesPlotter(object):
         else:
             bins = None
         options = self._mkPlotOptionsMatrix(timeseries, **kwargs)
-        num_plot = len(options.columns)
-        layout = self._mkManager(options, num_plot)
-        base_options = copy.deepcopy(options)
+        numPlot = len(options.columns)
+        layout = self._mkManager(options, numPlot)
+        baseOptions = copy.deepcopy(options)
         for index, column in enumerate(options.columns):
-            options = copy.deepcopy(base_options)
+            options = copy.deepcopy(baseOptions)
             ax = layout.getAxis(index)
             if layout.isFirstColumn(index):
                 options.ylabel = "density"
@@ -651,9 +650,9 @@ class TimeseriesPlotter(object):
             else:
                 ax.hist(timeseries[column], bins=bins, density=True)
             options.do(ax)
-        if self.is_plot:
+        if self.isPlot:
             plt.show()
 
 
 # Update docstrings
-helpers.updatePlotDocstring(TimeseriesPlotter)
+_helpers.updatePlotDocstring(TimeseriesPlotter)
