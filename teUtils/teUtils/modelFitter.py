@@ -40,6 +40,7 @@ import copy
 import lmfit; 
 import numpy as np
 import pandas as pd
+import random
 import roadrunner
 import tellurium as te
 
@@ -273,7 +274,104 @@ class ModelFitter(object):
         NamedTimeseries
             new synthetic observations
         """
-        MAX_ITERATION = 1000
+        MAX_ITERATION = 100
+        self._checkFit()
+        numRow = len(self.observedTS)
+        #
+        newObservedTS = self.observedTS.copy()
+        for column in self.selectedColumns:
+            newObservedTS[column] = np.random.choice(self.residualsTS[column],
+                  numRow, replace=False)  + self.fittedTS[column]
+            newObservedTS[column] =  \
+                  np.random.permutation(self.residualsTS[column])  \
+                  + self.fittedTS[column]
+        #
+        return newObservedTS
+
+    def calcNewObservedOld3(self):
+        """
+        Calculates synthetic observations. All observed values must be
+        non-negative.
+        
+        Returns
+        -------
+        NamedTimeseries
+            new synthetic observations
+        """
+        MAX_ITERATION = 100
+        self._checkFit()
+        numRow = len(self.observedTS)
+        #
+        newObservedTS = self.observedTS.copy()
+        for _ in range(MAX_ITERATION):
+            isSuccess = True
+            for column in self.selectedColumns:
+                baseResidualStd = np.std(self.residualsTS[column])
+                newObservedTS[column] = np.random.choice(self.residualsTS[column],
+                      numRow, replace=True)  + self.fittedTS[column]
+                residualsArr = newObservedTS[column].flatten() - self.observedTS[column].flatten()
+                residualStd = np.std(residualsArr)
+                if residualStd > baseResidualStd:
+                    # Excessive variance
+                    isSuccess = False
+                    break
+            if isSuccess:
+                break
+        #
+        return newObservedTS
+
+    def calcNewObservedOld2(self):
+        """
+        Calculates synthetic observations. All observed values must be
+        non-negative.
+        
+        Returns
+        -------
+        NamedTimeseries
+            new synthetic observations
+        """
+        MAX_ITERATION =100
+        MAX_STD_RATIO = 1.05
+        self._checkFit()
+        numRow = len(self.observedTS)
+        numCol = len(self.selectedColumns)
+        #
+        residualsArr = self.residualsTS.flatten()
+        fittedArr = self.fittedTS[self.selectedColumns].flatten()
+        observedArr = self.observedTS[self.selectedColumns].flatten()
+        observed_std = np.std(observedArr)
+        num = len(observedArr)
+        done = False
+        num_iteration = 0
+        for _ in range(MAX_ITERATION):
+            num_iteration += 1
+            newObservedArr = np.random.choice(residualsArr, 
+                  num, replace=True) + fittedArr
+            stdRatio = np.std(newObservedArr)/observed_std
+            if stdRatio <= MAX_STD_RATIO:
+                done = True
+                break
+        if not done:
+            msg = "No suitable synthetic observed values for bootstrap."
+            raise ValueError(msg)
+        #
+        newObservedTS = self.observedTS.copy()
+        newObservedTS[self.selectedColumns] = np.reshape(
+              newObservedArr, (numRow, numCol))
+        #
+        return newObservedTS
+
+    def calcNewObservedOld(self):
+        """
+        Calculates synthetic observations. All observed values must be
+        non-negative.
+        
+        Returns
+        -------
+        NamedTimeseries
+            new synthetic observations
+        """
+        MAX_ITERATION = 1
         self._checkFit()
         numRow = len(self.observedTS)
         numCol = len(self.selectedColumns)
@@ -286,7 +384,6 @@ class ModelFitter(object):
         newObservedArr = np.repeat(np.nan, length)
         numIteration = 0
         while len(selIdxs) < length:
-            numIteration += 1
             if numIteration > MAX_ITERATION:
                 msg = "No suitable synthetic observed values for bootstrap."
                 raise ValueError(msg)
@@ -298,6 +395,7 @@ class ModelFitter(object):
             selIdxs = [i for i, v in enumerate(newObservedArr) if v >= 0]
             if len(selIdxs) == length:
                 break
+            numIteration += 1
         #
         newObservedTS = self.observedTS.copy()
         newObservedTS[self.selectedColumns] = np.reshape(
@@ -330,6 +428,7 @@ class ModelFitter(object):
 
         ITERATION_MULTIPLIER = 10  # Determines maximum iterations
         self._checkFit()
+        base_redchi = self.minimizerResult.redchi
         parameterDct = {p: [] for p in self.parametersToFit}
         baseResidualStd = self.calcResidualsStd()
         count = 0
@@ -341,22 +440,19 @@ class ModelFitter(object):
               parameterLowerBound=self.LowerBound,
               parameterUpperBound=self.UpperBound,
               isPlot=self._isPlot)
+        last_report = 0
         for _ in range(numIteration*ITERATION_MULTIPLIER):
-            if (reportInterval is not None) and (count > 0):
+            if (reportInterval is not None) and (count != last_report):
                 if count % reportInterval == 0:
                     print("bootstrap completed %d iterations" % count)
+                    last_report = count
             if count > numIteration:
                 # Performed the iterations
                 break
-            try:
-                newObservedTS = self.calcNewObserved()
-            except ValueError:
-                # Couldn't find valid synthetic observations
-                continue
             # Do a fit with these observeds
-            newFitter.observedTS = newObservedTS
+            newFitter.observedTS = self.calcNewObserved()
             try:
-                newFitter.fitModel(params=newFitter.params)
+                newFitter.fitModel(params=self.params)
             except ValueError:
                 # Problem with the fit. Don't count it.
                 continue
@@ -364,7 +460,7 @@ class ModelFitter(object):
             if newResidualStd > baseResidualStd*(1 + maxIncrResidualStd):
                 # Standard deviation of residuals is unacceaptable as a valid fit
                 continue
-            if newFitter.minimizerResult.redchi > MAX_CHISQ:
+            if newFitter.minimizerResult.redchi > base_redchi:
                 continue
             count += 1
             dct = newFitter.params.valuesdict()

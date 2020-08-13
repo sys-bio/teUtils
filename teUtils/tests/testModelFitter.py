@@ -18,8 +18,8 @@ import time
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 PARAMETER_DCT = {
       "k1": 1,
       "k2": 2,
@@ -257,8 +257,9 @@ class TestModelFitter(unittest.TestCase):
         self.fitter.plotParameterHistograms(ylim=[0, 5], xlim=[0, 6],
               bins=10, parameters=["k1", "k2"])
 
-    def testBug2(self):
-        # TESTING
+    def testBootstrapAccuracy(self):
+        if IGNORE_TEST:
+            return
         import tellurium as te
         import teUtils as tu
         
@@ -280,9 +281,9 @@ class TestModelFitter(unittest.TestCase):
         
         print (fitter.getFittedParameters())  
         
-        fitter.bootstrap(numIteration=10000, reportInterval=1000)
+        fitter.bootstrap(numIteration=6000, reportInterval=1000)
         fitter.plotParameterEstimatePairs(['k1', 'k2'])
-        print("Std: %s" % str(fitter.getFittedParameters()))
+        print("Mean: %s" % str(fitter.getFittedParameters()))
         print("Std: %s" % str(fitter.getFittedParameterStds()))
 
         
