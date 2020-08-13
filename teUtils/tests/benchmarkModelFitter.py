@@ -15,7 +15,6 @@ import time
 
 BENCHMARK1_TIME = 30 # Actual is 20 sec
 DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
 BENCHMARK_PATH = os.path.join(DIR, "groundtruth_2_step_0_1.txt")
 MODEL = """
     J1: S1 -> S2; k1*S1

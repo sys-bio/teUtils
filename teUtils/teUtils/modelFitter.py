@@ -20,21 +20,21 @@ Usage
 -----
    # The constructor takes either a roadrunner or antimony model
    f = ModelFitter(model, "mydata.txt",
-         parameters_to_fit=["k1", "k2"])
+         parametersToFit=["k1", "k2"])
    # Fit the model parameters and view parameters
    f.fitModel()
    print(f.getFittedParamters())
    # Print observed, fitted and residual values
-   print(f.observed_ts)
-   print(f.fitted_ts)
-   print(f.residuals_ts)
+   print(f.observedTS)
+   print(f.fittedTS)
+   print(f.residualsTS)
 """
 
-from teUtils.named_timeseries import NamedTimeseries, TIME, mkNamedTimeseries
-from teUtils import named_timeseries
-from teUtils.timeseries_plotter import TimeseriesPlotter, PlotOptions
-from teUtils import timeseries_plotter as tp
-from teUtils import helpers
+from teUtils.namedTimeseries import NamedTimeseries, TIME, mkNamedTimeseries
+from teUtils import namedTimeseries
+from teUtils.timeseriesPlotter import TimeseriesPlotter, PlotOptions
+from teUtils import timeseriesPlotter as tp
+from teUtils import _helpers
 
 import copy
 import lmfit; 
@@ -55,87 +55,87 @@ METHOD_LEASTSQR = "leastsqr"
 class BootstrapResult():
 
     """Result from bootstrap"""
-    def __init__(self, parameter_dct):
+    def __init__(self, parameterDct):
         """
         Parameters
         ----------
-        parameter_dct: dict
+        parameterDct: dict
             key: parameter name
             value: list of values
         """
         # population of parameter values
-        self.parameter_dct = dict(parameter_dct)
+        self.parameterDct = dict(parameterDct)
         # list of parameters
-        self.parameters = list(self.parameter_dct.keys())
+        self.parameters = list(self.parameterDct.keys())
         # means of parameter values
-        self.mean_dct = {p: np.mean(parameter_dct[p])
+        self.meanDct = {p: np.mean(parameterDct[p])
               for p in self.parameters}
         # standard deviation of parameter values
-        self.std_dct = {p: np.std(parameter_dct[p])
+        self.stdDct = {p: np.std(parameterDct[p])
               for p in self.parameters}
 
 
 class ModelFitter(object):
           
-    def __init__(self, model_specification, observed, parameters_to_fit,
-                 selected_columns=None, method=METHOD_BOTH,
-                 parameter_lower_bound=PARAMETER_LOWER_BOUND,
-                 parameter_upper_bound=PARAMETER_UPPER_BOUND,
-                 is_plot=True
+    def __init__(self, modelSpecification, observed, parametersToFit,
+                 selectedColumns=None, method=METHOD_BOTH,
+                 parameterLowerBound=PARAMETER_LOWER_BOUND,
+                 parameterUpperBound=PARAMETER_UPPER_BOUND,
+                 isPlot=True
                  ):      
         """
         Parameters
         ---------
-        model_specification: ExtendedRoadRunner/str
+        modelSpecification: ExtendedRoadRunner/str
             roadrunner model or antimony model
         observed: NamedTimeseries/str
             str: path to CSV file
-        parameters_to_fit: list-str/None
+        parametersToFit: list-str/None
             parameters in the model that you want to fit
             if None, no parameters are fit
-        selected_columns: list-str
+        selectedColumns: list-str
             species names you wish use to fit the model
             default: all columns in observed
-        parameter_lower_bound: float
+        parameterLowerBound: float
             lower bound for the fitting parameters
-        parameter_upper_bound: float
+        parameterUpperBound: float
             upper bound for the fitting parameters
         method: str
             method used for minimization
                
         Usage
         -----
-        f = ModelFitter(roadrunner_model, "observed.csv", ['k1', 'k2'])
+        f = ModelFitter(roadrunnerModel, "observed.csv", ['k1', 'k2'])
         """
-        self.model_specification = model_specification
-        self.observed_ts = mkNamedTimeseries(observed)
-        self.parameters_to_fit = parameters_to_fit
-        self._lower_bound = parameter_lower_bound
-        self._upper_bound = parameter_upper_bound
-        if selected_columns is None:
-            selected_columns = self.observed_ts.colnames
-        self.selected_columns = selected_columns
+        self.modelSpecification = modelSpecification
+        self.observedTS = mkNamedTimeseries(observed)
+        self.parametersToFit = parametersToFit
+        self.LowerBound = parameterLowerBound
+        self.UpperBound = parameterUpperBound
+        if selectedColumns is None:
+            selectedColumns = self.observedTS.colnames
+        self.selectedColumns = selectedColumns
         self._method = method
-        self._is_plot = is_plot
-        self._plotter = TimeseriesPlotter(is_plot=self._is_plot)
+        self._isPlot = isPlot
+        self._plotter = TimeseriesPlotter(isPlot=self._isPlot)
         # The following are calculated during fitting
-        self.roadrunner_model = None
+        self.roadrunnerModel = None
         self.minimizer = None  # lmfit.minimizer
-        self.minimizer_result = None  # Results of minimization
+        self.minimizerResult = None  # Results of minimization
         self.params = None  # params property in lmfit.minimizer
-        self.fitted_ts = None
-        self.residuals_ts = None  # Residuals for selected_columns
-        self.bootstrap_result = None  # Result from bootstrapping
+        self.fittedTS = None
+        self.residualsTS = None  # Residuals for selectedColumns
+        self.bootstrapResult = None  # Result from bootstrapping
      
     def _initializeRoadrunnerModel(self):
         """
-            Sets self.roadrunner_model.
+            Sets self.roadrunnerModel.
         """
-        if isinstance(self.model_specification,
+        if isinstance(self.modelSpecification,
               te.roadrunner.extended_roadrunner.ExtendedRoadRunner):
-            self.roadrunner_model = self.model_specification
-        elif isinstance(self.model_specification, str):
-            self.roadrunner_model = te.loada(self.model_specification)
+            self.roadrunnerModel = self.modelSpecification
+        elif isinstance(self.modelSpecification, str):
+            self.roadrunnerModel = te.loada(self.modelSpecification)
         else:
             msg = 'Invalid model.'
             msg = msg + "\nA model must either be a Roadrunner model "
@@ -144,7 +144,7 @@ class ModelFitter(object):
 
     def _simulate(self, params=None):
         """
-        Runs a simulation. Updates self.fitted_ts.
+        Runs a simulation. Updates self.fittedTS.
 
         Parameters
         ----------
@@ -152,12 +152,12 @@ class ModelFitter(object):
 
         Instance Variables Updated
         --------------------------
-        self.fitted_ts
+        self.fittedTS
         """
         self._setupModel(params=params)
-        named_array = self.roadrunner_model.simulate(
-              self.observed_ts.start, self.observed_ts.end, len(self.observed_ts))
-        self.fitted_ts = NamedTimeseries(named_array=named_array)
+        namedArray = self.roadrunnerModel.simulate(
+              self.observedTS.start, self.observedTS.end, len(self.observedTS))
+        self.fittedTS = NamedTimeseries(namedArray=namedArray)
 
     def _residuals(self, params):
         """
@@ -169,19 +169,19 @@ class ModelFitter(object):
 
         Instance Variables Updated
         --------------------------
-        self.fitted_ts
+        self.fittedTS
 
         Returns
         -------
         1-d ndarray of residuals
         """
         self._simulate(params=params)
-        cols = self.selected_columns
-        if self.residuals_ts is None:
-            self.residuals_ts = self.observed_ts.subsetColumns(cols)
-        self.residuals_ts[cols] = self.observed_ts[cols]  \
-              - self.fitted_ts[cols]
-        return self.residuals_ts.flatten()
+        cols = self.selectedColumns
+        if self.residualsTS is None:
+            self.residualsTS = self.observedTS.subsetColumns(cols)
+        self.residualsTS[cols] = self.observedTS[cols]  \
+              - self.fittedTS[cols]
+        return self.residualsTS.flatten()
         
     def fitModel(self, params=None):
         """
@@ -197,7 +197,7 @@ class ModelFitter(object):
               f.fitModel()
         """
         self._initializeRoadrunnerModel()
-        if self.parameters_to_fit is None:
+        if self.parametersToFit is None:
             # Compute fit and residuals for base model
             _ = self._residuals(None)
         else:
@@ -209,11 +209,11 @@ class ModelFitter(object):
             #   A local Levenberg-Marquardt to getsus to the minimum
             if self._method in [METHOD_BOTH, METHOD_DIFFERENTIAL_EVOLUTION]:
                 minimizer = lmfit.Minimizer(self._residuals, params)
-                self.minimizer_result = minimizer.minimize(method='differential_evolution')
+                self.minimizerResult = minimizer.minimize(method='differential_evolution')
             if self._method in [METHOD_BOTH, METHOD_LEASTSQR]:
                 minimizer = lmfit.Minimizer(self._residuals, params)
-                self.minimizer_result = minimizer.minimize(method='leastsqr')
-            self.params = self.minimizer_result.params
+                self.minimizerResult = minimizer.minimize(method='leastsqr')
+            self.params = self.minimizerResult.params
             self.minimizer = minimizer
             if not self.minimizer.success:
                 msg = "*** Minimizer failed for this model and data."
@@ -228,10 +228,10 @@ class ModelFitter(object):
               f.getFittedParameters()
         """
         self._checkFit()
-        if self.bootstrap_result is None:
-            return [self.params[p].value for p in self.parameters_to_fit]
+        if self.bootstrapResult is None:
+            return [self.params[p].value for p in self.parametersToFit]
         else:
-            return self.bootstrap_result.mean_dct.values()
+            return self.bootstrapResult.meanDct.values()
 
     def getFittedParameterStds(self):
         """
@@ -242,9 +242,9 @@ class ModelFitter(object):
               f.getFittedParameterStds()
         """
         self._checkFit()
-        if self.bootstrap_result is None:
+        if self.bootstrapResult is None:
             raise ValueError("Must use bootstrap first.")
-        return list(self.bootstrap_result.std_dct.values())
+        return list(self.bootstrapResult.stdDct.values())
 
     def getFittedModel(self):
         """
@@ -255,12 +255,12 @@ class ModelFitter(object):
         ExtendedRoadrunner
         """
         self._checkFit()
-        self.roadrunner_model.reset()
+        self.roadrunnerModel.reset()
         self._setupModel(params=self.params)
-        return self.roadrunner_model
+        return self.roadrunnerModel
 
     def calcResidualsStd(self):
-        return np.std(self.residuals_ts[self.selected_columns])
+        return np.std(self.residualsTS[self.selectedColumns])
 
     def calcNewObserved(self):
         """
@@ -274,49 +274,49 @@ class ModelFitter(object):
         """
         MAX_ITERATION = 1000
         self._checkFit()
-        num_row = len(self.observed_ts)
-        num_col = len(self.selected_columns)
+        numRow = len(self.observedTS)
+        numCol = len(self.selectedColumns)
         #
-        residuals_arr = self.residuals_ts.flatten()
-        fitted_arr = self.fitted_ts[self.selected_columns].flatten()
-        all_idxs = list(range(len(fitted_arr)))
-        length = len(all_idxs)
-        sel_idxs = []
-        new_observed_arr = np.repeat(np.nan, length)
-        num_iteration = 0
-        while len(sel_idxs) < length:
-            num_iteration += 1
-            if num_iteration > MAX_ITERATION:
+        residualsArr = self.residualsTS.flatten()
+        fittedArr = self.fittedTS[self.selectedColumns].flatten()
+        allIdxs = list(range(len(fittedArr)))
+        length = len(allIdxs)
+        selIdxs = []
+        newObservedArr = np.repeat(np.nan, length)
+        numIteration = 0
+        while len(selIdxs) < length:
+            numIteration += 1
+            if numIteration > MAX_ITERATION:
                 msg = "No suitable synthetic observed values for bootstrap."
                 raise ValueError(msg)
-            missing_idxs = [s for s in set(all_idxs).difference(sel_idxs)]
-            num_missing = len(missing_idxs)
-            new_observed_arr[missing_idxs] = np.random.choice(
-                  residuals_arr[missing_idxs], num_missing, replace=True)  \
-                  + fitted_arr[missing_idxs]
-            sel_idxs = [i for i, v in enumerate(new_observed_arr) if v >= 0]
-            if len(sel_idxs) == length:
+            missingIdxs = [s for s in set(allIdxs).difference(selIdxs)]
+            numMissing = len(missingIdxs)
+            newObservedArr[missingIdxs] = np.random.choice(
+                  residualsArr[missingIdxs], numMissing, replace=True)  \
+                  + fittedArr[missingIdxs]
+            selIdxs = [i for i, v in enumerate(newObservedArr) if v >= 0]
+            if len(selIdxs) == length:
                 break
         #
-        new_observed_ts = self.observed_ts.copy()
-        new_observed_ts[self.selected_columns] = np.reshape(
-              new_observed_arr, (num_row, num_col))
+        newObservedTS = self.observedTS.copy()
+        newObservedTS[self.selectedColumns] = np.reshape(
+              newObservedArr, (numRow, numCol))
         #
-        return new_observed_ts
+        return newObservedTS
 
-    def bootstrap(self, num_iteration=10, max_incr_residual_std=0.50,
-          report_interval=None):
+    def bootstrap(self, numIteration=10, maxIncrResidualStd=0.50,
+          reportInterval=None):
         """
         Constructs a bootstrap estimate of parameter values.
     
         Parameters
         ----------
-        num_iteration: int
+        numIteration: int
             number of bootstrap iterations
-        max_incr_residual_std: float
+        maxIncrResidualStd: float
             maximum fractional increase in the residual std
             from the original fit to consider this fit sucessful
-        report_interval: int
+        reportInterval: int
             number of iterations between progress reports
               
         Example
@@ -329,43 +329,43 @@ class ModelFitter(object):
 
         ITERATION_MULTIPLIER = 10  # Determines maximum iterations
         self._checkFit()
-        parameter_dct = {p: [] for p in self.parameters_to_fit}
-        base_residual_std = self.calcResidualsStd()
+        parameterDct = {p: [] for p in self.parametersToFit}
+        baseResidualStd = self.calcResidualsStd()
         count = 0
-        for _ in range(num_iteration*ITERATION_MULTIPLIER):
-            if (report_interval is not None) and (count > 0):
-                if count % report_interval == 0:
+        for _ in range(numIteration*ITERATION_MULTIPLIER):
+            if (reportInterval is not None) and (count > 0):
+                if count % reportInterval == 0:
                     print("bootstrap completed %d iterations" % count)
-            if count > num_iteration:
+            if count > numIteration:
                 # Performed the iterations
                 break
             try:
-                new_observed_ts = self.calcNewObserved()
+                newObservedTS = self.calcNewObserved()
             except ValueError:
                 # Couldn't find valid synthetic observations
                 continue
             # Do a fit with these observeds
-            new_fitter = ModelFitter(self.roadrunner_model,
-                  new_observed_ts,
-                  self.parameters_to_fit,
-                  selected_columns=self.selected_columns,
+            newFitter = ModelFitter(self.roadrunnerModel,
+                  newObservedTS,
+                  self.parametersToFit,
+                  selectedColumns=self.selectedColumns,
                   method=METHOD_LEASTSQR,
-                  parameter_lower_bound=self._lower_bound,
-                  parameter_upper_bound=self._upper_bound,
-                  is_plot=self._is_plot)
+                  parameterLowerBound=self.LowerBound,
+                  parameterUpperBound=self.UpperBound,
+                  isPlot=self._isPlot)
             try:
-                new_fitter.fitModel(params=self.params)
+                newFitter.fitModel(params=self.params)
             except ValueError:
                 # Problem with the fit. Don't count it.
                 continue
-            new_residual_std = new_fitter.calcResidualsStd()
-            if new_residual_std > base_residual_std*(1 + max_incr_residual_std):
+            newResidualStd = newFitter.calcResidualsStd()
+            if newResidualStd > baseResidualStd*(1 + maxIncrResidualStd):
                 # Standard deviation of residuals is unacceaptable as a valid fit
                 continue
             count += 1
-            dct = new_fitter.params.valuesdict()
-            [parameter_dct[p].append(dct[p]) for p in self.parameters_to_fit]
-        self.bootstrap_result = BootstrapResult(parameter_dct)
+            dct = newFitter.params.valuesdict()
+            [parameterDct[p].append(dct[p]) for p in self.parametersToFit]
+        self.bootstrapResult = BootstrapResult(parameterDct)
 
     def _setupModel(self, params=None):
         """
@@ -376,18 +376,18 @@ class ModelFitter(object):
         params: lmfit.Parameters
  
         """
-        self.roadrunner_model.reset()  
+        self.roadrunnerModel.reset()  
         if params is not None:
             pp = params.valuesdict()
-            for parameter in self.parameters_to_fit:
-               self.roadrunner_model.model[parameter] = pp[parameter]
+            for parameter in self.parametersToFit:
+               self.roadrunnerModel.model[parameter] = pp[parameter]
 
     def _initializeParams(self):
         params = lmfit.Parameters()
-        value = np.mean([self._lower_bound, self._upper_bound])
-        for parameter in self.parameters_to_fit:
+        value = np.mean([self.LowerBound, self.UpperBound])
+        for parameter in self.parametersToFit:
            params.add(parameter, value=value, 
-                 min=self._lower_bound, max=self._upper_bound)
+                 min=self.LowerBound, max=self.UpperBound)
         return params
 
     def _checkFit(self):
@@ -403,9 +403,9 @@ class ModelFitter(object):
         str
         """
         self._checkFit()
-        if self.minimizer_result is None:
+        if self.minimizerResult is None:
             raise ValueError("Must do fitModel before reportFit.")
-        return str(lmfit.fit_report(self.minimizer_result))
+        return str(lmfit.fit_report(self.minimizerResult))
 
     def plotResiduals(self, **kwargs):
         """
@@ -414,33 +414,33 @@ class ModelFitter(object):
         Parameters
         ----------
         kwargs: dict. Plotting options.
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
         self._checkFit()
         options = PlotOptions()
         if not tp.MARKER1 in kwargs:
             kwargs[tp.MARKER1] = "o"
-        self._plotter.plotTimeSingle(self.residuals_ts, **kwargs)
+        self._plotter.plotTimeSingle(self.residualsTS, **kwargs)
 
-    def plotFitAll(self, is_multiple=False, **kwargs):
+    def plotFitAll(self, isMultiple=False, **kwargs):
         """
         Plots the fit with observed data over time.
     
         Parameters
         ----------
-        is_multiple: bool
+        isMultiple: bool
             plots all variables on a single plot
         kwargs: dict. Plotting options.
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
         self._checkFit()
         self._addKeyword(kwargs, tp.MARKER2, "o")
-        if is_multiple:
-            self._plotter.plotTimeMultiple(self.fitted_ts, timeseries2=self.observed_ts,
+        if isMultiple:
+            self._plotter.plotTimeMultiple(self.fittedTS, timeseries2=self.observedTS,
                   **kwargs)
         else:
             self._addKeyword(kwargs, tp.LEGEND, ["fitted", "observed"])
-            self._plotter.plotTimeSingle(self.fitted_ts, timeseries2=self.observed_ts,
+            self._plotter.plotTimeSingle(self.fittedTS, timeseries2=self.observedTS,
                   **kwargs)
 
     def _addKeyword(self, kwargs, key, value):
@@ -448,10 +448,10 @@ class ModelFitter(object):
             kwargs[key] = value
 
     def _mkParameterDF(self, parameters=None):
-        df = pd.DataFrame(self.bootstrap_result.parameter_dct)
+        df = pd.DataFrame(self.bootstrapResult.parameterDct)
         if parameters is not None:
             df = df[parameters]
-        df.index.name = named_timeseries.TIME
+        df.index.name = namedTimeseries.TIME
         return NamedTimeseries(dataframe=df)
 
     def plotParameterEstimatePairs(self, parameters=None, **kwargs):
@@ -463,20 +463,20 @@ class ModelFitter(object):
         parameters: list-str
             List of parameters to do pairwise plots
         kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
-        if self.bootstrap_result is None:
+        if self.bootstrapResult is None:
             raise ValueError("Must run bootstrap before plotting parameter estimates.")
         ts = self._mkParameterDF(parameters=parameters)
         # Construct pairs
-        names = list(self.bootstrap_result.parameter_dct.keys())
+        names = list(self.bootstrapResult.parameterDct.keys())
         pairs = []
         compares = list(names)
         for name in names:
             compares.remove(name)
             pairs.extend([(name, c) for c in compares])
         #
-        self._plotter.plotValuePairs(ts, pairs, is_lower_triangular=True, **kwargs)
+        self._plotter.plotValuePairs(ts, pairs, isLowerTriangular=True, **kwargs)
 
     def plotParameterHistograms(self, parameters=None, **kwargs):
         """
@@ -487,13 +487,13 @@ class ModelFitter(object):
         parameters: list-str
             List of parameters to do pairwise plots
         kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
-        if self.bootstrap_result is None:
+        if self.bootstrapResult is None:
             raise ValueError("Must run bootstrap before plotting parameter estimates.")
         ts = self._mkParameterDF(parameters=parameters)
         self._plotter.plotHistograms(ts, **kwargs)
         
 
 # Update the docstrings 
-helpers.updatePlotDocstring(ModelFitter)
+_helpers.updatePlotDocstring(ModelFitter)

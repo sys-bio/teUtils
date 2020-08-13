@@ -5,8 +5,8 @@ Created on Aug 8, 2020
 @author: joseph-hellerstein
 """
 
-from teUtils import helpers
-from teUtils.timeseries_plotter import PlotOptions
+from teUtils import _helpers
+from teUtils.timeseriesPlotter import PlotOptions
 
 import unittest
 
@@ -24,7 +24,7 @@ def plotItFunction(a, b, **kwargs):
     a: float
     b: float
     kwargs: dict
-        Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+        Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
     Returns
     -------
     None
@@ -42,7 +42,7 @@ class GoodClass():
         a: float
         b: float
         kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseries_plotter.EXPAND_KEYPRHASE.)
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         Returns
         -------
         None
@@ -68,15 +68,15 @@ class TestHelpers(unittest.TestCase):
         if IGNORE_TEST:
             return
         def test(target):
-            helpers.updatePlotDocstring(target)
-            is_true = str(PlotOptions()) in GoodClass.plotIt.__doc__
-            self.assertTrue(is_true)
+            _helpers.updatePlotDocstring(target)
+            isTrue = str(PlotOptions()) in GoodClass.plotIt.__doc__
+            self.assertTrue(isTrue)
         #
         test(GoodClass)
         test(plotItFunction)
         #
         with self.assertRaises(RuntimeError):
-            helpers.updatePlotDocstring(BadClass)
+            _helpers.updatePlotDocstring(BadClass)
             
 
 if __name__ == '__main__':
