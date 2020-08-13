@@ -6,7 +6,7 @@ Created on Tue Jul  7 14:24:09 2020
 @author: joseph-hellerstein
 """
 
-import teUtils as tu
+from teUtils.modelFitter import ModelFitter
 
 import numpy as np
 import os
@@ -37,14 +37,13 @@ def main(num_iteration):
     -------
     float: time in seconds
     """
-        
-    fitter = tu.model_fitter.ModelFitter(MODEL, BENCHMARK_PATH,
-          ["k1", "k2"], selected_columns=['S1', 'S3'], is_plot=False)
+    fitter = ModelFitter(MODEL, BENCHMARK_PATH,
+          ["k1", "k2"], selectedColumns=['S1', 'S3'], isPlot=False)
     fitter.fitModel()
-    start_time = time.time()
-    fitter.bootstrap(num_iteration=6000)
-    elapsed_time = time.time() - start_time
-    return elapsed_time
+    startTime = time.time()
+    fitter.bootstrap(numIteration=10000)
+    elapsedTime = time.time() - startTime
+    return elapsedTime
         
 
 if __name__ == '__main__':

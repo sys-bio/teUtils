@@ -50,6 +50,7 @@ PARAMETER_UPPER_BOUND = 10
 METHOD_BOTH = "both"
 METHOD_DIFFERENTIAL_EVOLUTION = "differential_evolution"
 METHOD_LEASTSQR = "leastsqr"
+MAX_CHISQ = 200
 
 
 class BootstrapResult():
@@ -332,6 +333,14 @@ class ModelFitter(object):
         parameterDct = {p: [] for p in self.parametersToFit}
         baseResidualStd = self.calcResidualsStd()
         count = 0
+        newFitter = ModelFitter(self.roadrunnerModel,
+              self.observedTS,
+              self.parametersToFit,
+              selectedColumns=self.selectedColumns,
+              method=METHOD_LEASTSQR,
+              parameterLowerBound=self.LowerBound,
+              parameterUpperBound=self.UpperBound,
+              isPlot=self._isPlot)
         for _ in range(numIteration*ITERATION_MULTIPLIER):
             if (reportInterval is not None) and (count > 0):
                 if count % reportInterval == 0:
@@ -345,22 +354,17 @@ class ModelFitter(object):
                 # Couldn't find valid synthetic observations
                 continue
             # Do a fit with these observeds
-            newFitter = ModelFitter(self.roadrunnerModel,
-                  newObservedTS,
-                  self.parametersToFit,
-                  selectedColumns=self.selectedColumns,
-                  method=METHOD_LEASTSQR,
-                  parameterLowerBound=self.LowerBound,
-                  parameterUpperBound=self.UpperBound,
-                  isPlot=self._isPlot)
+            newFitter.observedTS = newObservedTS
             try:
-                newFitter.fitModel(params=self.params)
+                newFitter.fitModel(params=newFitter.params)
             except ValueError:
                 # Problem with the fit. Don't count it.
                 continue
             newResidualStd = newFitter.calcResidualsStd()
             if newResidualStd > baseResidualStd*(1 + maxIncrResidualStd):
                 # Standard deviation of residuals is unacceaptable as a valid fit
+                continue
+            if newFitter.minimizerResult.redchi > MAX_CHISQ:
                 continue
             count += 1
             dct = newFitter.params.valuesdict()
