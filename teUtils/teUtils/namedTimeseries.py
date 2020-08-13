@@ -166,7 +166,7 @@ class NamedTimeseries(object):
             self.start = min(times)
             self.end = max(times)
 
-    def _Str__(self):
+    def __str__(self):
         df = self.to_dataframe()
         return str(df)
 

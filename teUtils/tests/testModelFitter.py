@@ -18,8 +18,8 @@ import time
 import unittest
 
 
-IGNORE_TEST = False
-IS_PLOT = False
+IGNORE_TEST = True
+IS_PLOT = True
 PARAMETER_DCT = {
       "k1": 1,
       "k2": 2,
@@ -258,8 +258,7 @@ class TestModelFitter(unittest.TestCase):
               bins=10, parameters=["k1", "k2"])
 
     def testBug2(self):
-        if IGNORE_TEST:
-            return
+        # TESTING
         import tellurium as te
         import teUtils as tu
         
@@ -275,18 +274,16 @@ class TestModelFitter(unittest.TestCase):
               ["k1", "k2"], selectedColumns=['S1', 'S3'], isPlot=IS_PLOT)
         fitter.fitModel()
         print(fitter.reportFit ())
-    
-        fitter.plotResiduals(figsize=(8,6))
-        fitter.plotFitAll(figsize=(10,6))
         
         #fitter.plotResiduals (numCol=3, numRow=1, figsize=(17,5))
         #fitter.plotFit (numCol=3, numRow=1, figsize=(18, 6))
         
         print (fitter.getFittedParameters())  
         
-        to = time.time()
-        fitter.bootstrap(numIteration=600, reportInterval=100)
+        fitter.bootstrap(numIteration=10000, reportInterval=1000)
         fitter.plotParameterEstimatePairs(['k1', 'k2'])
+        print("Std: %s" % str(fitter.getFittedParameters()))
+        print("Std: %s" % str(fitter.getFittedParameterStds()))
 
         
         
