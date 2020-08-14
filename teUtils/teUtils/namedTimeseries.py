@@ -109,26 +109,26 @@ class NamedTimeseries(object):
           dataframe=None,
           timeseries=None):
         """
-            Parameters
-            ---------
-            csvPath: str
-                path to CSV file
-            colnames: list-str
-            array: np.ndarray
-                values corresponding to colnames
-            namedArray: NamedArray
-            dataframe: pd.DataFrame
-                index: time
-            timeseries: NamedTimeseries
-                   
-           Usage
-           -----
-               data = NamedTimeseries(csvPath="mydata.csv")
-         
-           Notes
-           -----
-               At one of the following most be non-None:
-                 csvPath, colnames & array, dataframe, timeseries
+        Parameters
+        ---------
+        csvPath: str
+            path to CSV file
+        colnames: list-str
+        array: np.ndarray
+            values corresponding to colnames
+        namedArray: NamedArray
+        dataframe: pd.DataFrame
+            index: time
+        timeseries: NamedTimeseries
+               
+       Usage
+       -----
+           data = NamedTimeseries(csvPath="mydata.csv")
+     
+       Notes
+       -----
+           At one of the following most be non-None:
+             csvPath, colnames & array, dataframe, timeseries
         """
         if timeseries is not None:
             # Copy the existing object
@@ -276,52 +276,57 @@ class NamedTimeseries(object):
             np.ndarray for column type reference
             NamedTimeseries for row type reference
         """
+        def handleStr(reference):
+            indices = self._getColumnIndices(reference)
+            return self.values[:, indices]
         # indicate types
         isInt = False
         isListInt = False
         isSlice = False
         isStr = False
         isListStr = False
-        if isinstance(reference, int):
-            isInt = True
-        elif isinstance(reference, str):
+        if isinstance(reference, str):
             isStr = True
         elif isinstance(reference, list):
-            if isinstance(reference[0], int):
-                isListInt = True
-            elif isinstance(reference[0], str):
+            if isinstance(reference[0], str):
                 isListStr = True
+            elif isinstance(reference[0], int):
+                isListInt = True
+        elif isinstance(reference, int):
+            isInt = True
         elif isinstance(reference, slice):
             isSlice = True
         # Process row type references
+        if isStr:
+            if reference.lower() == TIME:
+                reference = TIME
+            return handleStr(reference)
+        if isListStr:
+            timeStrs = [c for c in reference if c.lower() == TIME]
+            if len(timeStrs) == 1:
+                ref = timeStrs[0]
+                idx = reference.index(ref)
+                reference.insert(idx, TIME)
+                reference.remove(ref)
+            elif len(timeStrs) == 0:
+                pass
+            else:
+                raise ValueError("Reference to multiple different time columns.")
+            return handleStr(reference)
         if isListInt:
             return NamedTimeseries(colnames=self.allColnames,
                   array=self.values[reference, :])
         if isInt:
             return NamedTimeseries(colnames=self.allColnames,
                   array=self.values[[reference], :])
-        elif isSlice:
+        if isSlice:
             allIndices = list(range(len(self)))
             indices = allIndices[reference]
             return NamedTimeseries(colnames=self.allColnames,
                   array=self.values[indices, :])
-        else:
-            if isStr:
-                if reference.lower() == TIME:
-                    reference = TIME
-            if isListStr:
-                timeStrs = [c for c in reference if c.lower() == TIME]
-                if len(timeStrs) == 1:
-                    ref = timeStrs[0]
-                    idx = reference.index(ref)
-                    reference.insert(idx, TIME)
-                    reference.remove(ref)
-                elif len(timeStrs) == 0:
-                    pass
-                else:
-                    raise ValueError("Reference to multiple different time columns.")
             indices = self._getColumnIndices(reference)
-            return self.values[:, indices]
+        #
+        raise ValueError("Invalid reference to NamedTimeseries.")
 
     def __len__(self):
        return np.shape(self.values)[0]

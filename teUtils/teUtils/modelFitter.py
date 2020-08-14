@@ -125,7 +125,7 @@ class ModelFitter(object):
         self.minimizer = None  # lmfit.minimizer
         self.minimizerResult = None  # Results of minimization
         self.params = None  # params property in lmfit.minimizer
-        self.fittedTS = None
+        self.fittedTS = self.observedTS.copy()
         self.residualsTS = None  # Residuals for selectedColumns
         self.bootstrapResult = None  # Result from bootstrapping
      
@@ -157,9 +157,8 @@ class ModelFitter(object):
         self.fittedTS
         """
         self._setupModel(params=params)
-        namedArray = self.roadrunnerModel.simulate(
+        self.fittedTS[self.fittedTS.allColnames] = self.roadrunnerModel.simulate(
               self.observedTS.start, self.observedTS.end, len(self.observedTS))
-        self.fittedTS = NamedTimeseries(namedArray=namedArray)
 
     def _residuals(self, params):
         """
@@ -176,13 +175,16 @@ class ModelFitter(object):
         Returns
         -------
         1-d ndarray of residuals
+
+        Notes
+        -----
+        Does not update fittedTS
         """
         self._simulate(params=params)
         cols = self.selectedColumns
         if self.residualsTS is None:
             self.residualsTS = self.observedTS.subsetColumns(cols)
-        self.residualsTS[cols] = self.observedTS[cols]  \
-              - self.fittedTS[cols]
+        self.residualsTS[cols] = self.observedTS[cols] - self.fittedTS[cols]
         return self.residualsTS.flatten()
         
     def fitModel(self, params=None):
@@ -195,7 +197,8 @@ class ModelFitter(object):
         ----------
         params: lmfit.Parameters
               
-        Example:
+        Example
+        -------
               f.fitModel()
         """
         self._initializeRoadrunnerModel()
@@ -285,121 +288,6 @@ class ModelFitter(object):
             newObservedTS[column] =  \
                   np.random.permutation(self.residualsTS[column])  \
                   + self.fittedTS[column]
-        #
-        return newObservedTS
-
-    def calcNewObservedOld3(self):
-        """
-        Calculates synthetic observations. All observed values must be
-        non-negative.
-        
-        Returns
-        -------
-        NamedTimeseries
-            new synthetic observations
-        """
-        MAX_ITERATION = 100
-        self._checkFit()
-        numRow = len(self.observedTS)
-        #
-        newObservedTS = self.observedTS.copy()
-        for _ in range(MAX_ITERATION):
-            isSuccess = True
-            for column in self.selectedColumns:
-                baseResidualStd = np.std(self.residualsTS[column])
-                newObservedTS[column] = np.random.choice(self.residualsTS[column],
-                      numRow, replace=True)  + self.fittedTS[column]
-                residualsArr = newObservedTS[column].flatten() - self.observedTS[column].flatten()
-                residualStd = np.std(residualsArr)
-                if residualStd > baseResidualStd:
-                    # Excessive variance
-                    isSuccess = False
-                    break
-            if isSuccess:
-                break
-        #
-        return newObservedTS
-
-    def calcNewObservedOld2(self):
-        """
-        Calculates synthetic observations. All observed values must be
-        non-negative.
-        
-        Returns
-        -------
-        NamedTimeseries
-            new synthetic observations
-        """
-        MAX_ITERATION =100
-        MAX_STD_RATIO = 1.05
-        self._checkFit()
-        numRow = len(self.observedTS)
-        numCol = len(self.selectedColumns)
-        #
-        residualsArr = self.residualsTS.flatten()
-        fittedArr = self.fittedTS[self.selectedColumns].flatten()
-        observedArr = self.observedTS[self.selectedColumns].flatten()
-        observed_std = np.std(observedArr)
-        num = len(observedArr)
-        done = False
-        num_iteration = 0
-        for _ in range(MAX_ITERATION):
-            num_iteration += 1
-            newObservedArr = np.random.choice(residualsArr, 
-                  num, replace=True) + fittedArr
-            stdRatio = np.std(newObservedArr)/observed_std
-            if stdRatio <= MAX_STD_RATIO:
-                done = True
-                break
-        if not done:
-            msg = "No suitable synthetic observed values for bootstrap."
-            raise ValueError(msg)
-        #
-        newObservedTS = self.observedTS.copy()
-        newObservedTS[self.selectedColumns] = np.reshape(
-              newObservedArr, (numRow, numCol))
-        #
-        return newObservedTS
-
-    def calcNewObservedOld(self):
-        """
-        Calculates synthetic observations. All observed values must be
-        non-negative.
-        
-        Returns
-        -------
-        NamedTimeseries
-            new synthetic observations
-        """
-        MAX_ITERATION = 1
-        self._checkFit()
-        numRow = len(self.observedTS)
-        numCol = len(self.selectedColumns)
-        #
-        residualsArr = self.residualsTS.flatten()
-        fittedArr = self.fittedTS[self.selectedColumns].flatten()
-        allIdxs = list(range(len(fittedArr)))
-        length = len(allIdxs)
-        selIdxs = []
-        newObservedArr = np.repeat(np.nan, length)
-        numIteration = 0
-        while len(selIdxs) < length:
-            if numIteration > MAX_ITERATION:
-                msg = "No suitable synthetic observed values for bootstrap."
-                raise ValueError(msg)
-            missingIdxs = [s for s in set(allIdxs).difference(selIdxs)]
-            numMissing = len(missingIdxs)
-            newObservedArr[missingIdxs] = np.random.choice(
-                  residualsArr[missingIdxs], numMissing, replace=True)  \
-                  + fittedArr[missingIdxs]
-            selIdxs = [i for i, v in enumerate(newObservedArr) if v >= 0]
-            if len(selIdxs) == length:
-                break
-            numIteration += 1
-        #
-        newObservedTS = self.observedTS.copy()
-        newObservedTS[self.selectedColumns] = np.reshape(
-              newObservedArr, (numRow, numCol))
         #
         return newObservedTS
 
