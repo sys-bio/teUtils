@@ -41,6 +41,7 @@ MARKER1 = "marker1"
 MARKER2 = "marker2"
 NUM_COL = "numCol"
 NUM_ROW = "numRow"
+SUBPLOT_WIDTH_SPACE = "subplot_width_space"
 TIMESERIES2 = "timeseries2"
 TITLE_POSITION = "titlePosition"
    
@@ -64,6 +65,7 @@ class PlotOptions(object):
         self.timeseries2 = None  # second timeseries
         self.title = None
         self.titlePosition = None  # Relative position in plot (x, y)
+        self.subplotWidthSpace = None
         self.suptitle = None  # Figure title
         self.xlabel = "time"  # x axis title
         self.xlim = None  # order pair of lower and upper
@@ -86,6 +88,7 @@ class PlotOptions(object):
                 marker2: Marker for timeseries2
                 numRow: rows of plots
                 numCol: columns of plots
+                subplotWidthSpace: horizontal space between plots
                 timeseries2: second timeseries
                 title: plot title
                 titlePosition: relative position in plot (x, y); x,y in [0, 1]; (0,0) is lower left.
@@ -163,6 +166,8 @@ class PlotOptions(object):
             ax.set_yticklabels(self.yticklabels)
         if self.legend is not None:
             ax.legend(self.legend)
+        if self.subplotWidthSpace is not None:
+            plt.subplots_adjust(wspace=self.subplotWidthSpace)
         if self.suptitle is not None:
             plt.suptitle(self.suptitle)
 

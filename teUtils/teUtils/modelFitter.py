@@ -432,6 +432,7 @@ class ModelFitter(object):
         parameterDct = {p: [] for p in self.parametersToFit}
         baseResidualStd = self.calcResidualsStd()
         count = 0
+        lastParams = self.params
         newFitter = ModelFitter(self.roadrunnerModel,
               self.observedTS,
               self.parametersToFit,
@@ -452,7 +453,7 @@ class ModelFitter(object):
             # Do a fit with these observeds
             newFitter.observedTS = self.calcNewObserved()
             try:
-                newFitter.fitModel(params=self.params)
+                newFitter.fitModel(params=lastParams)
             except ValueError:
                 # Problem with the fit. Don't count it.
                 continue
@@ -463,6 +464,7 @@ class ModelFitter(object):
             if newFitter.minimizerResult.redchi > base_redchi:
                 continue
             count += 1
+            lastParams = newFitter.params
             dct = newFitter.params.valuesdict()
             [parameterDct[p].append(dct[p]) for p in self.parametersToFit]
         self.bootstrapResult = BootstrapResult(parameterDct)
