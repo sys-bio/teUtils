@@ -32,7 +32,7 @@ Usage
 
 from teUtils.namedTimeseries import NamedTimeseries, TIME, mkNamedTimeseries
 from teUtils import namedTimeseries
-from teUtils.timeseriesPlotter import TimeseriesPlotter, PlotOptions
+import teUtils._plotOptions as po
 from teUtils import timeseriesPlotter as tp
 from teUtils import _helpers
 
@@ -119,7 +119,7 @@ class ModelFitter(object):
         self.selectedColumns = selectedColumns
         self._method = method
         self._isPlot = isPlot
-        self._plotter = TimeseriesPlotter(isPlot=self._isPlot)
+        self._plotter = tp.TimeseriesPlotter(isPlot=self._isPlot)
         # The following are calculated during fitting
         self.roadrunnerModel = None
         self.minimizer = None  # lmfit.minimizer
@@ -407,9 +407,9 @@ class ModelFitter(object):
             Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
         self._checkFit()
-        options = PlotOptions()
-        if not tp.MARKER1 in kwargs:
-            kwargs[tp.MARKER1] = "o"
+        options = po.PlotOptions()
+        if not po.MARKER1 in kwargs:
+            kwargs[po.MARKER1] = "o"
         self._plotter.plotTimeSingle(self.residualsTS, **kwargs)
 
     def plotFitAll(self, isMultiple=False, **kwargs):
@@ -424,12 +424,12 @@ class ModelFitter(object):
             Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
         self._checkFit()
-        self._addKeyword(kwargs, tp.MARKER2, "o")
+        self._addKeyword(kwargs, po.MARKER2, "o")
         if isMultiple:
             self._plotter.plotTimeMultiple(self.fittedTS, timeseries2=self.observedTS,
                   **kwargs)
         else:
-            self._addKeyword(kwargs, tp.LEGEND, ["fitted", "observed"])
+            self._addKeyword(kwargs, po.LEGEND, ["fitted", "observed"])
             self._plotter.plotTimeSingle(self.fittedTS, timeseries2=self.observedTS,
                   **kwargs)
 
@@ -466,7 +466,8 @@ class ModelFitter(object):
             compares.remove(name)
             pairs.extend([(name, c) for c in compares])
         #
-        self._plotter.plotValuePairs(ts, pairs, isLowerTriangular=True, **kwargs)
+        self._plotter.plotValuePairs(ts, pairs,
+              isLowerTriangular=True, **kwargs)
 
     def plotParameterHistograms(self, parameters=None, **kwargs):
         """

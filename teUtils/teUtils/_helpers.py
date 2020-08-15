@@ -1,7 +1,7 @@
 """Helper functions used in teUtils."""
 
 
-PLOT = "plot"
+from teUtils import _plotOptions as po
 
 
 def updatePlotDocstring(target, keyphrase=None):
@@ -15,16 +15,16 @@ def updatePlotDocstring(target, keyphrase=None):
     keyprhase: string searched for in docstring
     """
     # Place import here to avoid circular dependencies
-    from teUtils.timeseriesPlotter import PlotOptions, EXPAND_KEYPHRASE
-    plot_options = str(PlotOptions())
+    plot_options = str(po.PlotOptions())
     def updateFunctionDocstring(func):
         docstring = func.__doc__
-        if not EXPAND_KEYPHRASE in docstring:
+        if not po.EXPAND_KEYPHRASE in docstring:
             msg = "Keyword not found in method: %s"  \
                   % func.__name__
             raise RuntimeError(msg)
         new_docstring =  \
-              docstring.replace(EXPAND_KEYPHRASE, plot_options)
+              docstring.replace(
+                    po.EXPAND_KEYPHRASE, plot_options)
         func.__doc__ = new_docstring
     #
     if "__call__" in dir(target):
@@ -34,6 +34,6 @@ def updatePlotDocstring(target, keyphrase=None):
         # Update a class
         cls = target
         for name in dir(cls):
-            if name[0:4] == PLOT:
+            if name[0:4] == po.PLOT:
                 method = eval("cls.%s" % name)
                 updateFunctionDocstring(method)

@@ -8,8 +8,8 @@ Created on Tue Jul  7 14:24:09 2020
 
 from teUtils.namedTimeseries import NamedTimeseries, mkNamedTimeseries, TIME
 import teUtils.namedTimeseries as namedTimeseries
-from teUtils.timeseriesPlotter import PlotOptions, TimeseriesPlotter,  \
-      LayoutManagerLowerTriangular
+from teUtils import _plotOptions as po
+from teUtils.timeseriesPlotter import TimeseriesPlotter
 from teUtils import timeseriesPlotter as tp
 
 import numpy as np
@@ -23,8 +23,6 @@ IGNORE_TEST = False
 IS_PLOT = False
 DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
-NUM_ROW = tp.NUM_ROW
-NUM_COL = tp.NUM_COL
 DEFAULT_NUM_ROW = 2
 DEFAULT_NUM_COL = 3
 DEFAULT_NUM_PLOT = 5
@@ -47,15 +45,15 @@ class TestTimeseriesPlotter(unittest.TestCase):
         def test(maxCol, **kwargs):
             options = self.plotter._mkPlotOptionsMatrix(self.timeseries,
                    maxCol=maxCol, **kwargs)
-            if NUM_ROW in kwargs:
-                self.assertGreaterEqual(options.numRow, kwargs[NUM_ROW])
-            if NUM_COL in kwargs:
-                self.assertEqual(options.numCol, kwargs[NUM_COL])
+            if po.NUM_ROW in kwargs:
+                self.assertGreaterEqual(options.numRow, kwargs[po.NUM_ROW])
+            if po.NUM_COL in kwargs:
+                self.assertEqual(options.numCol, kwargs[po.NUM_COL])
         #
         test(3, **{})
-        test(3, **{NUM_COL: 3})
-        test(4, **{NUM_ROW: 2})
-        test(5, **{NUM_ROW: 2})
+        test(3, **{po.NUM_COL: 3})
+        test(4, **{po.NUM_ROW: 2})
+        test(5, **{po.NUM_ROW: 2})
 
     def testPlotSingle1(self):
         if IGNORE_TEST:
@@ -92,6 +90,8 @@ class TestTimeseriesPlotter(unittest.TestCase):
             return
         ts2 = self.mkTimeseries()
         self.plotter.plotTimeSingle(self.timeseries, timeseries2=ts2, numRow=2, numCol=3, marker2="o")
+        self.plotter.plotTimeSingle(self.timeseries, markersize2=2,
+              timeseries2=ts2, numRow=2, numCol=3, marker2="o")
 
     def testPlotMultiple1(self):
         if IGNORE_TEST:
@@ -126,47 +126,6 @@ class TestTimeseriesPlotter(unittest.TestCase):
             return
         self.plotter.plotValuePairs(self.timeseries,
               pairs=[("S1", "S2"), ("S1", "S6"), ("S2", "S3")], numCol=3)
-        
-        
-class TestPlotOptions(unittest.TestCase):
-
-    def setUp(self):
-        self.options = PlotOptions()
-
-    def testSetDict(self):
-        if IGNORE_TEST:
-            return
-        FIGSIZE = "figsize"
-        FIGSIZE_VALUE = (12, 20)
-        DUMMY = "dummy"
-        DUMMY_VALUE = "value"
-        dct = {FIGSIZE: FIGSIZE_VALUE}
-        self.options.setDict(dct)
-        self.assertEqual(FIGSIZE_VALUE, self.options.figsize)
-        #
-        dct[DUMMY] = DUMMY_VALUE
-        with self.assertRaises(ValueError):
-            self.options.setDict(dct)
-        
-class TestLayoutManagerLowerTriangular(unittest.TestCase):
-
-    def setUp(self):
-        options = PlotOptions()
-        options.numRow = 2*DEFAULT_NUM_ROW
-        options.numCol = 3*DEFAULT_NUM_COL
-
-    def testSetAxes(self):
-        if IGNORE_TEST:
-            return
-        options = PlotOptions()
-        options.numCol = 4
-        options.numRow = 4
-        layout = LayoutManagerLowerTriangular(options, DEFAULT_NUM_PLOT)
-        _, axes, _ = layout._setAxes()
-        corners = [a.get_position().corners() for a in axes]
-        self.assertEqual(corners[0][0][0], corners[1][0][0])
-        if IS_PLOT:
-            plt.show()
 
 
 if __name__ == '__main__':
