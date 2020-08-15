@@ -6,7 +6,7 @@ Created on Aug 8, 2020
 """
 
 from teUtils import _helpers
-from teUtils.timeseriesPlotter import PlotOptions
+from teUtils._plotOptions import PlotOptions
 
 import unittest
 
