@@ -18,6 +18,7 @@ from teUtils import _plotOptions as po
 from teUtils import _layoutManager as lm
 from teUtils.namedTimeseries import NamedTimeseries, TIME
 from teUtils import _helpers
+from teUtils._statementManager import StatementManager
 
 import copy
 import matplotlib.pyplot as plt
@@ -84,7 +85,7 @@ class TimeseriesPlotter(object):
             else:
                 maxCol = len(timeseries1.colnames)
         # States
-        hasRow, hasCol = self._getOptionState(kwargs, options)
+        hasRow, hasCol = self._getOptionValueState(kwargs, options)
         # Assignments based on state
         if hasRow and hasCol:
             # Have been assigned
@@ -102,7 +103,7 @@ class TimeseriesPlotter(object):
         #
         return options
 
-    def _getOptionState(self, kwargs, options):
+    def _getOptionValueState(self, kwargs, options):
         hasCol = False
         hasRow = False
         if po.NUM_ROW in kwargs:
@@ -155,44 +156,28 @@ class TimeseriesPlotter(object):
         plotter.plotTimeSingle(timeseries)
         """
         options = self._mkPlotOptionsMatrix(timeseries1, **kwargs)
-        def addOption(manager, name, setValue=None):
-            try:
-                value = options.__getattribute__(name)
-            except AttributeError:
-                value = None
-            if setValue is not None:
-                manager.add(name, value=setValue)
-            elif value is not None:
-                manager.add(name, value=value)           
-        #
-        def constructCommand(ax, lineNum):
+        def doPlot(ax, timeseries, variable, lineNum):
+            def getOptionValue(options, option_str):
+                return eval("options.%s%d" % (option_str, lineNum))
+            #
             marker = options.__getattribute__("marker%d" % lineNum)
             if marker is None:
-                command = "ax.plot"
+                manager = StatementManager(ax.plot)
             else:
-                command = "ax.scatter"
-            manager = po.CommandManager(command)
+                manager = StatementManager(ax.scatter)
             #
-            if lineNum == 1:
-                options_stg = ""
-            else:
-                options_stg = "options."
-            manager.add("%stimeseries%d[TIME]" % (options_stg, lineNum))
-            manager.add("%stimeseries%d[variable]" % (options_stg, lineNum))
-            color = eval("options.color%d" % lineNum)
-            manager.add("color", value=color)
+            manager.addPosarg(timeseries[TIME])
+            manager.addPosarg(timeseries[variable])
+            manager.addKwargs(color=getOptionValue(options, "color"))
             #
-            marker_value = eval("options.marker%d" % lineNum)
+            marker_value = getOptionValue(options, "marker")
             if marker_value is not None:
-                manager.add("marker", marker)
+                manager.addKwargs(marker=marker)
             #
-            markersize_value = eval("options.markersize%d" % lineNum)
+            markersize_value = getOptionValue(options, "markersize")
             if markersize_value is not None:
-                manager.add("s", value=markersize_value, isStr=False)
-            #
-            if lineNum == 2:
-                addOption("legend", "[LABEL1, LABEL2]")
-            return manager.get()
+                manager.addKwargs(s=markersize_value)
+            return manager.execute()
         #
         # Adjust rows and columns
         numPlot = len(options.columns)  # Number of plots
@@ -217,11 +202,11 @@ class TimeseriesPlotter(object):
             if not layout.isLastRow(index):
                 options.xlabel =  ""
             # Construct the plot
-            command = constructCommand(ax, 1)
-            exec(command)
+            doPlot(ax, timeseries1, variable, 1)
             if options.timeseries2 is not None:
-                command = constructCommand(ax, 2)
-                exec(command)
+                doPlot(ax, options.timeseries2, variable, 2)
+                if options.legend is None:
+                    options.legend = [LABEL1, LABEL2]
             options.do(ax)
         if self.isPlot:
             plt.show()

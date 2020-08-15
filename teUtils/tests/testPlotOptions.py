@@ -5,7 +5,7 @@ Created on August 14, 2020
 @author: joseph-hellerstein
 """
 
-from teUtils._plotOptions import CommandManager, PlotOptions
+from teUtils._plotOptions import PlotOptions
 
 import unittest
 import matplotlib
@@ -16,39 +16,6 @@ IGNORE_TEST = False
 IS_PLOT = False
 TITLE = "A Title"
 FONTSIZE = "30"
-       
- 
-class TestCommandManager(unittest.TestCase):
-
-    def setUp(self):
-        self.fig, self.ax = plt.subplots()
-        self.manager= CommandManager("ax.set_title")
-
-    def testConstructor(self):
-        if IGNORE_TEST:
-            return
-        self.assertEqual(self.manager.string,
-              "ax.set_title(")
-
-    def testAdd1(self):
-        if IGNORE_TEST:
-            return
-        self.manager.add(TITLE)
-        self.assertTrue(TITLE in self.manager.string)
-        #
-        self.manager.add("fontsize", FONTSIZE)
-        self.assertTrue(FONTSIZE in self.manager.string)
- 
-    def testGet(self):
-        if IGNORE_TEST:
-            return
-        self.manager.add(TITLE)
-        command = self.manager.get()
-        self.assertEqual(")", command[-1])
-        if IS_PLOT:
-            ax = self.ax
-            exec(command)
-            plt.show()
        
  
 class TestPlotOptions(unittest.TestCase):

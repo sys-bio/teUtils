@@ -19,8 +19,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 
-IGNORE_TEST = False
-IS_PLOT = False
+IGNORE_TEST = True
+IS_PLOT = True
 DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
 DEFAULT_NUM_ROW = 2
@@ -86,8 +86,7 @@ class TestTimeseriesPlotter(unittest.TestCase):
         self.plotter.plotTimeSingle(self.timeseries, ylabel="MISSING")
 
     def testPlotSingle4(self):
-        if IGNORE_TEST:
-            return
+        # TESTING
         ts2 = self.mkTimeseries()
         self.plotter.plotTimeSingle(self.timeseries, timeseries2=ts2, numRow=2, numCol=3, marker2="o")
         self.plotter.plotTimeSingle(self.timeseries, markersize2=2,

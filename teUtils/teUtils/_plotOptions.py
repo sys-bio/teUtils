@@ -7,6 +7,8 @@ Created on Aug 14, 2020
 Manages options for plotting.
 """
 
+from teUtils._statementManager import StatementManager
+
 import copy
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,66 +30,15 @@ TITLE_POSITION = "titlePosition"
    
  
 #########################
-class CommandManager(object):
-    """
-    Manages the creation of Matplotlib commands.
-    """
-    
-    def __init__(self, command):
-        """
-        Parameters
-        ----------
-        command: str
-            matplotlib object and method, like "ax.plot"
-        """
-        self.command = command
-        self.string = "%s(" % self.command
-        self.isFirst = True
-
-    def add(self, arg, value=None, isStr=True):
-        """
-        Adds an argument to the command.
-
-        Parameters
-        ----------
-        arg: str
-            argument
-        value: str
-            value if a keyword argument
-        isStr:
-            value should be a quoted string
-        """
-        if isStr:
-            quote = "'"
-        else:
-            quote = ""
-        if value is None:
-            if self.isFirst:
-                self.string = "%s%s" % (self.string, arg)
-                self.isFirst = False
-            else:
-                self.string = "%s, %s" % (self.string, arg)
-        else:
-            if self.isFirst:
-                self.string = "%s%s=%s%s%s" % (self.string, arg, quote, value, quote)
-                self.isFirst = False
-            else:
-                self.string = "%s, %s=%s%s%s" % (self.string, arg, quote, value, quote)
-
-    def get(self):
-        """
-        Returns the completed command
-        """
-        return "%s)" % self.string
-   
- 
-#########################
 class PlotOptions(object):
     """
     Container for plot options. Common method for activating options for an axis.
     """
 
     def __init__(self):
+        ### PRIVATE
+        self._axes = None
+        ### PUBLIC
         self.color1 = "blue"  # Color for first plot
         self.color2 = "red"  # Color for second plot
         self.columns = []  # Columns to plot
@@ -113,8 +64,6 @@ class PlotOptions(object):
         self.ylim = None  # order pair of lower and upper
         self.yticklabels = None
         self.figure = None
-        ############### PRIVATE ##################
-        self._axes = None
 
     def __str__(self):
         stg = """
@@ -195,13 +144,12 @@ class PlotOptions(object):
         ax.set_ylabel(self.ylabel)
         # Title
         if self.title is not None:
-            manager = CommandManager("ax.set_title")
-            manager.add("'%s'" % self.title)
+            manager = StatementManager(ax.set_title)
+            manager.addPosarg(self.title)
             if self.titlePosition is not None:
-                manager.add("position",
-                      self.titlePosition, isStr=False)
-                manager.add("transform", "ax.transAxes",                        isStr=False)
-            exec(manager.get())
+                manager.addKwargs(position=self.titlePosition)
+                manager.addKwargs(transform=ax.transAxes)
+            manager.execute()
         if self.xlim is not None:
             ax.set_xlim(self.xlim)
         if self.ylim is not None:
