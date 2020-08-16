@@ -125,7 +125,7 @@ class ModelFitter(object):
         self.minimizer = None  # lmfit.minimizer
         self.minimizerResult = None  # Results of minimization
         self.params = None  # params property in lmfit.minimizer
-        self.fittedTS = self.observedTS.copy()
+        self.fittedTS = self.observedTS.copy()  # Initialization of columns
         self.residualsTS = None  # Residuals for selectedColumns
         self.bootstrapResult = None  # Result from bootstrapping
      
@@ -175,10 +175,6 @@ class ModelFitter(object):
         Returns
         -------
         1-d ndarray of residuals
-
-        Notes
-        -----
-        Does not update fittedTS
         """
         self._simulate(params=params)
         cols = self.selectedColumns
@@ -223,6 +219,9 @@ class ModelFitter(object):
             if not self.minimizer.success:
                 msg = "*** Minimizer failed for this model and data."
                 raise ValueError(msg)
+            self.residualsTS[self.selectedColumns] =  \
+                  self.observedTS[self.selectedColumns]-  \
+                  self.fittedTS[self.selectedColumns]
 
     def getFittedParameters(self):
         """
@@ -267,29 +266,18 @@ class ModelFitter(object):
     def calcResidualsStd(self):
         return np.std(self.residualsTS[self.selectedColumns])
 
-    def calcNewObserved(self):
+    def _updateObservedTS(self):
         """
         Calculates synthetic observations. All observed values must be
         non-negative.
-        
-        Returns
-        -------
-        NamedTimeseries
-            new synthetic observations
         """
-        MAX_ITERATION = 100
         self._checkFit()
         numRow = len(self.observedTS)
-        #
-        newObservedTS = self.observedTS.copy()
         for column in self.selectedColumns:
-            newObservedTS[column] = np.random.choice(self.residualsTS[column],
-                  numRow, replace=False)  + self.fittedTS[column]
-            newObservedTS[column] =  \
-                  np.random.permutation(self.residualsTS[column])  \
-                  + self.fittedTS[column]
-        #
-        return newObservedTS
+            self.observedTS[column] = np.random.choice(
+                  self.residualsTS[column],
+                  numRow, replace=False) +  \
+                  self.fittedTS[column]
 
     def bootstrap(self, numIteration=10, maxIncrResidualStd=0.50,
           reportInterval=None):
@@ -338,16 +326,10 @@ class ModelFitter(object):
             if count > numIteration:
                 # Performed the iterations
                 break
-            # Do a fit with these observeds
-            newFitter.observedTS = self.calcNewObserved()
             try:
                 newFitter.fitModel(params=lastParams)
             except ValueError:
                 # Problem with the fit. Don't count it.
-                continue
-            newResidualStd = newFitter.calcResidualsStd()
-            if newResidualStd > baseResidualStd*(1 + maxIncrResidualStd):
-                # Standard deviation of residuals is unacceaptable as a valid fit
                 continue
             if newFitter.minimizerResult.redchi > base_redchi:
                 continue
@@ -355,6 +337,7 @@ class ModelFitter(object):
             lastParams = newFitter.params
             dct = newFitter.params.valuesdict()
             [parameterDct[p].append(dct[p]) for p in self.parametersToFit]
+            newFitter._updateObservedTS()
         self.bootstrapResult = BootstrapResult(parameterDct)
 
     def _setupModel(self, params=None):

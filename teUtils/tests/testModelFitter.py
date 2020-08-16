@@ -19,7 +19,7 @@ import unittest
 
 
 IGNORE_TEST = False
-IS_PLOT = True
+IS_PLOT = False
 PARAMETER_DCT = {
       "k1": 1,
       "k2": 2,
@@ -197,9 +197,10 @@ class TestModelFitter(unittest.TestCase):
         if IGNORE_TEST:
             return
         self.fitter.fitModel()
-        self.fitter.calcNewObserved()
-        ts = self.fitter.calcNewObserved()
-        self.assertEqual(len(ts), len(self.fitter.observedTS))
+        self.fitter._updateObservedTS()
+        ts = self.fitter.observedTS
+        self.assertEqual(len(ts),
+              len(self.fitter.observedTS))
         self.assertGreater(ts["S1"][0], ts["S6"][0])
         self.assertGreater(ts["S6"][-1], ts["S1"][-1])
 
