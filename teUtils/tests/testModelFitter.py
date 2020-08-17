@@ -18,8 +18,8 @@ import time
 import unittest
 
 
-IGNORE_TEST = False
-IS_PLOT = False
+IGNORE_TEST = True
+IS_PLOT = True
 PARAMETER_DCT = {
       "k1": 1,
       "k2": 2,
@@ -197,8 +197,7 @@ class TestModelFitter(unittest.TestCase):
         if IGNORE_TEST:
             return
         self.fitter.fitModel()
-        self.fitter._updateObservedTS()
-        ts = self.fitter.observedTS
+        ts = self.fitter._calcObservedTS()
         self.assertEqual(len(ts),
               len(self.fitter.observedTS))
         self.assertGreater(ts["S1"][0], ts["S6"][0])
@@ -221,6 +220,16 @@ class TestModelFitter(unittest.TestCase):
                   > PARAMETER_DCT[p]
             self.assertTrue(isLowerOk)
             self.assertTrue(isUpperOk)
+
+    def testBoostrapReport(self):
+        # TESTING
+        self.fitter.fitModel()
+        self.fitter.bootstrap(numIteration=5000,
+              reportInterval=1000)
+        bootstrapReport = str(self.fitter.bootstrapResult)
+        for param in self.fitter.bootstrapResult.parameters:
+            self.assertTrue(param in bootstrapReport)
+        self.fitter.getBootstrapReport()
 
     def testBoostrapBenchmark1(self):
         if IGNORE_TEST:
@@ -283,7 +292,8 @@ class TestModelFitter(unittest.TestCase):
         print (fitter.getFittedParameters())  
         
         fitter.bootstrap(numIteration=6000, reportInterval=1000)
-        fitter.plotParameterEstimatePairs(['k1', 'k2'])
+        fitter.plotParameterEstimatePairs(['k1', 'k2'],
+              markersize1=2)
         print("Mean: %s" % str(fitter.getFittedParameters()))
         print("Std: %s" % str(fitter.getFittedParameterStds()))
 

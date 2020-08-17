@@ -222,14 +222,18 @@ class TimeseriesPlotter(object):
         kwargs: dict
             Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
-        def multiPlot(timeseries, ax, marker=None):
+        def multiPlot(options, timeseries, ax, marker=None):
             if marker is None:
                 for idx, col in enumerate(timeseries.colnames):
                     ax.plot(timeseries[TIME], timeseries[col], color=COLORS[idx])
             else:
                 for idx, col in enumerate(timeseries.colnames):
-                    ax.scatter(timeseries[TIME], timeseries[col], color=COLORS[idx],
-                          marker=marker)
+                    if options.markersize1 is None:
+                        ax.scatter(timeseries[TIME], timeseries[col], color=COLORS[idx],
+                              marker=marker)
+                    else:
+                        ax.scatter(timeseries[TIME], timeseries[col], color=COLORS[idx],
+                              marker=marker, s=options.markersize1)
             options.legend = timeseries.colnames
             options.do(ax)
         #
@@ -248,10 +252,10 @@ class TimeseriesPlotter(object):
         # Create the LayoutManager
         layout = self._mkManager(options, numPlot)
         # Construct the plots
-        multiPlot(timeseries1, layout.getAxis(0), marker = options.marker1)
+        multiPlot(options, timeseries1, layout.getAxis(0), marker = options.marker1)
         if options.timeseries2 is not None:
             ax = layout.getAxis(numPlot-1)
-            multiPlot(options.timeseries2, ax, marker = options.marker2)
+            multiPlot(options, options.timeseries2, ax, marker=options.marker2)
         if self.isPlot:
             plt.show()
 
@@ -314,7 +318,11 @@ class TimeseriesPlotter(object):
                 options.xlabel = ""
                 options.ylabel = ""
                 options.title = "%s v. %s" % (xVar, yVar)
-            ax.scatter(timeseries[xVar], timeseries[yVar], marker='o')
+            if options.markersize1 is None:
+                ax.scatter(timeseries[xVar], timeseries[yVar], marker='o')
+            else:
+                ax.scatter(timeseries[xVar], timeseries[yVar], marker='o',
+                      s=options.markersize1)
             options.do(ax)
         if self.isPlot:
             plt.show()
@@ -358,6 +366,23 @@ class TimeseriesPlotter(object):
             options.do(ax)
         if self.isPlot:
             plt.show()
+
+    def plotCompare(self, 
+           ts1: NamedTimeseries, 
+           ts2: NamedTimeseries,
+           **kwargs: dict):
+        """
+        Plots columns against each other.
+        
+        Parameters
+        ----------
+        kwargs: 
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        """
+        mergedTS = ts1.concatenateColumns(ts2)
+        pairs = [(c, "%s_" % c) for c in ts1.colnames]
+        #
+        self.plotValuePairs(mergedTS, pairs, **kwargs)
 
 
 # Update docstrings

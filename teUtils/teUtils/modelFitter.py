@@ -43,6 +43,7 @@ import pandas as pd
 import random
 import roadrunner
 import tellurium as te
+import typing
 
 # Constants
 PARAMETER_LOWER_BOUND = 0
@@ -51,32 +52,89 @@ PARAMETER_UPPER_BOUND = 10
 METHOD_BOTH = "both"
 METHOD_DIFFERENTIAL_EVOLUTION = "differential_evolution"
 METHOD_LEASTSQR = "leastsqr"
-MAX_CHISQ = 200
+MAX_CHISQ = 5
+PERCENTILES = [2.5, 97.55]  # Percentile for confidence limits
+INDENTATION = "  "
+NULL_STR = ""
 
 
 class BootstrapResult():
 
     """Result from bootstrap"""
-    def __init__(self, parameterDct):
+    def __init__(self, numIteration: int,
+          parameterDct: typing.Dict[str, np.ndarray]):
         """
         Parameters
         ----------
+        numIteration: number of iterations for solution
         parameterDct: dict
             key: parameter name
             value: list of values
         """
+        self.numIteration = numIteration
         # population of parameter values
         self.parameterDct = dict(parameterDct)
         # list of parameters
         self.parameters = list(self.parameterDct.keys())
+        # Number of simulations
+        self.numSimulation =  \
+              len(self.parameterDct[self.parameters[0]])
         # means of parameter values
         self.meanDct = {p: np.mean(parameterDct[p])
               for p in self.parameters}
         # standard deviation of parameter values
         self.stdDct = {p: np.std(parameterDct[p])
               for p in self.parameters}
+        # 95% Confidence limits for parameter values
+        self.percentileDct = {
+              p: np.percentile(self.parameterDct[p],
+              PERCENTILES) for p in self.parameterDct}
+
+    def __str__(self) -> str:
+        """
+        Bootstrap report.       
+        """
+        class _Report():
+
+            def __init__(self):
+                self.reportStr= NULL_STR
+                self.numIndent = 0
+
+            def indent(self, num: int):
+                self.numIndent += num
+
+            def _getIndentStr(self):
+                return NULL_STR.join(np.repeat(
+                      INDENTATION, self.numIndent))
+            
+            def addHeader(self, title:str):
+                indentStr = self._getIndentStr()
+                self.reportStr+= "\n%s%s" % (indentStr, title)
+
+            def addTerm(self, name:str, value:object):
+                indentStr = self._getIndentStr()
+                self.reportStr+= "\n%s%s: %s" %  \
+                      (indentStr, name, str(value))
+
+            def get(self)->str:
+                return self.reportStr
+        #
+        report = _Report()
+        report.addHeader("Bootstrap Report.")
+        report.addTerm("Total iterations", self.numIteration)
+        report.addTerm("Total simulation", self.numSimulation)
+        for par in self.parameters:
+            report.addHeader(par)
+            report.indent(1)
+            report.addTerm("mean", self.meanDct[par])
+            report.addTerm("std", self.stdDct[par])
+            report.addTerm("%s Percentiles" % str(PERCENTILES),
+                  self.percentileDct[par])
+            report.indent(-1)
+        return report.get()
 
 
+##############################
 class ModelFitter(object):
           
     def __init__(self, modelSpecification, observed, parametersToFit,
@@ -223,6 +281,11 @@ class ModelFitter(object):
                   self.observedTS[self.selectedColumns]-  \
                   self.fittedTS[self.selectedColumns]
 
+    def getBootstrapReport(self):
+        if self.bootstrapResult is None:
+            print("Must run bootstrap before requesting report.")
+        print(self.bootstrapResult)
+
     def getFittedParameters(self):
         """
         Returns a list of values for fitted
@@ -266,18 +329,20 @@ class ModelFitter(object):
     def calcResidualsStd(self):
         return np.std(self.residualsTS[self.selectedColumns])
 
-    def _updateObservedTS(self):
+    def _calcObservedTS(self) -> NamedTimeseries:
         """
         Calculates synthetic observations. All observed values must be
         non-negative.
         """
         self._checkFit()
         numRow = len(self.observedTS)
+        newObservedTS = self.observedTS.copy()
         for column in self.selectedColumns:
-            self.observedTS[column] = np.random.choice(
+            newObservedTS[column] = np.random.choice(
                   self.residualsTS[column],
-                  numRow, replace=False) +  \
+                  numRow, replace=True) +  \
                   self.fittedTS[column]
+        return newObservedTS
 
     def bootstrap(self, numIteration=10, maxIncrResidualStd=0.50,
           reportInterval=None):
@@ -307,38 +372,43 @@ class ModelFitter(object):
         base_redchi = self.minimizerResult.redchi
         parameterDct = {p: [] for p in self.parametersToFit}
         baseResidualStd = self.calcResidualsStd()
-        count = 0
+        numSuccessIteration = 0
         lastParams = self.params
-        newFitter = ModelFitter(self.roadrunnerModel,
-              self.observedTS,
-              self.parametersToFit,
-              selectedColumns=self.selectedColumns,
-              method=METHOD_LEASTSQR,
-              parameterLowerBound=self.LowerBound,
-              parameterUpperBound=self.UpperBound,
-              isPlot=self._isPlot)
+        newObservedTS = self._calcObservedTS()
         last_report = 0
-        for _ in range(numIteration*ITERATION_MULTIPLIER):
-            if (reportInterval is not None) and (count != last_report):
-                if count % reportInterval == 0:
-                    print("bootstrap completed %d iterations" % count)
-                    last_report = count
-            if count > numIteration:
+        for iteration in range(numIteration*ITERATION_MULTIPLIER):
+            if (reportInterval is not None)  \
+                      and (numSuccessIteration != last_report):
+                if numSuccessIteration % reportInterval == 0:
+                    print("bootstrap completed %d iterations"
+                          % numSuccessIteration)
+                    last_report = numSuccessIteration
+            if numSuccessIteration >= numIteration:
                 # Performed the iterations
                 break
+            newFitter = ModelFitter(self.roadrunnerModel,
+                  newObservedTS,  
+                  self.parametersToFit,
+                  selectedColumns=self.selectedColumns,
+                  method=METHOD_LEASTSQR,
+                  parameterLowerBound=self.LowerBound,
+                  parameterUpperBound=self.UpperBound,
+                  isPlot=self._isPlot)
             try:
                 newFitter.fitModel(params=lastParams)
             except ValueError:
-                # Problem with the fit. Don't count it.
+                # Problem with the fit. Don't numSuccessIteration it.
                 continue
-            if newFitter.minimizerResult.redchi > base_redchi:
+            if newFitter.minimizerResult.redchi > MAX_CHISQ:
                 continue
-            count += 1
+            numSuccessIteration += 1
             lastParams = newFitter.params
             dct = newFitter.params.valuesdict()
-            [parameterDct[p].append(dct[p]) for p in self.parametersToFit]
-            newFitter._updateObservedTS()
-        self.bootstrapResult = BootstrapResult(parameterDct)
+            [parameterDct[p].append(dct[p]) 
+                  for p in self.parametersToFit]
+            newObservedTS = newFitter._calcObservedTS()
+        self.bootstrapResult = BootstrapResult(iteration,
+              parameterDct)
 
     def _setupModel(self, params=None):
         """

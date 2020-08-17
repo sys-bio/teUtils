@@ -612,8 +612,3 @@ class NamedTimeseries(object):
                 raise RuntimeError("Should not get here")
             last = value
         return times
-            
-            
-        
-
-
