@@ -265,7 +265,8 @@ class TestModelFitter(unittest.TestCase):
             return
         self.fitter.fitModel()
         self.fitter.bootstrap(numIteration=100)
-        self.fitter.plotParameterHistograms(ylim=[0, 5], xlim=[0, 6],
+        self.fitter.plotParameterHistograms(ylim=[0, 5],
+              xlim=[0, 6], titlePosition=[.3, .9],
               bins=10, parameters=["k1", "k2"])
 
     def testBootstrapAccuracy(self):

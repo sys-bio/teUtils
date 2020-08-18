@@ -29,18 +29,13 @@ EXPAND_KEYPHRASE = "Expansion keyphrase. Expands to help(PlotOptions()). Do not 
 LABEL1 = "1"
 LABEL2 = "2"
 COLORS = ['r', 'g', 'b', 'c', 'pink', 'grey']
+NULL_STR = ""
 # Ensure lots of colors
 COLORS.extend(COLORS)
 COLORS.extend(COLORS)
 # Title positions
 POS_MID = 0.5
 POS_TOP = 0.9
-# Options
-po.BINS = "bins"
-po.COLUMNS = "columns"
-po.NUM_COL = "numCol"
-po.NUM_ROW = "numRow"
-po.TIMESERIES2 = "timeseries2"
 
 
 ########################################
@@ -193,20 +188,18 @@ class TimeseriesPlotter(object):
             ax = layout.getAxis(index)
             options = copy.deepcopy(baseOptions)
             #ax = axes[row, col]
-            if options.ylabel is None:
-                options.set("ylabel", "concentration")
+            options.set(po.YLABEL, "concentration")
             options.title = variable
             if not layout.isFirstColumn(index):
-                options.ylabel =  ""
-                options.set("ylabel", "")
+                options.ylabel =  NULL_STR
+                options.set(po.YLABEL, "", isOverride=True)
             if not layout.isLastRow(index):
-                options.xlabel =  ""
+                options.set(po.XLABEL, "", isOverride=True)
             # Construct the plot
             doPlot(ax, timeseries1, variable, 1)
             if options.timeseries2 is not None:
                 doPlot(ax, options.timeseries2, variable, 2)
-                if options.legend is None:
-                    options.legend = [LABEL1, LABEL2]
+                options.set(po.LEGEND, [LABEL1, LABEL2])
             options.do(ax)
         if self.isPlot:
             plt.show()
@@ -265,11 +258,13 @@ class TimeseriesPlotter(object):
             layout = lm.LayoutManagerSingle(
                    options, numPlot)
         elif isLowerTriangular:
-            options.titlePosition = (POS_MID, POS_TOP)
+            options.set(po.TITLE_POSITION, 
+                (POS_MID, POS_TOP))
             layout = lm.LayoutManagerLowerTriangular(
                    options, numPlot)
         else:
-            options.titlePosition = (POS_MID, POS_TOP)
+            options.set(po.TITLE_POSITION, 
+                (POS_MID, POS_TOP))
             layout = lm.LayoutManagerMatrix(options,
                   numPlot)
         return layout
@@ -295,7 +290,7 @@ class TimeseriesPlotter(object):
                   maxCol=numPlot, **kwargs)
         layout = self._mkManager(options, numPlot,
               isLowerTriangular=isLowerTriangular)
-        options.xlabel = ""
+        options.xlabel = NULL_STR
         baseOptions = copy.deepcopy(options)
         for index, pair in enumerate(pairs):
             options = copy.deepcopy(baseOptions)
@@ -306,17 +301,17 @@ class TimeseriesPlotter(object):
                 if layout.isLastRow(index):
                     options.xlabel = xVar
                 else:
-                    options.title = ""
+                    options.title = NULL_STR
                     options.xticklabels = []
                 if layout.isFirstColumn(index):
                     options.ylabel = yVar
                 else:
-                    options.ylabel = ""
+                    options.ylabel = NULL_STR
                     options.yticklabels = []
             else:
                 # Matrix plot
-                options.xlabel = ""
-                options.ylabel = ""
+                options.xlabel = NULL_STR
+                options.ylabel = NULL_STR
                 options.title = "%s v. %s" % (xVar, yVar)
             if options.markersize1 is None:
                 ax.scatter(timeseries[xVar], timeseries[yVar], marker='o')
@@ -352,17 +347,19 @@ class TimeseriesPlotter(object):
             if layout.isFirstColumn(index):
                 options.ylabel = "density"
             if not layout.isFirstColumn(index):
-                options.ylabel = ""
+                options.ylabel = NULL_STR
             if layout.isLastRow(index):
                 options.xlabel = "value"
             else:
-                options.xlabel = ""
+                options.xlabel = NULL_STR
             # Matrix plot
             options.title = column
-            if bins is None:
-                ax.hist(timeseries[column], density=True)
-            else:
-                ax.hist(timeseries[column], bins=bins, density=True)
+            manager = StatementManager(ax.hist)
+            manager.addPosarg(timeseries[column])
+            manager.addKwargs(density=True)
+            if options.bins is not None:
+                manager.addKwargs(bins=options.bins)
+            manager.execute()
             options.do(ax)
         if self.isPlot:
             plt.show()

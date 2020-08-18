@@ -27,6 +27,8 @@ NUM_ROW = "numRow"
 SUBPLOT_WIDTH_SPACE = "subplot_width_space"
 TIMESERIES2 = "timeseries2"
 TITLE_POSITION = "titlePosition"
+XLABEL = "xlabel"
+YLABEL = "ylabel"
    
  
 #########################
@@ -39,6 +41,7 @@ class PlotOptions(object):
         ### PRIVATE
         self._axes = None
         ### PUBLIC
+        self.bins = None
         self.color1 = "blue"  # Color for first plot
         self.color2 = "red"  # Color for second plot
         self.columns = []  # Columns to plot
@@ -94,7 +97,7 @@ class PlotOptions(object):
             """
         return stg
 
-    def set(self, attribute, value, isOverride=True):
+    def set(self, attribute, value, isOverride=False):
         if attribute in self.__dict__.keys():
             if isOverride or (self.__getattribute__(attribute) is None):
                 self.__setattr__(attribute, value)
