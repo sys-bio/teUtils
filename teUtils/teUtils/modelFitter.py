@@ -52,7 +52,7 @@ PARAMETER_UPPER_BOUND = 10
 METHOD_BOTH = "both"
 METHOD_DIFFERENTIAL_EVOLUTION = "differential_evolution"
 METHOD_LEASTSQR = "leastsqr"
-MAX_CHISQ = 5
+MAX_CHISQ_MULT = 5
 PERCENTILES = [2.5, 97.55]  # Percentile for confidence limits
 INDENTATION = "  "
 NULL_STR = ""
@@ -219,17 +219,17 @@ class ModelFitter(object):
         self.fittedTS[self.fittedTS.allColnames] = self.roadrunnerModel.simulate(
               self.observedTS.start, self.observedTS.end, len(self.observedTS))
 
-    def _residuals(self, params):
+    def _residuals(self, params:lmfit.Parameters=None)->np.ndarray:
         """
         Compute the residuals between objective and experimental data
 
         Parameters
         ----------
-        params: lmfit.Parameters
+        params: Parameters to use for residual calculation.
 
         Instance Variables Updated
         --------------------------
-        self.fittedTS
+        self.residualsTS
 
         Returns
         -------
@@ -242,7 +242,7 @@ class ModelFitter(object):
         self.residualsTS[cols] = self.observedTS[cols] - self.fittedTS[cols]
         return self.residualsTS.flatten()
         
-    def fitModel(self, params=None):
+    def fitModel(self, params:lmfit.Parameters=None):
         """
         Fits the model by adjusting values of parameters based on
         differences between simulated and provided values of
@@ -250,16 +250,16 @@ class ModelFitter(object):
 
         Parameters
         ----------
-        params: lmfit.Parameters
+        params: starting values of parameters
               
         Example
         -------
-              f.fitModel()
+        f.fitModel()
         """
         self._initializeRoadrunnerModel()
         if self.parametersToFit is None:
             # Compute fit and residuals for base model
-            _ = self._residuals(None)
+            self.params = None
         else:
             if params is None:
                 params = self._initializeParams()
@@ -278,11 +278,18 @@ class ModelFitter(object):
             if not self.minimizer.success:
                 msg = "*** Minimizer failed for this model and data."
                 raise ValueError(msg)
-            self.residualsTS[self.selectedColumns] =  \
-                  self.observedTS[self.selectedColumns]-  \
-                  self.fittedTS[self.selectedColumns]
+        # Ensure that residualsTS and fittedTS match the parameters
+        self._residuals(params=self.params)
 
     def getBootstrapReport(self):
+        """
+        Prints a report of the bootstrap results.
+        ----------
+        
+        Example
+        -------
+        f.getBootstrapReport()
+        """
         if self.bootstrapResult is None:
             print("Must run bootstrap before requesting report.")
         print(self.bootstrapResult)
@@ -392,6 +399,7 @@ class ModelFitter(object):
         numSuccessIteration = 0
         newObservedTS = calcObservedFunc(self, **kwargs)
         lastReport = 0
+        baseChisq = self.minimizerResult.redchi
         newFitter = ModelFitter(self.roadrunnerModel,
               newObservedTS,  
               self.parametersToFit,
@@ -417,8 +425,7 @@ class ModelFitter(object):
                 if IS_REPORT:
                     print("Fit failed")
                 continue
-            # TODO: Check if parameter estimate is at extreme value
-            if newFitter.minimizerResult.redchi > MAX_CHISQ:
+            if newFitter.minimizerResult.redchi > MAX_CHISQ_MULT*baseChisq:
                 if IS_REPORT:
                     print("Fit has high chisq: %2.2f" 
                           % newFitter.minimizerResult.redchi)
@@ -500,12 +507,12 @@ class ModelFitter(object):
         self._checkFit()
         self._addKeyword(kwargs, po.MARKER2, "o")
         if isMultiple:
-            self._plotter.plotTimeMultiple(self.fittedTS, timeseries2=self.observedTS,
-                  **kwargs)
+            self._plotter.plotTimeMultiple(self.fittedTS,
+                  timeseries2=self.observedTS, **kwargs)
         else:
             self._addKeyword(kwargs, po.LEGEND, ["fitted", "observed"])
-            self._plotter.plotTimeSingle(self.fittedTS, timeseries2=self.observedTS,
-                  **kwargs)
+            self._plotter.plotTimeSingle(self.fittedTS,
+                  timeseries2=self.observedTS, **kwargs)
 
     def _addKeyword(self, kwargs, key, value):
         if not key in kwargs:

@@ -197,7 +197,7 @@ class TestModelFitter(unittest.TestCase):
         if IGNORE_TEST:
             return
         self.fitter.fitModel()
-        ts = self.fitter._calcObservedTS()
+        ts = ModelFitter.calcObservedTS(self.fitter)
         self.assertEqual(len(ts),
               len(self.fitter.observedTS))
         self.assertGreater(ts["S1"][0], ts["S6"][0])
