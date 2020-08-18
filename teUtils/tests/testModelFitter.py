@@ -18,8 +18,8 @@ import time
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 PARAMETER_DCT = {
       "k1": 1,
       "k2": 2,
@@ -222,7 +222,8 @@ class TestModelFitter(unittest.TestCase):
             self.assertTrue(isUpperOk)
 
     def testBoostrapReport(self):
-        # TESTING
+        if IGNORE_TEST:
+            return
         self.fitter.fitModel()
         self.fitter.bootstrap(numIteration=5000,
               reportInterval=1000)
@@ -291,11 +292,14 @@ class TestModelFitter(unittest.TestCase):
         
         print (fitter.getFittedParameters())  
         
-        fitter.bootstrap(numIteration=6000, reportInterval=1000)
+        fitter.bootstrap(numIteration=2000,
+              reportInterval=500)
+              #calcObservedFunc=ModelFitter.calcObservedTSNormal, std=0.01)
         fitter.plotParameterEstimatePairs(['k1', 'k2'],
               markersize1=2)
         print("Mean: %s" % str(fitter.getFittedParameters()))
         print("Std: %s" % str(fitter.getFittedParameterStds()))
+        fitter.getBootstrapReport()
 
         
         

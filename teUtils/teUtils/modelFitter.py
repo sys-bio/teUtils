@@ -56,6 +56,7 @@ MAX_CHISQ = 5
 PERCENTILES = [2.5, 97.55]  # Percentile for confidence limits
 INDENTATION = "  "
 NULL_STR = ""
+IS_REPORT = False
 
 
 class BootstrapResult():
@@ -327,37 +328,52 @@ class ModelFitter(object):
         return self.roadrunnerModel
 
     def calcResidualsStd(self):
-        return np.std(self.residualsTS[self.selectedColumns])
+        return np.std(self.residualsTS[
+              self.selectedColumns])
 
-    def _calcObservedTS(self) -> NamedTimeseries:
+    @staticmethod
+    def calcObservedTS(fitter,
+          **kwargs: dict) -> NamedTimeseries:
         """
-        Calculates synthetic observations. All observed values must be
-        non-negative.
+        Calculates synthetic observations.
         """
-        self._checkFit()
-        numRow = len(self.observedTS)
-        newObservedTS = self.observedTS.copy()
-        for column in self.selectedColumns:
+        fitter._checkFit()
+        numRow = len(fitter.observedTS)
+        newObservedTS = fitter.observedTS.copy()
+        for column in fitter.selectedColumns:
             newObservedTS[column] = np.random.choice(
-                  self.residualsTS[column],
+                  fitter.residualsTS[column],
                   numRow, replace=True) +  \
-                  self.fittedTS[column]
+                  fitter.fittedTS[column]
         return newObservedTS
 
-    def bootstrap(self, numIteration=10, maxIncrResidualStd=0.50,
-          reportInterval=None):
+    @staticmethod
+    def calcObservedTSNormal(fitter, std:float=0.1)  \
+          -> NamedTimeseries:
+        """
+        Calculates synthetic observations.
+        """
+        fitter._checkFit()
+        numRow = len(fitter.observedTS)
+        newObservedTS = fitter.observedTS.copy()
+        for column in fitter.selectedColumns:
+            randoms = np.random.normal(0, std, numRow)
+            newObservedTS[column] += randoms
+        return newObservedTS
+
+    def bootstrap(self, numIteration:int=10, 
+          reportInterval:int=-1,
+          calcObservedFunc=None, **kwargs: dict):
         """
         Constructs a bootstrap estimate of parameter values.
     
         Parameters
         ----------
-        numIteration: int
-            number of bootstrap iterations
-        maxIncrResidualStd: float
-            maximum fractional increase in the residual std
-            from the original fit to consider this fit sucessful
-        reportInterval: int
-            number of iterations between progress reports
+        numIteration: number of bootstrap iterations
+        reportInterval: number of iterations between progress reports
+        calcObservedFunc: Function
+            Function used to calculate new observed values
+        kwargs: arguments passed to calcObservedFunct
               
         Example
         -------
@@ -368,45 +384,50 @@ class ModelFitter(object):
 
 
         ITERATION_MULTIPLIER = 10  # Determines maximum iterations
+        if calcObservedFunc is None:
+            calcObservedFunc = ModelFitter.calcObservedTS
         self._checkFit()
         base_redchi = self.minimizerResult.redchi
         parameterDct = {p: [] for p in self.parametersToFit}
-        baseResidualStd = self.calcResidualsStd()
         numSuccessIteration = 0
-        lastParams = self.params
-        newObservedTS = self._calcObservedTS()
-        last_report = 0
+        newObservedTS = calcObservedFunc(self, **kwargs)
+        lastReport = 0
+        newFitter = ModelFitter(self.roadrunnerModel,
+              newObservedTS,  
+              self.parametersToFit,
+              selectedColumns=self.selectedColumns,
+              method=METHOD_LEASTSQR,
+              parameterLowerBound=self.LowerBound,
+              parameterUpperBound=self.UpperBound,
+              isPlot=self._isPlot)
         for iteration in range(numIteration*ITERATION_MULTIPLIER):
-            if (reportInterval is not None)  \
-                      and (numSuccessIteration != last_report):
+            if (reportInterval > 0)  \
+                      and (numSuccessIteration != lastReport):
                 if numSuccessIteration % reportInterval == 0:
                     print("bootstrap completed %d iterations"
                           % numSuccessIteration)
-                    last_report = numSuccessIteration
+                    lastReport = numSuccessIteration
             if numSuccessIteration >= numIteration:
                 # Performed the iterations
                 break
-            newFitter = ModelFitter(self.roadrunnerModel,
-                  newObservedTS,  
-                  self.parametersToFit,
-                  selectedColumns=self.selectedColumns,
-                  method=METHOD_LEASTSQR,
-                  parameterLowerBound=self.LowerBound,
-                  parameterUpperBound=self.UpperBound,
-                  isPlot=self._isPlot)
             try:
-                newFitter.fitModel(params=lastParams)
+                newFitter.fitModel(params=self.params)
             except ValueError:
                 # Problem with the fit. Don't numSuccessIteration it.
+                if IS_REPORT:
+                    print("Fit failed")
                 continue
+            # TODO: Check if parameter estimate is at extreme value
             if newFitter.minimizerResult.redchi > MAX_CHISQ:
+                if IS_REPORT:
+                    print("Fit has high chisq: %2.2f" 
+                          % newFitter.minimizerResult.redchi)
                 continue
             numSuccessIteration += 1
-            lastParams = newFitter.params
             dct = newFitter.params.valuesdict()
             [parameterDct[p].append(dct[p]) 
                   for p in self.parametersToFit]
-            newObservedTS = newFitter._calcObservedTS()
+            newFitter.observedTS = calcObservedFunc(self, **kwargs)
         self.bootstrapResult = BootstrapResult(iteration,
               parameterDct)
 
