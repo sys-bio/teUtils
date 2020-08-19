@@ -243,14 +243,14 @@ class ModelFitterBootstrap(mfc.ModelFitterCore):
         with Pool(numProcess) as pool:
             results = pool.map(_runBootstrap, args_list)
         pool.join()
-        dcts = [d for d, _ in results]
         totSuccessIteration = sum([i for _, i in results])
         # Accumulate the results
         parameterDct = {p: [] for p in self.parametersToFit}
         totSuccessIteration = 0
         for parameter in self.parametersToFit:
-            for dct in dcts:
-                parameterDct[parameter].append(dct[parameter])
+            for result in results:
+                dct = result[0]
+                parameterDct[parameter].extend(dct[parameter])
         self.bootstrapResult = BootstrapResult(numIteration,
                   parameterDct)
 

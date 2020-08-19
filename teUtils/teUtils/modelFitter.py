@@ -37,30 +37,14 @@ The code is arranged as a hierarchy of classes that use the previous class:
 """
 
 from teUtils.namedTimeseries import NamedTimeseries, TIME, mkNamedTimeseries
-from teUtils import namedTimeseries
 import teUtils._plotOptions as po
 from teUtils import timeseriesPlotter as tp
 from teUtils import _helpers
-from teUtils._modelFitterReport import modelFitterReport
-from teUtils._statementManager import StatementManager
+from teUtils._modelFitterReport import ModelFitterReport
 
-import collections
 import numpy as np
 import pandas as pd
 import typing
-
-# Constants
-PARAMETER_LOWER_BOUND = 0
-PARAMETER_UPPER_BOUND = 10
-#  Minimizer methods
-METHOD_BOTH = "both"
-METHOD_DIFFERENTIAL_EVOLUTION = "differential_evolution"
-METHOD_LEASTSQR = "leastsqr"
-MAX_CHISQ_MULT = 5
-PERCENTILES = [2.5, 97.55]  # Percentile for confidence limits
-INDENTATION = "  "
-NULL_STR = ""
-IS_REPORT = False
 
 
 class ModelFitter(ModelFitterReport):
@@ -109,7 +93,7 @@ class ModelFitter(ModelFitterReport):
         df = pd.DataFrame(self.bootstrapResult.parameterDct)
         if parameters is not None:
             df = df[parameters]
-        df.index.name = namedTimeseries.TIME
+        df.index.name = TIME
         return NamedTimeseries(dataframe=df)
 
     def plotParameterEstimatePairs(self, parameters=None, **kwargs):

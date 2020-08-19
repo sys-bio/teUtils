@@ -7,7 +7,7 @@ Created on Tue Jul  7 14:24:09 2020
 """
 
 from teUtils.modelFitter import ModelFitter
-from teUtils import modelFitter
+from teUtils import _modelFitterCore as mfc
 from teUtils.namedTimeseries import NamedTimeseries, TIME
 
 import matplotlib
@@ -18,8 +18,8 @@ import time
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 PARAMETER_DCT = {
       "k1": 1,
       "k2": 2,
@@ -56,215 +56,44 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
 BENCHMARK_PATH = os.path.join(DIR, "groundtruth_2_step_0_1.txt")
 BENCHMARK1_TIME = 30 # Actual is 20 sec
+TIMESERIES = NamedTimeseries(TEST_DATA_PATH)
+FITTER = ModelFitter(ANTIMONY_MODEL, TIMESERIES,
+      list(PARAMETER_DCT.keys()), isPlot=IS_PLOT)
+FITTER.fitModel()
+FITTER.bootstrap(numIteration=100)
         
 
 class TestModelFitter(unittest.TestCase):
 
     def setUp(self):
-        self.timeseries = NamedTimeseries(TEST_DATA_PATH)
-        self.fitter = ModelFitter(ANTIMONY_MODEL, self.timeseries,
-              list(PARAMETER_DCT.keys()), isPlot=IS_PLOT)
-
-    def testConstructor(self):
-        if IGNORE_TEST:
-            return
-        self.assertIsNone(self.fitter.roadrunnerModel)
-        self.assertGreater(len(self.fitter.observedTS), 0)
-        #
-        for variable in self.fitter.selectedColumns:
-            self.assertTrue(variable in VARIABLE_NAMES)
-
-    def testSimulate(self):
-        if IGNORE_TEST:
-            return
-        self.fitter._initializeRoadrunnerModel()
-        self.fitter._simulate()
-        self.assertTrue(self.fitter.observedTS.isEqualShape(
-              self.fitter.fittedTS))
-
-    def testResiduals(self):
-        if IGNORE_TEST:
-            return
-        self.fitter._initializeRoadrunnerModel()
-        arr = self.fitter._residuals(None)
-        self.assertTrue(self.fitter.observedTS.isEqualShape(
-              self.fitter.residualsTS))
-        self.assertEqual(len(arr),
-              len(self.fitter.observedTS)*len(self.fitter.observedTS.colnames))
-
-    def checkParameterValues(self):
-        dct = self.fitter.params.valuesdict()
-        self.assertEqual(len(dct), len(self.fitter.parametersToFit))
-        #
-        for value in dct.values():
-            self.assertTrue(isinstance(value, float))
-        return dct
-
-    def testFit1(self):
-        if IGNORE_TEST:
-            return
-        def test(method):
-            fitter = ModelFitter(ANTIMONY_MODEL, self.timeseries,
-                  list(PARAMETER_DCT.keys()), method=method)
-            fitter.fitModel()
-            PARAMETER = "k2"
-            diff = np.abs(PARAMETER_DCT[PARAMETER]
-                  - dct[PARAMETER])
-            self.assertLess(diff, 1)
-        #
-        self.fitter.fitModel()
-        dct = self.checkParameterValues()
-        #
-        for method in [modelFitter.METHOD_LEASTSQR,
-              modelFitter.METHOD_BOTH,
-              modelFitter.METHOD_DIFFERENTIAL_EVOLUTION]:
-            test(method)
-
-    def testFit2(self):
-        if IGNORE_TEST:
-            return
-        def calcResidualStd(selectedColumns):
-            columns = self.timeseries.colnames[:3]
-            fitter = ModelFitter(ANTIMONY_MODEL, self.timeseries,
-                  list(PARAMETER_DCT.keys()), selectedColumns=selectedColumns)
-            fitter.fitModel()
-            return np.std(fitter.residualsTS.flatten())
-        #
-        CASES = [COLUMNS[0], COLUMNS[:3], COLUMNS]
-        stds = [calcResidualStd(c) for c in CASES]
-        # Variance should decrease with more columns
-        self.assertGreater(stds[0], stds[1])
-        self.assertGreater(stds[1], stds[2])
-
-    def testGetFittedParameters(self):
-        if IGNORE_TEST:
-            return
-        self.fitter.fitModel()
-        values = self.fitter.getFittedParameters()
-        _ = self.checkParameterValues()
-        #
-        self.fitter.bootstrap(numIteration=5)
-        values = self.fitter.getFittedParameters()
-        _ = self.checkParameterValues()
-
-    def testGetFittedModel(self):
-        if IGNORE_TEST:
-            return
-        fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
-              list(PARAMETER_DCT.keys()), isPlot=IS_PLOT)
-        fitter1.fitModel()
-        fittedModel = fitter1.getFittedModel()
-        fitter2 = ModelFitter(fittedModel, self.timeseries, None)
-        fitter2.fitModel()
-        # Should get same fit without changing the parameters
-        self.assertTrue(np.isclose(np.var(fitter1.residualsTS.flatten()),
-              np.var(fitter2.residualsTS.flatten())))
-
-    def testReportFit(self):
-        if IGNORE_TEST:
-            return
-        fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
-              list(PARAMETER_DCT.keys()), isPlot=IS_PLOT)
-        fitter1.fitModel()
-        result = fitter1.reportFit()
+        self.timeseries = TIMESERIES
+        self.fitter = FITTER
 
     def testPlotResiduals(self):
         if IGNORE_TEST:
             return
-        fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
-              list(PARAMETER_DCT.keys()), isPlot=IS_PLOT)
-        fitter1.fitModel()
-        fitter1.plotResiduals(numCol=3, numRow=2)
+        self.fitter.plotResiduals(numCol=3, numRow=2, ylim=[-1.5, 1.5])
 
     def testPlotFit(self):
         if IGNORE_TEST:
             return
-        fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
-              list(PARAMETER_DCT.keys()), isPlot=IS_PLOT)
-        fitter1.fitModel()
-        fitter1.plotFitAll(numCol=3, numRow=2)
+        self.fitter.plotFitAll(numCol=3, numRow=2)
 
     def testPlotFitAll(self):
         if IGNORE_TEST:
             return
-        fitter1 = ModelFitter(ANTIMONY_MODEL, self.timeseries,
-              list(PARAMETER_DCT.keys()), isPlot=IS_PLOT)
-        fitter1.fitModel()
-        fitter1.plotFitAll()
-        fitter1.plotFitAll(isMultiple=True)
-
-    def testCalcNewObserved(self):
-        if IGNORE_TEST:
-            return
-        self.fitter.fitModel()
-        ts = ModelFitter.calcObservedTS(self.fitter)
-        self.assertEqual(len(ts),
-              len(self.fitter.observedTS))
-        self.assertGreater(ts["S1"][0], ts["S6"][0])
-        self.assertGreater(ts["S6"][-1], ts["S1"][-1])
-
-    def testBoostrap(self):
-        # TESTING
-        self.fitter.fitModel()
-        self.fitter.bootstrap(numIteration=100,
-              reportInterval=25)
-        NUM_STD = 10
-        result = self.fitter.bootstrapResult
-        for p in self.fitter.parametersToFit:
-            isLowerOk = result.meanDct[p]  \
-                  - NUM_STD*result.stdDct[p]  \
-                  < PARAMETER_DCT[p]
-            isUpperOk = result.meanDct[p]  \
-                  + NUM_STD*result.stdDct[p]  \
-                  > PARAMETER_DCT[p]
-            self.assertTrue(isLowerOk)
-            self.assertTrue(isUpperOk)
-        import pdb; pdb.set_trace()
-
-    def testBoostrapReport(self):
-        if IGNORE_TEST:
-            return
-        self.fitter.fitModel()
-        self.fitter.bootstrap(numIteration=5000,
-              reportInterval=1000)
-        bootstrapReport = str(self.fitter.bootstrapResult)
-        for param in self.fitter.bootstrapResult.parameters:
-            self.assertTrue(param in bootstrapReport)
-        self.fitter.getBootstrapReport()
-
-    def testBoostrapBenchmark1(self):
-        if IGNORE_TEST:
-            return
-        self.fitter.fitModel()
-        startTime = time.time()
-        self.fitter.bootstrap(numIteration=1000)
-        elapsedTime = time.time() - startTime
-        self.assertLess(elapsedTime, BENCHMARK1_TIME)
-
-    def testGetFittedParameterStds(self):
-        if IGNORE_TEST:
-            return
-        self.fitter.fitModel()
-        with self.assertRaises(ValueError):
-            _ = self.fitter.getFittedParameterStds()
-        #
-        self.fitter.bootstrap(numIteration=3)
-        stds = self.fitter.getFittedParameterStds()
-        for std in stds:
-            self.assertTrue(isinstance(std, float))
+        self.fitter.plotFitAll()
+        self.fitter.plotFitAll(isMultiple=True)
 
     def testPlotParameterEstimates(self):
         if IGNORE_TEST:
             return
-        self.fitter.fitModel()
-        self.fitter.bootstrap(numIteration=100)
-        self.fitter.plotParameterEstimatePairs(ylim=[0, 5], xlim=[0, 5])
+        self.fitter.plotParameterEstimatePairs(ylim=[0, 5], xlim=[0, 5],
+              markersize1=5)
 
     def testPlotParameterHistograms(self):
         if IGNORE_TEST:
             return
-        self.fitter.fitModel()
-        self.fitter.bootstrap(numIteration=100)
         self.fitter.plotParameterHistograms(ylim=[0, 5],
               xlim=[0, 6], titlePosition=[.3, .9],
               bins=10, parameters=["k1", "k2"])
@@ -300,10 +129,8 @@ class TestModelFitter(unittest.TestCase):
               markersize1=2)
         print("Mean: %s" % str(fitter.getFittedParameters()))
         print("Std: %s" % str(fitter.getFittedParameterStds()))
-        fitter.getBootstrapReport()
+        fitter.reportBootstrap()
 
-        
-        
 
 if __name__ == '__main__':
     matplotlib.use('TkAgg')
