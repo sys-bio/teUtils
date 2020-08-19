@@ -9,7 +9,6 @@ Manages options for plotting.
 
 from teUtils._statementManager import StatementManager
 
-import copy
 import matplotlib.pyplot as plt
 import numpy as np
 

@@ -18,8 +18,8 @@ import time
 import unittest
 
 
-IGNORE_TEST = False
-IS_PLOT = False
+IGNORE_TEST = True
+IS_PLOT = True
 PARAMETER_DCT = {
       "k1": 1,
       "k2": 2,
@@ -143,7 +143,7 @@ class TestModelFitter(unittest.TestCase):
         values = self.fitter.getFittedParameters()
         _ = self.checkParameterValues()
         #
-        self.fitter.bootstrap(numIteration=3)
+        self.fitter.bootstrap(numIteration=5)
         values = self.fitter.getFittedParameters()
         _ = self.checkParameterValues()
 
@@ -204,8 +204,7 @@ class TestModelFitter(unittest.TestCase):
         self.assertGreater(ts["S6"][-1], ts["S1"][-1])
 
     def testBoostrap(self):
-        if IGNORE_TEST:
-            return
+        # TESTING
         self.fitter.fitModel()
         self.fitter.bootstrap(numIteration=100,
               reportInterval=25)
@@ -220,6 +219,7 @@ class TestModelFitter(unittest.TestCase):
                   > PARAMETER_DCT[p]
             self.assertTrue(isLowerOk)
             self.assertTrue(isUpperOk)
+        import pdb; pdb.set_trace()
 
     def testBoostrapReport(self):
         if IGNORE_TEST:

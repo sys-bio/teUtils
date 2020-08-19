@@ -3,6 +3,11 @@
 
 from teUtils import _plotOptions as po
 
+import numpy as np
+
+INDENTATION = "  "
+NULL_STR = ""
+
 
 def updatePlotDocstring(target, keyphrase=None):
     """
@@ -37,3 +42,30 @@ def updatePlotDocstring(target, keyphrase=None):
             if name[0:4] == po.PLOT:
                 method = eval("cls.%s" % name)
                 updateFunctionDocstring(method)
+
+
+class Report():
+    """Class used to generate reports."""
+
+    def __init__(self):
+        self.reportStr= NULL_STR
+        self.numIndent = 0
+
+    def indent(self, num: int):
+        self.numIndent += num
+
+    def _getIndentStr(self):
+        return NULL_STR.join(np.repeat(
+              INDENTATION, self.numIndent))
+    
+    def addHeader(self, title:str):
+        indentStr = self._getIndentStr()
+        self.reportStr+= "\n%s%s" % (indentStr, title)
+
+    def addTerm(self, name:str, value:object):
+        indentStr = self._getIndentStr()
+        self.reportStr+= "\n%s%s: %s" %  \
+              (indentStr, name, str(value))
+
+    def get(self)->str:
+        return self.reportStr
