@@ -8,6 +8,7 @@ Created on Aug 19, 2020
 
 from teUtils import _modelFitterBootstrap as mfb
 from teUtils.namedTimeseries import NamedTimeseries, TIME
+from tests import _testHelpers as th
 
 import numpy as np
 import os
@@ -17,46 +18,8 @@ import unittest
 
 IGNORE_TEST = False
 IS_PLOT = False
-PARAMETER_DCT = {
-      "k1": 1,
-      "k2": 2,
-      "k3": 3,
-      "k4": 4,
-      "k5": 5,
-     }
-VARIABLE_NAMES = ["S%d" % d for d in range(1, 7)]
-parametersStrs = ["%s=%d" % (k, v) for k,v 
-      in PARAMETER_DCT.items()]
-parametersStr = "; ".join(parametersStrs)
-COLUMNS = ["S%d" % d for d in range(1, 7)]
-ANTIMONY_MODEL_BENCHMARK = """
-# Reactions   
-    J1: S1 -> S2; k1*S1
-    J2: S2 -> S3; k2*S2
-# Species initializations     
-    S1 = 10; S2 = 0;
-    k1 = 1; k2 = 2
-"""
-ANTIMONY_MODEL = """
-# Reactions   
-    J1: S1 -> S2; k1*S1
-    J2: S2 -> S3; k2*S2
-    J3: S3 -> S4; k3*S3
-    J4: S4 -> S5; k4*S4
-    J5: S5 -> S6; k5*S5;
-# Species initializations     
-    S1 = 10; S2 = 0; S3 = 0; S4 = 0; S5 = 0; S6 = 0;
-# Parameters:      
-   %s
-""" % parametersStr
-DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
-BENCHMARK_PATH = os.path.join(DIR, "groundtruth_2_step_0_1.txt")
-BENCHMARK1_TIME = 30 # Actual is 20 sec
-# Globals
-TIMESERIES = NamedTimeseries(TEST_DATA_PATH)
-FITTER = mfb.ModelFitterBootstrap(ANTIMONY_MODEL, TIMESERIES,
-      list(PARAMETER_DCT.keys()), isPlot=IS_PLOT)
+TIMESERIES = th.getTimeseries()
+FITTER = th.getFitter(cls=mfb.ModelFitterBootstrap)
 FITTER.fitModel()
         
 
@@ -79,7 +42,7 @@ class TestModelFitterBootstrap(unittest.TestCase):
         trues = [len(v)==NUM_ITERATION for _, v in parameterDct.items()]
         self.assertTrue(all(trues))
         # Test not too far from true values
-        trues = [np.abs(np.mean(v) - PARAMETER_DCT[p]) <= MAX_DIFF
+        trues = [np.abs(np.mean(v) - th.PARAMETER_DCT[p]) <= MAX_DIFF
               for p, v in parameterDct.items()]
         self.assertTrue(all(trues))
 
@@ -137,10 +100,10 @@ class TestModelFitterBootstrap(unittest.TestCase):
         for p in self.fitter.parametersToFit:
             isLowerOk = result.meanDct[p]  \
                   - NUM_STD*result.stdDct[p]  \
-                  < PARAMETER_DCT[p]
+                  < th.PARAMETER_DCT[p]
             isUpperOk = result.meanDct[p]  \
                   + NUM_STD*result.stdDct[p]  \
-                  > PARAMETER_DCT[p]
+                  > th.PARAMETER_DCT[p]
             self.assertTrue(isLowerOk)
             self.assertTrue(isUpperOk)
 
@@ -190,8 +153,6 @@ class TestModelFitterBootstrap(unittest.TestCase):
         print("Std: %s" % str(fitter.getFittedParameterStds()))
         fitter.getBootstrapReport()
 
-        
-        
 
 if __name__ == '__main__':
     unittest.main()

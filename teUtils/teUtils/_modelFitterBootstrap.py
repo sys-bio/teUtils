@@ -99,8 +99,7 @@ def _runBootstrap(arguments)->dict:
           isPlot=fitter._isPlot)
     # Do the bootstrap iterations
     for iteration in range(numIteration*ITERATION_MULTIPLIER):
-        if (reportInterval > 0)  \
-                  and (numSuccessIteration != lastReport):
+        if (reportInterval > 0) and (numSuccessIteration != lastReport):
             if numSuccessIteration % reportInterval == 0:
                 print("bootstrap completed %d iterations"
                       % numSuccessIteration)
@@ -115,8 +114,7 @@ def _runBootstrap(arguments)->dict:
             if IS_REPORT:
                 print("Fit failed on iteration %d." % iteration)
             continue
-        if newFitter.minimizerResult.redchi >  \
-              MAX_CHISQ_MULT*baseChisq:
+        if newFitter.minimizerResult.redchi > MAX_CHISQ_MULT*baseChisq:
             if IS_REPORT:
                 print("Fit has high chisq: %2.2f on iteration %d." % iteration 
                       % newFitter.minimizerResult.redchi)
