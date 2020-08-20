@@ -8,6 +8,7 @@ Created on Aug 19, 2020
 
 from teUtils._modelFitterReport import ModelFitterReport
 from teUtils.namedTimeseries import NamedTimeseries
+from teUtils.tests import _testHelpers as th
 
 import numpy as np
 import os
@@ -57,7 +58,7 @@ BENCHMARK1_TIME = 30 # Actual is 20 sec
 class TestModelFitter(unittest.TestCase):
 
     def setUp(self):
-        self.timeseries = NamedTimeseries(TEST_DATA_PATH)
+        self.timeseries = th.get_timeseries()
         self.fitter = ModelFitterReport(ANTIMONY_MODEL, self.timeseries,
               list(PARAMETER_DCT.keys()), isPlot=IS_PLOT)
         self.fitter.fitModel()

@@ -9,8 +9,9 @@ Created on Tue Aug 19, 2020
 import teUtils._modelFitterCore as mf
 from teUtils._modelFitterCore import ModelFitterCore
 from teUtils.namedTimeseries import NamedTimeseries, TIME
-from teUtils.tests import _testHelpers as th
+from tests import _testHelpers as th
 
+import copy
 import numpy as np
 import os
 import tellurium
@@ -19,13 +20,14 @@ import unittest
 
 IGNORE_TEST = False
 IS_PLOT = False
+TIMESERIES = th.getTimeseries()
         
 
 class TestModelFitterCore(unittest.TestCase):
 
     def setUp(self):
-        self.timeseries = th.getTimeseries()
-        self.fitter = th.getFitter(isPlot=IS_PLOT)
+        self.timeseries = copy.deepcopy(TIMESERIES)
+        self.fitter = th.getFitter(cls=ModelFitterCore)
 
     def testConstructor(self):
         if IGNORE_TEST:

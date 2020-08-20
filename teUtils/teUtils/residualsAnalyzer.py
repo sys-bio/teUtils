@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
  Created on Aug 20, 2020
 
@@ -15,6 +14,7 @@ characteristics are: (a) over time, (b) histogram.
 
 from teUtils.namedTimeseries import NamedTimeseries, TIME, mkNamedTimeseries
 import teUtils._plotOptions as po
+from teUtils import modelFitter as mf
 from teUtils import timeseriesPlotter as tp
 from teUtils import _helpers
 
@@ -23,13 +23,14 @@ import pandas as pd
 import typing
 
 
-class ResidualAnalyzer(object):
+class ResidualsAnalyzer(object):
 
     def __init__(self, observedTS:NamedTimeseries, fittedTS:NamedTimeseries):
         self.observedTS = observedTS
         self.fittedTS = fittedTS
         self.residualsTS = self.observedTS.copy()
-        self.residualsTS -= self.fittedTS
+        cols = self.residualsTS.colnames
+        self.residualsTS[cols] -= self.fittedTS[cols]
         ### Plotter
         self._plotter = tp.TimeseriesPlotter()
 
@@ -48,7 +49,7 @@ class ResidualAnalyzer(object):
             kwargs[po.MARKER1] = "o"
         self._plotter.plotTimeSingle(self.residualsTS, **kwargs)
 
-    def plotFittedndObservedOverTime(self, isMultiple:bool=False,
+    def plotFittedObservedOverTime(self, isMultiple:bool=False,
           **kwargs:dict):
         """
         Plots the fit with observed data over time.
@@ -68,7 +69,7 @@ class ResidualAnalyzer(object):
             self._plotter.plotTimeSingle(self.fittedTS,
                   timeseries2=self.observedTS, **kwargs)
 
-    def plotResidualsHistogram(self, parameters:typing.List[str]=None,
+    def plotResidualsHistograms(self, parameters:typing.List[str]=None,
           **kwargs:dict):
         """
         Plots histographs of parameter values from a bootstrap.
@@ -79,10 +80,7 @@ class ResidualAnalyzer(object):
         kwargs: 
             Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
-        if self.bootstrapResult is None:
-            raise ValueError("Must run bootstrap before plotting parameter estimates.")
-        ts = self._mkParameterDF(parameters=parameters)
-        self._plotter.plotHistograms(ts, **kwargs)
+        self._plotter.plotHistograms(self.residualsTS, **kwargs)
 
     def _addKeyword(self, kwargs:dict, key:str, value:object):
         if not key in kwargs:
@@ -90,4 +88,4 @@ class ResidualAnalyzer(object):
         
 
 # Update the docstrings 
-_helpers.updatePlotDocstring(ModelFitter)
+_helpers.updatePlotDocstring(ResidualsAnalyzer)
