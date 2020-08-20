@@ -25,14 +25,15 @@ import typing
 
 class ResidualsAnalyzer(object):
 
-    def __init__(self, observedTS:NamedTimeseries, fittedTS:NamedTimeseries):
+    def __init__(self, observedTS:NamedTimeseries, fittedTS:NamedTimeseries,
+              isPlot:bool=True):
         self.observedTS = observedTS
         self.fittedTS = fittedTS
         self.residualsTS = self.observedTS.copy()
         cols = self.residualsTS.colnames
         self.residualsTS[cols] -= self.fittedTS[cols]
         ### Plotter
-        self._plotter = tp.TimeseriesPlotter()
+        self._plotter = tp.TimeseriesPlotter(isPlot=isPlot)
 
     def plotResidualsOverTime(self,
           **kwargs:dict):

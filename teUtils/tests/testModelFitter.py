@@ -22,7 +22,7 @@ import unittest
 IGNORE_TEST = False
 IS_PLOT = False
 TIMESERIES = th.getTimeseries()
-FITTER = th.getFitter(cls=ModelFitter)
+FITTER = th.getFitter(cls=ModelFitter, isPlot=IS_PLOT)
 FITTER.fitModel()
 FITTER.bootstrap(numIteration=100)
 ANTIMONY_MODEL_BENCHMARK = """

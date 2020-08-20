@@ -41,6 +41,7 @@ import teUtils._plotOptions as po
 from teUtils import timeseriesPlotter as tp
 from teUtils import _helpers
 from teUtils._modelFitterReport import ModelFitterReport
+from teUtils.residualsAnalyzer import ResidualsAnalyzer
 
 import numpy as np
 import pandas as pd
@@ -59,10 +60,9 @@ class ModelFitter(ModelFitterReport):
             Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
         self._checkFit()
-        options = po.PlotOptions()
-        if not po.MARKER1 in kwargs:
-            kwargs[po.MARKER1] = "o"
-        self._plotter.plotTimeSingle(self.residualsTS, **kwargs)
+        analyzer = ResidualsAnalyzer(self.observedTS, self.fittedTS,
+              isPlot=self._isPlot)
+        analyzer.plotResidualsOverTime(**kwargs)
 
     def plotFitAll(self, isMultiple=False, **kwargs):
         """
@@ -76,14 +76,9 @@ class ModelFitter(ModelFitterReport):
             Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
         self._checkFit()
-        self._addKeyword(kwargs, po.MARKER2, "o")
-        if isMultiple:
-            self._plotter.plotTimeMultiple(self.fittedTS,
-                  timeseries2=self.observedTS, **kwargs)
-        else:
-            self._addKeyword(kwargs, po.LEGEND, ["fitted", "observed"])
-            self._plotter.plotTimeSingle(self.fittedTS,
-                  timeseries2=self.observedTS, **kwargs)
+        analyzer = ResidualsAnalyzer(self.observedTS, self.fittedTS,
+              isPlot=self._isPlot)
+        analyzer.plotFittedObservedOverTime(**kwargs)
 
     def _addKeyword(self, kwargs, key, value):
         if not key in kwargs:
@@ -132,8 +127,7 @@ class ModelFitter(ModelFitterReport):
         kwargs: dict
             Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
         """
-        if self.bootstrapResult is None:
-            raise ValueError("Must run bootstrap before plotting parameter estimates.")
+        self._checkBootstrap()
         ts = self._mkParameterDF(parameters=parameters)
         self._plotter.plotHistograms(ts, **kwargs)
         
