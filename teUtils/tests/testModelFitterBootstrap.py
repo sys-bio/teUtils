@@ -117,11 +117,12 @@ class TestModelFitterBootstrap(unittest.TestCase):
         print("\n")
         def timeIt(maxProcess):
             startTime = time.time()
-            self.fitter.bootstrap(numIteration=5000,
+            self.fitter.bootstrap(numIteration=10000,
                   reportInterval=1000, maxProcess=maxProcess)
             elapsed_time = time.time() - startTime
-            print("%d processes: %3.2f" % (maxProcess, elapsed_time))
+            print("%s processes: %3.2f" % (str(maxProcess), elapsed_time))
         #
+        timeIt(None)
         timeIt(1)
         timeIt(2)
         timeIt(4)

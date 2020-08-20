@@ -16,7 +16,7 @@ from teUtils.namedTimeseries import NamedTimeseries, TIME, mkNamedTimeseries
 from teUtils import _modelFitterCore as mfc
 from teUtils import _helpers
 
-from multiprocessing import Pool
+import multiprocessing
 import numpy as np
 import pandas as pd
 import random
@@ -76,7 +76,7 @@ def _runBootstrap(arguments)->dict:
     """
     # Unapack arguments
     fitter = arguments.fitter
-    fitter.fitModel()  # Initialize
+    fitter.fitModel()  # Initialize model
     numIteration = arguments.numIteration
     reportInterval = arguments.reportInterval
     calcObservedFunc = arguments.calcObservedFunc
@@ -202,7 +202,7 @@ class ModelFitterBootstrap(mfc.ModelFitterCore):
     def bootstrap(self, numIteration:int=10, 
           reportInterval:int=-1,
           calcObservedFunc=None,
-          maxProcess:int=10,
+          maxProcess:int=None,
            **kwargs: dict):
         """
         Constructs a bootstrap estimate of parameter values.
@@ -213,7 +213,7 @@ class ModelFitterBootstrap(mfc.ModelFitterCore):
         reportInterval: number of iterations between progress reports
         calcObservedFunc: Function
             Function used to calculate new observed values
-        maxProcess: Maximum number of processes to use, if any
+        maxProcess: Maximum number of processes to use. Default: numCPU
         kwargs: arguments passed to calcObservedFunct
               
         Example
@@ -227,12 +227,12 @@ class ModelFitterBootstrap(mfc.ModelFitterCore):
         """
         if calcObservedFunc is None:
             calcObservedFunc = calcObservedTS
-        self._checkFit()
+        if maxProcess is None:
+            maxProcess = multiprocessing.cpu_count()
         base_redchi = self.minimizerResult.redchi
         # Run processes
         numProcess = max(int(numIteration/ITERATION_PER_PROCESS), 1)
-        if maxProcess is not None:
-            numProcess = min(numProcess, maxProcess)
+        numProcess = min(numProcess, maxProcess)
         numProcessIteration = int(np.ceil(numIteration/numProcess))
         args_list = [_Arguments(
               fitter=self,
@@ -240,7 +240,7 @@ class ModelFitterBootstrap(mfc.ModelFitterCore):
               reportInterval=reportInterval ,
               calcObservedFunc=calcObservedFunc ,
               kwargs=kwargs) for _ in range(numProcess)]
-        with Pool(numProcess) as pool:
+        with multiprocessing.Pool(numProcess) as pool:
             results = pool.map(_runBootstrap, args_list)
         pool.join()
         totSuccessIteration = sum([i for _, i in results])
