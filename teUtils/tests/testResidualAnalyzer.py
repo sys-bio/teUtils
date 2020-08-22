@@ -42,7 +42,12 @@ class TestReidualAnalyzer(unittest.TestCase):
             return
         self.analyzer.plotResidualsHistograms(ylim=[0, 5],
               xlim=[0, 6], titlePosition=[.3, .9],
-              bins=10, parameters=["k1", "k2"])
+              bins=10)
+
+    def testPlotAll(self):
+        if IGNORE_TEST:
+            return
+        self.analyzer.plotAll()
 
 
 if __name__ == '__main__':

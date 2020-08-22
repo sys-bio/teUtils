@@ -23,6 +23,7 @@ from teUtils._statementManager import StatementManager
 import copy
 import matplotlib.pyplot as plt
 import numpy as np
+import typing
 
 
 EXPAND_KEYPHRASE = "Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)"
@@ -36,6 +37,9 @@ COLORS.extend(COLORS)
 # Title positions
 POS_MID = 0.5
 POS_TOP = 0.9
+# Autocorrelations
+MAX_LAGS = 10
+NUM_STD = 2
 
 
 ########################################
@@ -180,6 +184,7 @@ class TimeseriesPlotter(object):
             options.numRow = int(np.ceil(numPlot/options.numCol))
         else:
             options.numCol = int(np.ceil(numPlot/options.numRow))
+        options.set(po.XLABEL, TIME)
         # Create the LayoutManager
         layout = self._mkManager(options, numPlot)
         # Construct the plots
@@ -245,6 +250,7 @@ class TimeseriesPlotter(object):
         # Create the LayoutManager
         layout = self._mkManager(options, numPlot)
         # Construct the plots
+        options.set(po.XLABEL, TIME)
         multiPlot(options, timeseries1, layout.getAxis(0), marker = options.marker1)
         if options.timeseries2 is not None:
             ax = layout.getAxis(numPlot-1)
@@ -380,6 +386,127 @@ class TimeseriesPlotter(object):
         pairs = [(c, "%s_" % c) for c in ts1.colnames]
         #
         self.plotValuePairs(mergedTS, pairs, **kwargs)
+
+    def _mkAutocorrelation(self, timeseries:NamedTimeseries, numPlot:int=None,
+          isLowerTriangular:bool=False, **kwargs:dict)  \
+          -> typing.Tuple[po.PlotOptions, lm.LayoutManager]:
+        """
+        Constructs options and layout for autocorrelation plots.
+        """
+        if isLowerTriangular:
+            options = self._mkPlotOptionsLowerTriangular(timeseries, numPlot,
+                  **kwargs)
+        else:
+            options = self._mkPlotOptionsMatrix(timeseries, **kwargs)
+            numPlot = len(options.columns)
+        layout = self._mkManager(options, numPlot, isLowerTriangular=isLowerTriangular)
+        options.set(po.XLABEL, "lag")
+        options.set(po.YLABEL, "autocorrelation")
+        options.set(po.YLIM, [-1.2, 1.2])
+        return options, layout
+
+    def _mkAutocorrelationErrorBounds(self, timeseries:NamedTimeseries)  \
+          -> typing.Tuple[typing.List[int], typing.List[float], typing.List[float]]:
+        def mkFullArray(arr):
+            reverse_arr = arr[::-1]
+            return np.concatenate([reverse_arr, arr[1:]])
+        # Construct lags
+        upper_lags = np.array(range(1, MAX_LAGS+1))
+        lower_lags = -1*upper_lags
+        lower_lags.sort()
+        lags = np.concatenate([lower_lags, np.array([0]), upper_lags])
+        #
+        length = len(timeseries)
+        upper_line = np.array([NUM_STD/(np.sqrt(length - l))
+              for l in range(MAX_LAGS+1)])
+        lower_line = -1*upper_line
+        upper_line = mkFullArray(upper_line)
+        lower_line = mkFullArray(lower_line)
+        #
+        return lags, lower_line, upper_line
+
+    def plotAutoCorrelations(self, timeseries:NamedTimeseries, 
+           **kwargs:dict):
+        """
+        Plots autocorrelations for a timeseries.
+        Uses the Barlet bound to estimate confidence intervals.
+        
+        Parameters
+        ----------
+        kwargs: 
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        """
+        # Structure the plots
+        baseOptions, layout = self._mkAutocorrelation(timeseries,
+              isLowerTriangular=False, **kwargs)
+        lags, lower_line, upper_line = self._mkAutocorrelationErrorBounds(timeseries)
+        baseOptions.set(po.SUPTITLE, "Autocorrelations")
+        for index, column in enumerate(baseOptions.columns):
+            options = copy.deepcopy(baseOptions)
+            ax = layout.getAxis(index)
+            if not layout.isFirstColumn(index):
+                options.ylabel = NULL_STR
+            if not layout.isLastRow(index):
+                options.xlabel = NULL_STR
+            # Matrix plot
+            options.title = column
+            ax.acorr(timeseries[column], maxlags=MAX_LAGS)
+            ax.plot(lags, lower_line, linestyle="dashed", color="black")
+            ax.plot(lags, upper_line, linestyle="dashed", color="black")
+            options.do(ax)
+        if self.isPlot:
+            plt.show()
+
+    def plotCrossCorrelations(self, timeseries:NamedTimeseries,
+          **kwargs:dict):
+        """
+        Constructs pairs of cross correlation plots.
+        Uses the Barlet bound to estimate confidence intervals.
+        
+        Parameters
+        ----------
+        kwargs: 
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        """
+        if po.COLUMNS in kwargs.keys():
+            numCol = len(po.COLUMNS)
+        else:
+            numCol = len(timeseries.colnames)
+        numPlot = int((numCol**2 - numCol)/2)
+        baseOptions, layout = self._mkAutocorrelation(timeseries,
+              numPlot=numPlot, isLowerTriangular=True, **kwargs)
+        # Construct the plot pairs
+        pairs = []
+        columns = list(baseOptions.columns)
+        for col1 in baseOptions.columns:
+            columns.remove(col1)
+            for col2 in columns:
+                pairs.append((col1, col2))
+        lags, lower_line, upper_line = self._mkAutocorrelationErrorBounds(
+              timeseries)
+        baseOptions.set(po.SUPTITLE, "Cross Correlations")
+        # Do the plots
+        for index, pair in enumerate(pairs):
+            options = copy.deepcopy(baseOptions)
+            xVar = pair[0]
+            yVar = pair[1]
+            options.set(po.TITLE, "%s, %s" % (xVar, yVar))
+            ax = layout.getAxis(index)
+            if layout.isLastRow(index):
+                options.xlabel = "lag"
+            else:
+                options.xticklabels = []
+            if layout.isFirstColumn(index):
+                options.ylabel = "corr"
+            else:
+                options.ylabel = NULL_STR
+                options.yticklabels = []
+            ax.xcorr(timeseries[xVar], timeseries[yVar], maxlags=MAX_LAGS)
+            ax.plot(lags, lower_line, linestyle="dashed", color="black")
+            ax.plot(lags, upper_line, linestyle="dashed", color="black")
+            options.do(ax)
+        if self.isPlot:
+            plt.show()
 
 
 # Update docstrings

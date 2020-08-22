@@ -23,11 +23,16 @@ MARKER1 = "marker1"
 MARKER2 = "marker2"
 NUM_COL = "numCol"
 NUM_ROW = "numRow"
-SUBPLOT_WIDTH_SPACE = "subplot_width_space"
+SUBPLOT_WIDTH_SPACE = "subplotWidthSpace"
+SUPTITLE = "suptitle"
 TIMESERIES2 = "timeseries2"
+TITLE = "title"
+TITLE_FONTSIZE = "titleFontsize"
 TITLE_POSITION = "titlePosition"
 XLABEL = "xlabel"
+XLIM = "xlim"
 YLABEL = "ylabel"
+YLIM = "ylim"
    
  
 #########################
@@ -56,10 +61,11 @@ class PlotOptions(object):
         self.numCol = None  # columns of plots
         self.timeseries2 = None  # second timeseries
         self.title = None
+        self.titleFontsize = None
         self.titlePosition = None  # Relative position in plot (x, y)
         self.subplotWidthSpace = None
         self.suptitle = None  # Figure title
-        self.xlabel = "time"  # x axis title
+        self.xlabel = None  # x axis title
         self.xlim = None  # order pair of lower and upper
         self.xticklabels = None
         self.ylabel = None
@@ -85,6 +91,7 @@ class PlotOptions(object):
                 subplotWidthSpace: horizontal space between plots
                 timeseries2: second timeseries
                 title: plot title
+                titleFontsize: point size for title
                 titlePosition: relative position in plot (x, y); x,y in [0, 1]; (0,0) is lower left.
                 suptitle: Figure title
                 xlabel: x axis title
@@ -151,6 +158,8 @@ class PlotOptions(object):
             if self.titlePosition is not None:
                 manager.addKwargs(position=self.titlePosition)
                 manager.addKwargs(transform=ax.transAxes)
+            if self.titleFontsize is not None:
+                manager.addKwargs(fontsize=self.titleFontsize)
             manager.execute()
         if self.xlim is not None:
             ax.set_xlim(self.xlim)

@@ -50,6 +50,20 @@ import typing
 
 class ModelFitter(ModelFitterReport):
 
+    def plotResidualsAll(self, **kwargs):
+        """
+        Plots a set of residual plots
+    
+        Parameters
+        ----------
+        kwargs: dict. Plotting options.
+            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        """
+        self._checkFit()
+        analyzer = ResidualsAnalyzer(self.observedTS, self.fittedTS,
+              isPlot=self._isPlot)
+        analyzer.plotAll(**kwargs)
+
     def plotResiduals(self, **kwargs):
         """
         Plots residuals of a fit over time.

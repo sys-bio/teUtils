@@ -49,11 +49,6 @@ class TestModelFitter(unittest.TestCase):
             return
         self.fitter.plotResiduals(numCol=3, numRow=2, ylim=[-1.5, 1.5])
 
-    def testPlotFit(self):
-        if IGNORE_TEST:
-            return
-        self.fitter.plotFitAll(numCol=3, numRow=2)
-
     def testPlotFitAll(self):
         if IGNORE_TEST:
             return
@@ -72,6 +67,11 @@ class TestModelFitter(unittest.TestCase):
         self.fitter.plotParameterHistograms(ylim=[0, 5],
               xlim=[0, 6], titlePosition=[.3, .9],
               bins=10, parameters=["k1", "k2"])
+
+    def testPlotPlotResidualsAll(self):
+        if IGNORE_TEST:
+            return
+        self.fitter.plotResidualsAll()
 
     def testBootstrapAccuracy(self):
         if IGNORE_TEST:

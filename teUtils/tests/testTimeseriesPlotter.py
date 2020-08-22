@@ -133,6 +133,19 @@ class TestTimeseriesPlotter(unittest.TestCase):
         self.plotter.plotCompare(self.timeseries,
               self.timeseries, numCol=3)
 
+    def testPlotAutoCorrelations(self):
+        if IGNORE_TEST:
+            return
+        self.plotter.plotAutoCorrelations(self.timeseries, numCol=3)
+
+    def testPlotCrossCorrelations(self):
+        if IGNORE_TEST:
+            return
+        self.plotter.plotCrossCorrelations(self.timeseries,
+              titleFontsize=8, titlePosition=(0.8, 0.8),
+              suptitle="Cross Correlations")
+
+
 
 if __name__ == '__main__':
     matplotlib.use('TkAgg')
