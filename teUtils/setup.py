@@ -47,6 +47,7 @@ setup(
         'tellurium',
         'pandas',
         'nose',
+        'docstring_expander',
     ],
     python_requires='>=3.6',
 )
