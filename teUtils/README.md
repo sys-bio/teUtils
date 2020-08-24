@@ -1,7 +1,31 @@
+ <table style="width:100%">
+  <tr>
+    <td><img src="https://api.travis-ci.org/sys-bio/teUtils.svg?branch=master" width="100"/></td>
+    <td><img src="https://codecov.io/gh/sys-bio/teUtils/branch/master/graph/badge.svg" /></td>
+  </tr>
+</table> 
+
+
+<a href="https://codecov.io/gh/sys-bio/teUtils">
+</a>
+
+
+
 # Utilities for Tellurium
 
 This repo includes a number of useful utilities for Tellurium users.
 Modules are described below.
+
+## buildNetworks
+This modules provides two methods to build a linear chain of reactions using either mass-action or Michaelis-Menten
+kinetics or a random network using uniuni, unibi, biuni or bibi mass-action governed reactions. 
+
+## model\_fitter
+This module fits model parameters to observational data.
+
+## named\_timeseries
+This module provides an efficient table abstraction that provides indexing by column names and slicing
+by row index.
 
 ## odePrint
 
@@ -13,16 +37,10 @@ This modules contains a variety of additional plotting methods, include 3D, heat
 and ascii plots.
 
 ## prettyTabular
-
 This modules provides two methods to display fluxes and concentrations in a neat tabular format.
 
-## buildNetworks
-
-This modules provides two methods to build a linear chain of reactions using either mass-action or Michaelis-Menten
-kinetics or a random network using uniuni, unibi, biuni or bibi mass-action governed reactions. 
-
-## fitter
-This module fits model parameters to observational data.
+## timeseries\_plotter
+This module provides several kinds of plots for timeseries.
 
 # Installation
 1. ``cd teUtils``

@@ -6,8 +6,8 @@ Created on Tue Jul  7 14:24:09 2020
 @author: joseph-hellerstein
 """
 
-from teUtils.named_timeseries import NamedTimeseries, mkNamedTimeseries
-import teUtils.named_timeseries as named_timeseries
+from teUtils.namedTimeseries import NamedTimeseries, mkNamedTimeseries
+import teUtils.namedTimeseries as namedTimeseries
 
 import numpy as np
 import os
@@ -16,8 +16,8 @@ import tellurium as te
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 VARIABLE_NAMES = ["S%d" % d for d in range(1, 7)]
 DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_PATH = os.path.join(DIR, "tst_data.txt")
@@ -42,7 +42,7 @@ ANTIMONY_MODEL = """
 class TestNamedTimeseries(unittest.TestCase):
 
     def setUp(self):
-        self.timeseries = NamedTimeseries(csv_path=TEST_DATA_PATH)
+        self.timeseries = NamedTimeseries(csvPath=TEST_DATA_PATH)
         self.model = te.loada(ANTIMONY_MODEL)
 
     def tearDown(self):
@@ -66,21 +66,21 @@ class TestNamedTimeseries(unittest.TestCase):
                 self.assertTrue(np.isclose(sum(timeseries[name]
                       - self.timeseries[name]), 0))
         #
-        new_timeseries = NamedTimeseries(colnames=COLNAMES,
+        newTS = NamedTimeseries(colnames=COLNAMES,
               array=self.timeseries[COLNAMES])
-        test(new_timeseries)
+        test(newTS)
         # Check can use different cases for TIME
-        new_timeseries = NamedTimeseries(
+        newTS = NamedTimeseries(
               colnames= ["Time", "S1", "S2"],
               array=self.timeseries[COLNAMES])
-        test(new_timeseries)
+        test(newTS)
 
     def testConstructorNamedArray(self):
         if IGNORE_TEST:
             return
-        named_array = self.model.simulate(0, 100, 30)
-        ts = NamedTimeseries(named_array=named_array)
-        self.assertTrue(named_timeseries.arrayEquals(named_array.flatten(),
+        namedArray = self.model.simulate(0, 100, 30)
+        ts = NamedTimeseries(namedArray=namedArray)
+        self.assertTrue(namedTimeseries.arrayEquals(namedArray.flatten(),
               ts.values.flatten()))
 
     def testSizeof(self):
@@ -89,15 +89,16 @@ class TestNamedTimeseries(unittest.TestCase):
         self.assertEqual(len(self.timeseries), LENGTH)
 
     def testGetitem(self):
-        # TESTING
+        if IGNORE_TEST:
+            return
         times = self.timeseries[TIME]
         # Access time column with different case
         refs = ["TiMe", "S1"]
-        self.assertTrue(named_timeseries.arrayEquals(self.timeseries[refs],
+        self.assertTrue(namedTimeseries.arrayEquals(self.timeseries[refs],
               self.timeseries[refs]))
-        self.assertTrue(named_timeseries.arrayEquals(self.timeseries[TIME],
+        self.assertTrue(namedTimeseries.arrayEquals(self.timeseries[TIME],
               self.timeseries["TimE"]))
-        self.assertTrue(named_timeseries.arrayEquals(self.timeseries[TIME],
+        self.assertTrue(namedTimeseries.arrayEquals(self.timeseries[TIME],
               self.timeseries["TimE"]))
         self.assertEqual(len(times), len(self.timeseries))
         self.assertEqual(min(times), self.timeseries.start)
@@ -112,7 +113,7 @@ class TestNamedTimeseries(unittest.TestCase):
         if IGNORE_TEST:
             return
         with self.assertRaises(ValueError):
-            timeseries = NamedTimeseries(csv_path=TEST_BAD_DATA_PATH)
+            timeseries = NamedTimeseries(csvPath=TEST_BAD_DATA_PATH)
 
     def testCopyExisting(self):
         if IGNORE_TEST:
@@ -127,12 +128,12 @@ class TestNamedTimeseries(unittest.TestCase):
             self.assertTrue(all(trues))
         def checkMatrix(attribute):
             trues = []
-            for row_idx, row in enumerate(
+            for rowIdx, row in enumerate(
                   timeseries.__getattribute__(attribute)):
-                for col_idx, val in enumerate(row):
+                for colIdx, val in enumerate(row):
                     trues.append(val == 
                           self.timeseries.__getattribute__(attribute)[
-                          row_idx, col_idx])
+                          rowIdx, colIdx])
             self.assertTrue(all(trues))
         #
         for variable in ["start", "end"]:
@@ -146,15 +147,15 @@ class TestNamedTimeseries(unittest.TestCase):
     def testFlattenValues(self):
         if IGNORE_TEST:
             return
-        values = self.timeseries.flattenValues()
+        values = self.timeseries.flatten()
         self.assertTrue(np.isclose(sum(values - 
               self.timeseries.values[:, 1:].flatten()), 0))
 
     def testSelectTimes(self):
         if IGNORE_TEST:
             return
-        selector_function = lambda t: t > 2
-        array = self.timeseries.selectTimes(selector_function)
+        selectorFunction = lambda t: t > 2
+        array = self.timeseries.selectTimes(selectorFunction)
         self.assertLess(len(array), len(self.timeseries))
 
     def testMkNamedTimeseries(self):
@@ -162,14 +163,14 @@ class TestNamedTimeseries(unittest.TestCase):
             return
         # Create a new time series that subsets the old one
         colnames = ["time", "S1", "S2"]
-        new_timeseries = named_timeseries.mkNamedTimeseries(
+        newTS = namedTimeseries.mkNamedTimeseries(
               colnames, self.timeseries[colnames])
-        self.assertEqual(len(self.timeseries), len(new_timeseries))
+        self.assertEqual(len(self.timeseries), len(newTS))
         # Create a new timeseries with a subset of times
         array = self.timeseries.selectTimes(lambda t: t > 2)
-        new_timeseries = named_timeseries.mkNamedTimeseries(
-              self.timeseries.all_colnames, array)
-        self.assertGreater(len(self.timeseries), len(new_timeseries))
+        newTS = namedTimeseries.mkNamedTimeseries(
+              self.timeseries.allColnames, array)
+        self.assertGreater(len(self.timeseries), len(newTS))
         #
         ts = mkNamedTimeseries(self.timeseries)
         self.assertTrue(self.timeseries.equals(ts))
@@ -196,18 +197,18 @@ class TestNamedTimeseries(unittest.TestCase):
             return
         arr1 = np.array([1, 2, 3, 4])
         arr1 = np.reshape(arr1, (2, 2))
-        self.assertTrue(named_timeseries.arrayEquals(arr1, arr1))
+        self.assertTrue(namedTimeseries.arrayEquals(arr1, arr1))
         arr2 = 1.0001*arr1
-        self.assertFalse(named_timeseries.arrayEquals(arr1, arr2))
+        self.assertFalse(namedTimeseries.arrayEquals(arr1, arr2))
 
 
     def testEquals(self):
         if IGNORE_TEST:
             return
         self.assertTrue(self.timeseries.equals(self.timeseries))
-        new_timeseries = self.timeseries.copy()
-        new_timeseries["S1"] = -1
-        self.assertFalse(self.timeseries.equals(new_timeseries))
+        newTS = self.timeseries.copy()
+        newTS["S1"] = -1
+        self.assertFalse(self.timeseries.equals(newTS))
  
     def testCopy(self):
         if IGNORE_TEST:
@@ -219,7 +220,7 @@ class TestNamedTimeseries(unittest.TestCase):
         if IGNORE_TEST:
             return
         self.timeseries["S1"] = self.timeseries["S2"]
-        self.assertTrue(named_timeseries.arrayEquals(
+        self.assertTrue(namedTimeseries.arrayEquals(
               self.timeseries["S1"], self.timeseries["S2"]))
         value = -20
         self.timeseries["S19"] = value
@@ -238,25 +239,24 @@ class TestNamedTimeseries(unittest.TestCase):
         self.assertTrue(ts1.equals(ts2))
         #
         ts3 = self.timeseries[1]
-        self.assertEqual(np.shape(ts3.values), (1, len(ts2.all_colnames)))
+        self.assertEqual(np.shape(ts3.values), (1, len(ts2.allColnames)))
 
     def testExamples(self):
         if IGNORE_TEST:
             return
         # Create from file
-        timeseries = NamedTimeseries(csv_path=TEST_DATA_PATH)
-        print(timeseries)  # dispaly a tabular view of the timeseries
+        timeseries = NamedTimeseries(csvPath=TEST_DATA_PATH)
         # NamedTimeseries can use len function
         length = len(timeseries)  # number of rows
         # Extract the numpy array values using indexing
-        time_values = timeseries["time"]
-        s1_values = timeseries["S1"]
+        timeValues = timeseries["time"]
+        s1Values = timeseries["S1"]
         # Get the start and end times
-        start_time = timeseries.start
-        end_time = timeseries.end
+        startTime = timeseries.start
+        endTime = timeseries.end
         # Create a new time series that subsets the variables of the old one
         colnames = ["time", "S1", "S2"]
-        new_timeseries = mkNamedTimeseries(colnames, timeseries[colnames])
+        newTS = mkNamedTimeseries(colnames, timeseries[colnames])
         # Create a new timeseries that excludes time 0
         ts2 = timeseries[1:] 
         # Create a new column variable
@@ -282,14 +282,15 @@ class TestNamedTimeseries(unittest.TestCase):
         if IGNORE_TEST:
             return
         ts = self.timeseries.concatenateColumns(self.timeseries)
-        new_names = ["%s_" % c for c in self.timeseries.colnames]
-        self.assertTrue(named_timeseries.arrayEquals(ts[new_names],
+        newNames = ["%s_" % c for c in self.timeseries.colnames]
+        self.assertTrue(namedTimeseries.arrayEquals(ts[newNames],
               self.timeseries[self.timeseries.colnames]))
-        self.assertEquals(len(ts), len(self.timeseries))
-        self.assertTrue(named_timeseries.arrayEquals(ts[TIME],
+        self.assertEqual(len(ts), len(self.timeseries))
+        self.assertTrue(namedTimeseries.arrayEquals(ts[TIME],
               self.timeseries[TIME]))
         #
-        ts = self.timeseries.concatenateColumns(self.timeseries, self.timeseries)
+        ts = self.timeseries.concatenateColumns(
+              [self.timeseries, self.timeseries])
         self.assertEqual(3*len(self.timeseries.colnames), len(ts.colnames))
 
     def testConcatenateRows(self):
@@ -302,14 +303,15 @@ class TestNamedTimeseries(unittest.TestCase):
         ts1 = ts[length:]
         self.assertTrue(self.timeseries.equals(ts1))
         #
-        ts = self.timeseries.concatenateRows(self.timeseries, self.timeseries)
+        ts = self.timeseries.concatenateRows(
+              [self.timeseries, self.timeseries])
         self.assertEqual(3*len(self.timeseries), len(ts))
 
     def testSubsetColumns(self):
         if IGNORE_TEST:
             return
         ts = self.timeseries.concatenateColumns(self.timeseries)
-        ts1 = ts.subsetColumns(*self.timeseries.colnames)
+        ts1 = ts.subsetColumns(self.timeseries.colnames)
         self.assertTrue(self.timeseries.equals(ts1))
 
     def testGetTimes(self):
