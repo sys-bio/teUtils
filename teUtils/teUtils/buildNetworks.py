@@ -153,6 +153,7 @@ def _pickReactionType():
 # reaction = [reactionType, [list of reactants], [list of product], rateConstant]
 def generateReactionList (nSpecies, nReactions):
     
+      
     reactionList = []
     for r in range(nReactions):
         
@@ -388,6 +389,10 @@ def getRandomNetwork (nSpecies, nReactions):
     >>> r = te.loada(model)
     >>> m = r.simulate (0, 10, 100)      
     """
+    
+    if nSpecies <= 2:
+        raise Exception ('You must have more than two species')
+
     rl =  generateReactionList (nSpecies, nReactions)  
     st = _getFullStoichiometryMatrix (rl)
     stt = _removeBoundaryNodes (st)
