@@ -9,6 +9,7 @@ Manages options for plotting.
 
 from teUtils._statementManager import StatementManager
 
+from docstring_expander.kwarg import Kwarg
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -18,9 +19,14 @@ EXPAND_KEYPHRASE = "Expansion keyphrase. Expands to help(PlotOptions()). Do not 
 # Options
 BINS = "bins"
 COLUMNS = "columns"
+COLOR1 = "color1"
+COLOR2 = "color2"
+FIGSIZE = "figsize"
 LEGEND = "legend"
 MARKER1 = "marker1"
+MARKERSIZE1 = "markersize1"
 MARKER2 = "marker2"
+MARKERSIZE2 = "markersize2"
 NUM_COL = "numCol"
 NUM_ROW = "numRow"
 SUBPLOT_WIDTH_SPACE = "subplotWidthSpace"
@@ -31,8 +37,44 @@ TITLE_FONTSIZE = "titleFontsize"
 TITLE_POSITION = "titlePosition"
 XLABEL = "xlabel"
 XLIM = "xlim"
+XTICKLABELS = "xticklabels"
 YLABEL = "ylabel"
+YTICKLABELS = "yticklabels"
 YLIM = "ylim"
+# Options common to most plots
+BASE_OPTIONS = [COLUMNS, COLOR1, COLOR2, LEGEND, MARKER1, MARKER2,
+      NUM_COL, MARKERSIZE1, MARKERSIZE2,
+      NUM_ROW, SUBPLOT_WIDTH_SPACE, SUPTITLE, TIMESERIES2, TITLE,
+      TITLE_FONTSIZE, TITLE_POSITION, XLABEL, XLIM, YLABEL, YLIM]
+KWARGS = [
+      Kwarg(BINS, doc="number of bins in a histogram plot", dtype=int),
+      Kwarg(COLOR1, doc="color of first plot", dtype=str, default="blue"),
+      Kwarg(COLOR2, doc= "color of second plot", dtype=str, default="red"),
+      Kwarg(COLUMNS, doc= "List of columns to plot", dtype=list, default=[]),
+      Kwarg(FIGSIZE, doc= "(horizontal width, vertical height)",
+      dtype=list, default=[8, 6]),
+      Kwarg(LEGEND, doc= "Tuple of str for legend", dtype=list),
+      Kwarg(MARKER1, doc= "Marker for timerseries1", dtype=str),
+      Kwarg(MARKERSIZE1, doc="Size of marker for timeseries1; >0", dtype=float),
+      Kwarg(MARKER2, doc= "Marker for timerseries2", dtype=str),
+      Kwarg(MARKERSIZE2, doc="Size of marker for timeseries2; >0", dtype=float),
+      Kwarg(NUM_ROW, doc= "rows of plots", dtype=int),
+      Kwarg(NUM_COL, doc= "columns of plots", dtype=int),
+      Kwarg(SUBPLOT_WIDTH_SPACE, doc= "horizontal space between plots", dtype=float),
+      Kwarg(TIMESERIES2, doc= "second timeseries"),
+      Kwarg(TITLE, doc= "plot title", dtype=str),
+      Kwarg(TITLE_FONTSIZE, doc= "point size for title", dtype=float),
+      Kwarg(TITLE_POSITION,
+      doc= "relative position in plot (x, y); x,y in [0, 1]; (0,0) is lower left.",
+      dtype=list),
+      Kwarg(SUPTITLE, doc= "Figure title", dtype=str),
+      Kwarg(XLABEL, doc= "x axis title", dtype=str),
+      Kwarg(XLIM, doc= "order pair of lower and upper", dtype=list),
+      Kwarg(XTICKLABELS, doc= "list of labels for x ticks", dtype=list),
+      Kwarg(YLABEL, doc= "label for x axis", dtype=str),
+      Kwarg(YLIM, doc= "order pair of lower and upper", dtype=str),
+      Kwarg(YTICKLABELS, doc= "list of labels for y ticks", dtype=list),
+      ]
    
  
 #########################
@@ -45,67 +87,25 @@ class PlotOptions(object):
         ### PRIVATE
         self._axes = None
         ### PUBLIC
-        self.bins = None
-        self.color1 = "blue"  # Color for first plot
-        self.color2 = "red"  # Color for second plot
-        self.columns = []  # Columns to plot
-        self.figsize = (8, 6)
-        self.legend = None # Tuple of str for legend
-        self.numCol = None  # Default value
-        self.numRow = 1  # Default value
-        self.marker1 = None  # Marker for timerseries1
-        self.markersize1 = None  # Size of the marker if present
-        self.marker2 = None  # Marker for timeseries2
-        self.markersize2 = None  # Size of the marker if present
-        self.numRow = None  # rows of plots
-        self.numCol = None  # columns of plots
-        self.timeseries2 = None  # second timeseries
-        self.title = None
-        self.titleFontsize = None
-        self.titlePosition = None  # Relative position in plot (x, y)
-        self.subplotWidthSpace = None
-        self.suptitle = None  # Figure title
-        self.xlabel = None  # x axis title
-        self.xlim = None  # order pair of lower and upper
-        self.xticklabels = None
-        self.ylabel = None
-        self.ylim = None  # order pair of lower and upper
-        self.yticklabels = None
         self.figure = None
+        for kwarg in KWARGS:
+          self.set(kwarg.name, kwarg.default, isForce=True)
 
     def __str__(self):
-        stg = """
-            Supported plotting options are:
-                bins: int for number of bins in a histogram plot
-                color1: color of first plot
-                color2: color of second plot
-                columns: List of columns to plot
-                figsize: (horizontal width, vertical height)
-                legend: Tuple of str for legend
-                marker1: Marker for timerseries1
-                markersize1: size of marker (>= 0)
-                marker2: Marker for timeseries2
-                markersize2: size of marker (>= 0)
-                numRow: rows of plots
-                numCol: columns of plots
-                subplotWidthSpace: horizontal space between plots
-                timeseries2: second timeseries
-                title: plot title
-                titleFontsize: point size for title
-                titlePosition: relative position in plot (x, y); x,y in [0, 1]; (0,0) is lower left.
-                suptitle: Figure title
-                xlabel: x axis title
-                xlim: order pair of lower and upper
-                xticklabels: list of labels for x ticks
-                ylabel: label for x axis
-                ylim: order pair of lower and upper
-                yticklabels: list of labels for y ticks
-            """
+        stg = "Supported plotting options are:\n"
+        for kwarg in KWARGS:
+          stg += "  %s: %s" % (kwarg.name, kwarg.doc)
         return stg
 
-    def set(self, attribute, value, isOverride=False):
+    def set(self, attribute, value, isOverride=False, isForce=False):
+        isOK = False
+        if isForce:
+            isOK = True
         if attribute in self.__dict__.keys():
-            if isOverride or (self.__getattribute__(attribute) is None):
+            isOK = True
+        if isOK:
+            if isForce or isOverride  \
+                  or (self.__getattribute__(attribute) is None):
                 self.__setattr__(attribute, value)
         else:
             raise ValueError("Unknown plot option: %s" % attribute)

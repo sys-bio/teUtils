@@ -43,6 +43,7 @@ from teUtils import _helpers
 from teUtils._modelFitterReport import ModelFitterReport
 from teUtils.residualsAnalyzer import ResidualsAnalyzer
 
+from docstring_expander.expander import Expander
 import numpy as np
 import pandas as pd
 import typing
@@ -50,34 +51,35 @@ import typing
 
 class ModelFitter(ModelFitterReport):
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotResidualsAll(self, **kwargs):
         """
         Plots a set of residual plots
     
         Parameters
         ----------
-        kwargs: dict. Plotting options.
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         self._checkFit()
         analyzer = ResidualsAnalyzer(self.observedTS, self.fittedTS,
               isPlot=self._isPlot)
         analyzer.plotAll(**kwargs)
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotResiduals(self, **kwargs):
         """
         Plots residuals of a fit over time.
     
         Parameters
         ----------
-        kwargs: dict. Plotting options.
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         self._checkFit()
         analyzer = ResidualsAnalyzer(self.observedTS, self.fittedTS,
               isPlot=self._isPlot)
         analyzer.plotResidualsOverTime(**kwargs)
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotFitAll(self, isMultiple=False, **kwargs):
         """
         Plots the fit with observed data over time.
@@ -86,8 +88,7 @@ class ModelFitter(ModelFitterReport):
         ----------
         isMultiple: bool
             plots all variables on a single plot
-        kwargs: dict. Plotting options.
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         self._checkFit()
         analyzer = ResidualsAnalyzer(self.observedTS, self.fittedTS,
@@ -105,6 +106,7 @@ class ModelFitter(ModelFitterReport):
         df.index.name = TIME
         return NamedTimeseries(dataframe=df)
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotParameterEstimatePairs(self, parameters=None, **kwargs):
         """
         Does pairwise plots of parameter estimates.
@@ -113,8 +115,7 @@ class ModelFitter(ModelFitterReport):
         ----------
         parameters: list-str
             List of parameters to do pairwise plots
-        kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         if self.bootstrapResult is None:
             raise ValueError("Must run bootstrap before plotting parameter estimates.")
@@ -130,6 +131,7 @@ class ModelFitter(ModelFitterReport):
         self._plotter.plotValuePairs(ts, pairs,
               isLowerTriangular=True, **kwargs)
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, includes=[po.BINS], indent=8)
     def plotParameterHistograms(self, parameters=None, **kwargs):
         """
         Plots histographs of parameter values from a bootstrap.
@@ -138,13 +140,8 @@ class ModelFitter(ModelFitterReport):
         ----------
         parameters: list-str
             List of parameters to do pairwise plots
-        kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         self._checkBootstrap()
         ts = self._mkParameterDF(parameters=parameters)
         self._plotter.plotHistograms(ts, **kwargs)
-        
-
-# Update the docstrings 
-_helpers.updatePlotDocstring(ModelFitter)

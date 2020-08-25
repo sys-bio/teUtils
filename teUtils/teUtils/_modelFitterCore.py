@@ -106,14 +106,6 @@ class ModelFitterCore(object):
               parameterLowerBound=self.LowerBound,
               parameterUpperBound=self.UpperBound,
               isPlot=self._isPlot)
-        # The following are calculated during fitting
-        if False:
-            newModelFitter.minimizer  = self.minimizer
-            newModelFitter.minimizerResult  = self.minimizerResult
-            newModelFitter.params  = self.params
-            newModelFitter.fittedTS  = self.fittedTS
-            newModelFitter.residualsTS  = self.residualsTS
-            newModelFitter.bootstrapResult  = self.bootstrapResult
         return newModelFitter
 
     def _initializeRoadrunnerModel(self):

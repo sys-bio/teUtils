@@ -18,6 +18,7 @@ from teUtils import modelFitter as mf
 from teUtils import timeseriesPlotter as tp
 from teUtils import _helpers
 
+from docstring_expander.expander import Expander
 import numpy as np
 import pandas as pd
 import typing
@@ -41,14 +42,14 @@ class ResidualsAnalyzer(object):
         if not key in kwargs:
             kwargs[key] = value
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotAll(self, **kwargs:dict):
         """
         Does all residual plots.
     
         Parameters
         ----------
-        kwargs: Plotting options.
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         for name in dir(self):
             if name == "plotAll":
@@ -57,19 +58,20 @@ class ResidualsAnalyzer(object):
                 statement = "self.%s(**kwargs)" % name
                 exec(statement)
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotResidualsOverTime(self, **kwargs:dict):
         """
         Plots residuals of a fit over time.
     
         Parameters
         ----------
-        kwargs: Plotting options.
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         self._addKeyword(kwargs, po.MARKER1, "o")
         self._addKeyword(kwargs, po.SUPTITLE, "Residuals Over Time")
         self._plotter.plotTimeSingle(self.residualsTS, **kwargs)
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotFittedObservedOverTime(self, isMultiple:bool=False,
           **kwargs:dict):
         """
@@ -78,8 +80,7 @@ class ResidualsAnalyzer(object):
         Parameters
         ----------
         isMultiple: plots all variables on a single plot
-        kwargs: dict. Plotting options.
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         self._addKeyword(kwargs, po.MARKER2, "o")
         self._addKeyword(kwargs, po.SUPTITLE, "Residuals And Fitted Over Time")
@@ -91,6 +92,7 @@ class ResidualsAnalyzer(object):
             self._plotter.plotTimeSingle(self.fittedTS,
                   timeseries2=self.observedTS, **kwargs)
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, includes=[po.BINS], indent=8)
     def plotResidualsHistograms(self, **kwargs:dict):
         """
         Plots histographs of parameter values from a bootstrap.
@@ -98,12 +100,12 @@ class ResidualsAnalyzer(object):
         Parameters
         ----------
         parameters: List of parameters to do pairwise plots
-        kwargs: 
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         self._addKeyword(kwargs, po.SUPTITLE, "Residual Distributions")
         self._plotter.plotHistograms(self.residualsTS, **kwargs)
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotResidualAutoCorrelations(self, **kwargs:dict):
         """
         Plots auto correlations between residuals of columns.
@@ -111,12 +113,12 @@ class ResidualsAnalyzer(object):
         Parameters
         ----------
         parameters: List of parameters to do pairwise plots
-        kwargs: 
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         self._addKeyword(kwargs, po.SUPTITLE, "Residual Autocorrelations")
         self._plotter.plotAutoCorrelations(self.residualsTS, **kwargs)
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotResidualCrossCorrelations(self, **kwargs:dict):
         """
         Plots cross correlations between residuals of columns.
@@ -124,12 +126,7 @@ class ResidualsAnalyzer(object):
         Parameters
         ----------
         parameters: List of parameters to do pairwise plots
-        kwargs: 
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         self._addKeyword(kwargs, po.SUPTITLE, "Residual Cross Correlations")
         self._plotter.plotCrossCorrelations(self.residualsTS, **kwargs)
-        
-
-# Update the docstrings 
-_helpers.updatePlotDocstring(ResidualsAnalyzer)

@@ -21,6 +21,7 @@ from teUtils import _helpers
 from teUtils._statementManager import StatementManager
 
 import copy
+from docstring_expander.expander import Expander
 import matplotlib.pyplot as plt
 import numpy as np
 import typing
@@ -138,6 +139,7 @@ class TimeseriesPlotter(object):
         #
         return options
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotTimeSingle(self, timeseries1, **kwargs):
         """
         Constructs plots of single columns, possibly with a second
@@ -146,8 +148,7 @@ class TimeseriesPlotter(object):
         Parameters
         ---------
         timeseries1: NamedTimeseries
-        kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
                
         Example
         -------
@@ -209,6 +210,7 @@ class TimeseriesPlotter(object):
         if self.isPlot:
             plt.show()
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotTimeMultiple(self, timeseries1, **kwargs):
         """
         Constructs a plot with all columns in a timeseries.
@@ -217,8 +219,7 @@ class TimeseriesPlotter(object):
         Parameters
         ---------
         timeseries1: NamedTimeseries
-        kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         def multiPlot(options, timeseries, ax, marker=None):
             if marker is None:
@@ -275,6 +276,8 @@ class TimeseriesPlotter(object):
                   numPlot)
         return layout
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS,
+          excludes=[po.NUM_ROW, po.NUM_COL], indent=8)
     def plotValuePairs(self, timeseries, pairs, 
               isLowerTriangular=False, **kwargs):
         """
@@ -284,8 +287,7 @@ class TimeseriesPlotter(object):
         Parameters
         ---------
         timeseries: NamedTimeseries
-        kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         numPlot = len(pairs)
         if isLowerTriangular:
@@ -328,6 +330,7 @@ class TimeseriesPlotter(object):
         if self.isPlot:
             plt.show()
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, includes=[po.BINS], indent=8)
     def plotHistograms(self, timeseries, **kwargs):
         """
         Constructs a matrix of histographs for timeseries values.
@@ -335,8 +338,7 @@ class TimeseriesPlotter(object):
         Parameters
         ---------
         timeseries: NamedTimeseries
-        kwargs: dict
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         if po.BINS in kwargs.keys():
             bins = kwargs[po.BINS]
@@ -370,6 +372,7 @@ class TimeseriesPlotter(object):
         if self.isPlot:
             plt.show()
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotCompare(self, 
            ts1: NamedTimeseries, 
            ts2: NamedTimeseries,
@@ -379,8 +382,7 @@ class TimeseriesPlotter(object):
         
         Parameters
         ----------
-        kwargs: 
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         mergedTS = ts1.concatenateColumns(ts2)
         pairs = [(c, "%s_" % c) for c in ts1.colnames]
@@ -425,6 +427,7 @@ class TimeseriesPlotter(object):
         #
         return lags, lower_line, upper_line
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotAutoCorrelations(self, timeseries:NamedTimeseries, 
            **kwargs:dict):
         """
@@ -433,8 +436,7 @@ class TimeseriesPlotter(object):
         
         Parameters
         ----------
-        kwargs: 
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         # Structure the plots
         baseOptions, layout = self._mkAutocorrelation(timeseries,
@@ -457,6 +459,7 @@ class TimeseriesPlotter(object):
         if self.isPlot:
             plt.show()
 
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotCrossCorrelations(self, timeseries:NamedTimeseries,
           **kwargs:dict):
         """
@@ -465,8 +468,7 @@ class TimeseriesPlotter(object):
         
         Parameters
         ----------
-        kwargs: 
-            Expansion keyphrase. Expands to help(PlotOptions()). Do not remove. (See timeseriesPlotter.EXPAND_KEYPRHASE.)
+        #@expand
         """
         if po.COLUMNS in kwargs.keys():
             numCol = len(po.COLUMNS)
@@ -507,7 +509,3 @@ class TimeseriesPlotter(object):
             options.do(ax)
         if self.isPlot:
             plt.show()
-
-
-# Update docstrings
-_helpers.updatePlotDocstring(TimeseriesPlotter)
