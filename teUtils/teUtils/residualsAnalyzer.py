@@ -14,7 +14,6 @@ characteristics are: (a) over time, (b) histogram.
 
 from teUtils.namedTimeseries import NamedTimeseries, TIME, mkNamedTimeseries
 import teUtils._plotOptions as po
-from teUtils import modelFitter as mf
 from teUtils import timeseriesPlotter as tp
 from teUtils import _helpers
 
