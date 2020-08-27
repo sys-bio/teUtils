@@ -41,6 +41,10 @@ POS_TOP = 0.9
 # Autocorrelations
 MAX_LAGS = 10
 NUM_STD = 2
+#
+IDX_PLOT1 = 0  # plot index for the first plot
+IDX_PLOT2 = 1  # plot index for the second plot
+DEFAULT_MARKER = "o"
 
 
 ########################################
@@ -79,6 +83,8 @@ class TimeseriesPlotter(object):
             assigns values to options.numRow, options.numCol
         """
         options = po.PlotOptions()
+        if po.TIMESERIES2 in kwargs.keys():
+            options.timeseries2 = kwargs[po.TIMESERIES2]
         if maxCol is None:
             if po.COLUMNS in kwargs:
                 maxCol = len(kwargs[po.COLUMNS])
@@ -139,7 +145,7 @@ class TimeseriesPlotter(object):
         #
         return options
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, excludes=[po.TITLE], indent=8)
     def plotTimeSingle(self, timeseries1, **kwargs):
         """
         Constructs plots of single columns, possibly with a second
@@ -156,28 +162,19 @@ class TimeseriesPlotter(object):
         plotter.plotTimeSingle(timeseries)
         """
         options = self._mkPlotOptionsMatrix(timeseries1, **kwargs)
-        def doPlot(ax, timeseries, variable, lineNum):
-            def getOptionValue(options, option_str):
-                return eval("options.%s%d" % (option_str, lineNum))
-            #
-            marker = options.__getattribute__("marker%d" % lineNum)
+        def mkStatement(ax, timeseries:NamedTimeseries, variable:str, lineIdx:int):
+            marker = options.get(po.MARKER, lineIdx=lineIdx)
+            if marker is not None:
+                if isinstance(marker, list):
+                    marker = marker[lineIdx]
             if marker is None:
-                manager = StatementManager(ax.plot)
+                statement = StatementManager(ax.plot)
             else:
-                manager = StatementManager(ax.scatter)
+                statement = StatementManager(ax.scatter)
             #
-            manager.addPosarg(timeseries[TIME])
-            manager.addPosarg(timeseries[variable])
-            manager.addKwargs(color=getOptionValue(options, "color"))
-            #
-            marker_value = getOptionValue(options, "marker")
-            if marker_value is not None:
-                manager.addKwargs(marker=marker)
-            #
-            markersize_value = getOptionValue(options, "markersize")
-            if markersize_value is not None:
-                manager.addKwargs(s=markersize_value)
-            return manager.execute()
+            statement.addPosarg(timeseries[TIME])
+            statement.addPosarg(timeseries[variable])
+            return statement
         #
         # Adjust rows and columns
         numPlot = len(options.columns)  # Number of plots
@@ -190,27 +187,31 @@ class TimeseriesPlotter(object):
         layout = self._mkManager(options, numPlot)
         # Construct the plots
         baseOptions = copy.deepcopy(options)
-        for index, variable in enumerate(options.columns):
-            ax = layout.getAxis(index)
+        for plotIdx, variable in enumerate(options.columns):
+            ax = layout.getAxis(plotIdx)
             options = copy.deepcopy(baseOptions)
             #ax = axes[row, col]
             options.set(po.YLABEL, "concentration")
             options.title = variable
-            if not layout.isFirstColumn(index):
+            if not layout.isFirstColumn(plotIdx):
                 options.ylabel =  NULL_STR
                 options.set(po.YLABEL, "", isOverride=True)
-            if not layout.isLastRow(index):
+            if not layout.isLastRow(plotIdx):
                 options.set(po.XLABEL, "", isOverride=True)
             # Construct the plot
-            doPlot(ax, timeseries1, variable, 1)
+            lineIdx = 0
+            statement = mkStatement(ax, timeseries1, variable, lineIdx)
+            options.do(ax, statement=statement, plotIdx=plotIdx, lineIdx=lineIdx)
             if options.timeseries2 is not None:
-                doPlot(ax, options.timeseries2, variable, 2)
+                lineIdx = 1
+                statement = mkStatement(ax, options.timeseries2, variable, lineIdx)
                 options.set(po.LEGEND, [LABEL1, LABEL2])
-            options.do(ax)
+                options.do(ax, statement=statement, plotIdx=plotIdx, lineIdx=lineIdx)
         if self.isPlot:
             plt.show()
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, excludes=[po.NUM_COL, po.NUM_ROW],
+          indent=8)
     def plotTimeMultiple(self, timeseries1, **kwargs):
         """
         Constructs a plot with all columns in a timeseries.
@@ -221,24 +222,33 @@ class TimeseriesPlotter(object):
         timeseries1: NamedTimeseries
         #@expand
         """
-        def multiPlot(options, timeseries, ax, marker=None):
-            if marker is None:
-                for idx, col in enumerate(timeseries.colnames):
-                    ax.plot(timeseries[TIME], timeseries[col], color=COLORS[idx])
-            else:
-                for idx, col in enumerate(timeseries.colnames):
-                    if options.markersize1 is None:
-                        ax.scatter(timeseries[TIME], timeseries[col], color=COLORS[idx],
-                              marker=marker)
-                    else:
-                        ax.scatter(timeseries[TIME], timeseries[col], color=COLORS[idx],
-                              marker=marker, s=options.markersize1)
-            options.legend = timeseries.colnames
-            options.do(ax)
-        #
         numPlot = 2 if po.TIMESERIES2 in kwargs else 1
         maxCol = numPlot
         options = self._mkPlotOptionsMatrix(timeseries1, maxCol=maxCol, **kwargs)
+        if not po.COLOR in kwargs.keys():
+            colors = list(COLORS)
+            while len(colors) < len(timeseries1.colnames):
+                 colors.extend(COLORS)
+            options.color = colors
+        #
+        def multiPlot(ax:plt.Axes, timeseries:NamedTimeseries,
+              options:po.PlotOptions, plotIdx:int):
+            if plotIdx == IDX_PLOT2:
+                timeseries = options.timeseries2
+            for lineIdx, col in enumerate(timeseries.colnames):
+                if isinstance(options.marker, list):
+                    marker = options.marker[lineIdx]
+                else:
+                    marker = options.marker
+                if marker is None:
+                    statement = StatementManager(ax.plot)
+                else:
+                    statement = StatementManager(ax.scatter)
+                statement.addPosarg(timeseries[TIME])
+                statement.addPosarg(timeseries[col])
+                options.legend = timeseries.colnames
+                options.do(ax, statement=statement, plotIdx=plotIdx, lineIdx=lineIdx)
+        #
         # Update rows and columns
         if options.timeseries2 is None:
             options.numRow = 1
@@ -252,10 +262,11 @@ class TimeseriesPlotter(object):
         layout = self._mkManager(options, numPlot)
         # Construct the plots
         options.set(po.XLABEL, TIME)
-        multiPlot(options, timeseries1, layout.getAxis(0), marker = options.marker1)
+        ax = layout.getAxis(0)
+        multiPlot(ax, timeseries1, options, IDX_PLOT1)
         if options.timeseries2 is not None:
             ax = layout.getAxis(numPlot-1)
-            multiPlot(options, options.timeseries2, ax, marker=options.marker2)
+            multiPlot(ax, options.timeseries2, options, IDX_PLOT2)
         if self.isPlot:
             plt.show()
 
@@ -296,22 +307,27 @@ class TimeseriesPlotter(object):
         else:
             options = self._mkPlotOptionsMatrix(timeseries,
                   maxCol=numPlot, **kwargs)
+        if options.marker is None:
+            options.marker = DEFAULT_MARKER
         layout = self._mkManager(options, numPlot,
               isLowerTriangular=isLowerTriangular)
         options.xlabel = NULL_STR
         baseOptions = copy.deepcopy(options)
-        for index, pair in enumerate(pairs):
+        for plotIdx, pair in enumerate(pairs):
             options = copy.deepcopy(baseOptions)
             xVar = pair[0]
             yVar = pair[1]
-            ax = layout.getAxis(index)
+            ax = layout.getAxis(plotIdx)
+            statement = StatementManager(ax.scatter)
+            statement.addPosarg(timeseries[xVar])
+            statement.addPosarg(timeseries[yVar])
             if isLowerTriangular:
-                if layout.isLastRow(index):
+                if layout.isLastRow(plotIdx):
                     options.xlabel = xVar
                 else:
                     options.title = NULL_STR
                     options.xticklabels = []
-                if layout.isFirstColumn(index):
+                if layout.isFirstColumn(plotIdx):
                     options.ylabel = yVar
                 else:
                     options.ylabel = NULL_STR
@@ -321,12 +337,7 @@ class TimeseriesPlotter(object):
                 options.xlabel = NULL_STR
                 options.ylabel = NULL_STR
                 options.title = "%s v. %s" % (xVar, yVar)
-            if options.markersize1 is None:
-                ax.scatter(timeseries[xVar], timeseries[yVar], marker='o')
-            else:
-                ax.scatter(timeseries[xVar], timeseries[yVar], marker='o',
-                      s=options.markersize1)
-            options.do(ax)
+            options.do(ax, statement=statement, plotIdx=plotIdx)
         if self.isPlot:
             plt.show()
 
@@ -349,26 +360,25 @@ class TimeseriesPlotter(object):
         numPlot = len(options.columns)
         layout = self._mkManager(options, numPlot)
         baseOptions = copy.deepcopy(options)
-        for index, column in enumerate(options.columns):
+        for plotIdx, column in enumerate(options.columns):
             options = copy.deepcopy(baseOptions)
-            ax = layout.getAxis(index)
-            if layout.isFirstColumn(index):
+            ax = layout.getAxis(plotIdx)
+            if layout.isFirstColumn(plotIdx):
                 options.ylabel = "density"
-            if not layout.isFirstColumn(index):
+            if not layout.isFirstColumn(plotIdx):
                 options.ylabel = NULL_STR
-            if layout.isLastRow(index):
+            if layout.isLastRow(plotIdx):
                 options.xlabel = "value"
             else:
                 options.xlabel = NULL_STR
             # Matrix plot
             options.title = column
-            manager = StatementManager(ax.hist)
-            manager.addPosarg(timeseries[column])
-            manager.addKwargs(density=True)
+            statement = StatementManager(ax.hist)
+            statement.addPosarg(timeseries[column])
+            statement.addKwargs(density=True)
             if options.bins is not None:
-                manager.addKwargs(bins=options.bins)
-            manager.execute()
-            options.do(ax)
+                statement.addKwargs(bins=options.bins)
+            options.do(ax, statement=statement, plotIdx=plotIdx)
         if self.isPlot:
             plt.show()
 
@@ -443,21 +453,34 @@ class TimeseriesPlotter(object):
               isLowerTriangular=False, **kwargs)
         lags, lower_line, upper_line = self._mkAutocorrelationErrorBounds(timeseries)
         baseOptions.set(po.SUPTITLE, "Autocorrelations")
-        for index, column in enumerate(baseOptions.columns):
+        for plotIdx, column in enumerate(baseOptions.columns):
             options = copy.deepcopy(baseOptions)
-            ax = layout.getAxis(index)
-            if not layout.isFirstColumn(index):
+            ax = layout.getAxis(plotIdx)
+            if not layout.isFirstColumn(plotIdx):
                 options.ylabel = NULL_STR
-            if not layout.isLastRow(index):
+            if not layout.isLastRow(plotIdx):
                 options.xlabel = NULL_STR
             # Matrix plot
+            lineIdx = 0
             options.title = column
-            ax.acorr(timeseries[column], maxlags=MAX_LAGS)
-            ax.plot(lags, lower_line, linestyle="dashed", color="black")
-            ax.plot(lags, upper_line, linestyle="dashed", color="black")
-            options.do(ax)
+            statement = StatementManager(ax.acorr)
+            statement.addPosarg(timeseries[column])
+            statement.addKwargs(maxlags=MAX_LAGS)
+            options.do(ax, statement=statement, plotIdx=plotIdx, lineIdx=lineIdx)
+            #
+            self._addConfidenceLines(ax, lags, [lower_line, upper_line], options,
+                  lineIdx, plotIdx=plotIdx)
         if self.isPlot:
             plt.show()
+
+    def _addConfidenceLines(self, ax, xline, lines, options, startLineIdx, **kwargs):
+        lineIdx = startLineIdx
+        for line in lines:
+            lineIdx += 1
+            statement = StatementManager(ax.plot)
+            statement.addPosarg(xline)
+            statement.addPosarg(line)
+            options.do(ax, statement=statement, lineIdx=lineIdx, **kwargs)
 
     @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
     def plotCrossCorrelations(self, timeseries:NamedTimeseries,
@@ -488,24 +511,29 @@ class TimeseriesPlotter(object):
               timeseries)
         baseOptions.set(po.SUPTITLE, "Cross Correlations")
         # Do the plots
-        for index, pair in enumerate(pairs):
+        for plotIdx, pair in enumerate(pairs):
             options = copy.deepcopy(baseOptions)
             xVar = pair[0]
             yVar = pair[1]
             options.set(po.TITLE, "%s, %s" % (xVar, yVar))
-            ax = layout.getAxis(index)
-            if layout.isLastRow(index):
+            ax = layout.getAxis(plotIdx)
+            if layout.isLastRow(plotIdx):
                 options.xlabel = "lag"
             else:
                 options.xticklabels = []
-            if layout.isFirstColumn(index):
+            if layout.isFirstColumn(plotIdx):
                 options.ylabel = "corr"
             else:
                 options.ylabel = NULL_STR
                 options.yticklabels = []
-            ax.xcorr(timeseries[xVar], timeseries[yVar], maxlags=MAX_LAGS)
-            ax.plot(lags, lower_line, linestyle="dashed", color="black")
-            ax.plot(lags, upper_line, linestyle="dashed", color="black")
-            options.do(ax)
+            # Matrix plot
+            lineIdx = 0
+            statement = StatementManager(ax.xcorr)
+            statement.addPosarg(timeseries[xVar])
+            statement.addPosarg(timeseries[yVar])
+            statement.addKwargs(maxlags=MAX_LAGS)
+            options.do(ax, statement=statement, plotIdx=plotIdx, lineIdx=lineIdx)
+            self._addConfidenceLines(ax, lags, [lower_line, upper_line], options,
+                  lineIdx, plotIdx=plotIdx)
         if self.isPlot:
             plt.show()

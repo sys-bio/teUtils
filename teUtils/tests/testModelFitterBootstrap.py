@@ -148,7 +148,7 @@ class TestModelFitterBootstrap(unittest.TestCase):
               reportInterval=500)
               #calcObservedFunc=ModelFitter.calcObservedTSNormal, std=0.01)
         fitter.plotParameterEstimatePairs(['k1', 'k2'],
-              markersize1=2)
+              markersize=2)
         print("Mean: %s" % str(fitter.getFittedParameters()))
         print("Std: %s" % str(fitter.getFittedParameterStds()))
         fitter.getBootstrapReport()

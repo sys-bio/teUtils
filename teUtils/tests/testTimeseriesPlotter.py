@@ -58,7 +58,12 @@ class TestTimeseriesPlotter(unittest.TestCase):
     def testPlotSingle1(self):
         if IGNORE_TEST:
             return
-        self.plotter.plotTimeSingle(self.timeseries, numCol=4)
+        self.plotter.plotTimeSingle(self.timeseries,
+              timeseries2=self.timeseries,
+              numCol=4,
+              marker=[None, '*'], alpha=[0.1, 0.8], color=["red", "g"])
+        self.plotter.plotTimeSingle(self.timeseries, numCol=4,
+              marker=[None, '*'])
         self.plotter.plotTimeSingle(self.timeseries, numCol=4,
               subplotWidthSpace=0.2, yticklabels=[])
         self.plotter.plotTimeSingle(self.timeseries, columns=["S1", "S2", "S3"], numRow=2)
@@ -89,21 +94,25 @@ class TestTimeseriesPlotter(unittest.TestCase):
         if IGNORE_TEST:
             return
         ts2 = self.mkTimeseries()
-        self.plotter.plotTimeSingle(self.timeseries, timeseries2=ts2, numRow=2, numCol=3, marker2="o")
-        self.plotter.plotTimeSingle(self.timeseries, markersize2=2,
-              timeseries2=ts2, numRow=2, numCol=3, marker2="o")
+        self.plotter.plotTimeSingle(self.timeseries, markersize=[2, 5],
+              timeseries2=ts2, numRow=2, numCol=3, marker=[None, "o"])
+        self.plotter.plotTimeSingle(self.timeseries, timeseries2=ts2,
+               numRow=2, numCol=3, marker=[None, "o"], alpha=0.1)
 
     def testPlotMultiple1(self):
         if IGNORE_TEST:
             return
         ts2 = self.mkTimeseries()
-        self.plotter.plotTimeMultiple(self.timeseries, timeseries2=ts2, suptitle="Testing")
+        self.plotter.plotTimeMultiple(self.timeseries, timeseries2=ts2,
+              suptitle="Testing", marker=[None, 'o', None, None, None, None],
+              color=['r', 'g', 'b', 'brown', 'g', 'pink'],
+              alpha=0.3)
         self.plotter.plotTimeMultiple(self.timeseries, timeseries2=ts2, suptitle="Testing", 
               numRow=1, numCol=1,
-              marker2="o")
+              marker="o")
         self.plotter.plotTimeMultiple(self.timeseries, timeseries2=ts2, suptitle="Testing", 
               numRow=2,
-              marker2="o")
+              marker="o")
         self.plotter.plotTimeMultiple(self.timeseries, suptitle="Testing")
 
     def testValuePairs(self):
@@ -112,14 +121,14 @@ class TestTimeseriesPlotter(unittest.TestCase):
         ts2 = self.mkTimeseries()
         self.plotter.plotValuePairs(self.timeseries, 
               [("S1", "S2"), ("S2", "S3"), ("S4", "S5")],
-              numCol=2, numRow=2)
+              numCol=2, numRow=2, alpha=0.3)
         self.plotter.plotValuePairs(self.timeseries, [("S1", "S2"), ("S2", "S3")], numRow=2)
         self.plotter.plotValuePairs(self.timeseries, [("S1", "S2")])
 
     def testPlotHistograms(self):
         if IGNORE_TEST:
             return
-        self.plotter.plotHistograms(self.timeseries, numCol=2)
+        self.plotter.plotHistograms(self.timeseries, numCol=2, alpha=0.3)
 
     def testPlotValuePairsBug(self):
         if IGNORE_TEST:
@@ -136,14 +145,18 @@ class TestTimeseriesPlotter(unittest.TestCase):
     def testPlotAutoCorrelations(self):
         if IGNORE_TEST:
             return
-        self.plotter.plotAutoCorrelations(self.timeseries, numCol=3)
+        self.plotter.plotAutoCorrelations(self.timeseries, numCol=3,
+              color=["black", "grey", "grey"],
+              linestyle=[None, "dashed", "dashed"],
+              alpha=[None, 0.5, 0.5])
 
     def testPlotCrossCorrelations(self):
         if IGNORE_TEST:
             return
         self.plotter.plotCrossCorrelations(self.timeseries,
               titleFontsize=8, titlePosition=(0.8, 0.8),
-              suptitle="Cross Correlations")
+              suptitle="Cross Correlations",
+              color=["black", "g", "g"], figsize=(12,10))
 
 
 

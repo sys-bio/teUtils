@@ -66,7 +66,7 @@ class ResidualsAnalyzer(object):
         ----------
         #@expand
         """
-        self._addKeyword(kwargs, po.MARKER1, "o")
+        self._addKeyword(kwargs, po.MARKER, "o")
         self._addKeyword(kwargs, po.SUPTITLE, "Residuals Over Time")
         self._plotter.plotTimeSingle(self.residualsTS, **kwargs)
 
@@ -81,7 +81,7 @@ class ResidualsAnalyzer(object):
         isMultiple: plots all variables on a single plot
         #@expand
         """
-        self._addKeyword(kwargs, po.MARKER2, "o")
+        self._addKeyword(kwargs, po.MARKER, [None, "o"])
         self._addKeyword(kwargs, po.SUPTITLE, "Residuals And Fitted Over Time")
         if isMultiple:
             self._plotter.plotTimeMultiple(self.fittedTS,

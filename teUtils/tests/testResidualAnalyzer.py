@@ -24,7 +24,8 @@ class TestReidualAnalyzer(unittest.TestCase):
     def setUp(self):
         self.observedTS = OBSERVED_TS
         self.fittedTS = FITTED_TS
-        self.analyzer = ResidualsAnalyzer(self.observedTS, self.fittedTS)
+        self.analyzer = ResidualsAnalyzer(self.observedTS, self.fittedTS,
+              isPlot=IS_PLOT)
 
     def testPlotResidualsOverTime(self):
         if IGNORE_TEST:

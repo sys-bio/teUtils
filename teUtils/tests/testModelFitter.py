@@ -59,7 +59,7 @@ class TestModelFitter(unittest.TestCase):
         if IGNORE_TEST:
             return
         self.fitter.plotParameterEstimatePairs(ylim=[0, 5], xlim=[0, 5],
-              markersize1=5)
+              markersize=5)
 
     def testPlotParameterHistograms(self):
         if IGNORE_TEST:
@@ -101,7 +101,7 @@ class TestModelFitter(unittest.TestCase):
               reportInterval=500)
               #calcObservedFunc=ModelFitter.calcObservedTSNormal, std=0.01)
         fitter.plotParameterEstimatePairs(['k1', 'k2'],
-              markersize1=2)
+              markersize=2)
         print("Mean: %s" % str(fitter.getFittedParameters()))
         print("Std: %s" % str(fitter.getFittedParameterStds()))
         fitter.reportBootstrap()
