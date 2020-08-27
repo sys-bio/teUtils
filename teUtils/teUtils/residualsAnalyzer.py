@@ -41,7 +41,8 @@ class ResidualsAnalyzer(object):
         if not key in kwargs:
             kwargs[key] = value
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8,
+          header=po.HEADER)
     def plotAll(self, **kwargs:dict):
         """
         Does all residual plots.
@@ -57,7 +58,8 @@ class ResidualsAnalyzer(object):
                 statement = "self.%s(**kwargs)" % name
                 exec(statement)
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8,
+          header=po.HEADER)
     def plotResidualsOverTime(self, **kwargs:dict):
         """
         Plots residuals of a fit over time.
@@ -70,7 +72,8 @@ class ResidualsAnalyzer(object):
         self._addKeyword(kwargs, po.SUPTITLE, "Residuals Over Time")
         self._plotter.plotTimeSingle(self.residualsTS, **kwargs)
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8,
+          header=po.HEADER)
     def plotFittedObservedOverTime(self, isMultiple:bool=False,
           **kwargs:dict):
         """
@@ -91,7 +94,8 @@ class ResidualsAnalyzer(object):
             self._plotter.plotTimeSingle(self.fittedTS,
                   timeseries2=self.observedTS, **kwargs)
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, includes=[po.BINS], indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, includes=[po.BINS], indent=8,
+          header=po.HEADER)
     def plotResidualsHistograms(self, **kwargs:dict):
         """
         Plots histographs of parameter values from a bootstrap.
@@ -104,7 +108,8 @@ class ResidualsAnalyzer(object):
         self._addKeyword(kwargs, po.SUPTITLE, "Residual Distributions")
         self._plotter.plotHistograms(self.residualsTS, **kwargs)
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8,
+          header=po.HEADER)
     def plotResidualAutoCorrelations(self, **kwargs:dict):
         """
         Plots auto correlations between residuals of columns.
@@ -117,7 +122,8 @@ class ResidualsAnalyzer(object):
         self._addKeyword(kwargs, po.SUPTITLE, "Residual Autocorrelations")
         self._plotter.plotAutoCorrelations(self.residualsTS, **kwargs)
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8,
+          header=po.HEADER)
     def plotResidualCrossCorrelations(self, **kwargs:dict):
         """
         Plots cross correlations between residuals of columns.

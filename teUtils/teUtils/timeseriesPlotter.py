@@ -145,7 +145,8 @@ class TimeseriesPlotter(object):
         #
         return options
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, excludes=[po.TITLE], indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, excludes=[po.TITLE], indent=8,
+           header=po.HEADER)
     def plotTimeSingle(self, timeseries1, **kwargs):
         """
         Constructs plots of single columns, possibly with a second
@@ -211,7 +212,7 @@ class TimeseriesPlotter(object):
             plt.show()
 
     @Expander(po.KWARGS, po.BASE_OPTIONS, excludes=[po.NUM_COL, po.NUM_ROW],
-          indent=8)
+          indent=8, header=po.HEADER)
     def plotTimeMultiple(self, timeseries1, **kwargs):
         """
         Constructs a plot with all columns in a timeseries.
@@ -288,7 +289,8 @@ class TimeseriesPlotter(object):
         return layout
 
     @Expander(po.KWARGS, po.BASE_OPTIONS,
-          excludes=[po.NUM_ROW, po.NUM_COL], indent=8)
+          excludes=[po.NUM_ROW, po.NUM_COL], indent=8,
+          header=po.HEADER)
     def plotValuePairs(self, timeseries, pairs, 
               isLowerTriangular=False, **kwargs):
         """
@@ -341,7 +343,8 @@ class TimeseriesPlotter(object):
         if self.isPlot:
             plt.show()
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, includes=[po.BINS], indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, includes=[po.BINS], indent=8,
+          header=po.HEADER)
     def plotHistograms(self, timeseries, **kwargs):
         """
         Constructs a matrix of histographs for timeseries values.
@@ -382,7 +385,8 @@ class TimeseriesPlotter(object):
         if self.isPlot:
             plt.show()
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8,
+          header=po.HEADER)
     def plotCompare(self, 
            ts1: NamedTimeseries, 
            ts2: NamedTimeseries,
@@ -437,7 +441,8 @@ class TimeseriesPlotter(object):
         #
         return lags, lower_line, upper_line
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8,
+          header=po.HEADER)
     def plotAutoCorrelations(self, timeseries:NamedTimeseries, 
            **kwargs:dict):
         """
@@ -482,7 +487,8 @@ class TimeseriesPlotter(object):
             statement.addPosarg(line)
             options.do(ax, statement=statement, lineIdx=lineIdx, **kwargs)
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8,
+          header=po.HEADER)
     def plotCrossCorrelations(self, timeseries:NamedTimeseries,
           **kwargs:dict):
         """

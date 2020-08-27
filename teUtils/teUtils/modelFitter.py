@@ -51,7 +51,8 @@ import typing
 
 class ModelFitter(ModelFitterReport):
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8,
+          header=po.HEADER)
     def plotResidualsAll(self, **kwargs):
         """
         Plots a set of residual plots
@@ -65,7 +66,8 @@ class ModelFitter(ModelFitterReport):
               isPlot=self._isPlot)
         analyzer.plotAll(**kwargs)
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8,
+          header=po.HEADER)
     def plotResiduals(self, **kwargs):
         """
         Plots residuals of a fit over time.
@@ -79,7 +81,7 @@ class ModelFitter(ModelFitterReport):
               isPlot=self._isPlot)
         analyzer.plotResidualsOverTime(**kwargs)
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8, header=po.HEADER)
     def plotFitAll(self, isMultiple=False, **kwargs):
         """
         Plots the fit with observed data over time.
@@ -106,7 +108,8 @@ class ModelFitter(ModelFitterReport):
         df.index.name = TIME
         return NamedTimeseries(dataframe=df)
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, indent=8,
+          header=po.HEADER)
     def plotParameterEstimatePairs(self, parameters=None, **kwargs):
         """
         Does pairwise plots of parameter estimates.
@@ -131,7 +134,8 @@ class ModelFitter(ModelFitterReport):
         self._plotter.plotValuePairs(ts, pairs,
               isLowerTriangular=True, **kwargs)
 
-    @Expander(po.KWARGS, po.BASE_OPTIONS, includes=[po.BINS], indent=8)
+    @Expander(po.KWARGS, po.BASE_OPTIONS, includes=[po.BINS], indent=8,
+          header=po.HEADER)
     def plotParameterHistograms(self, parameters=None, **kwargs):
         """
         Plots histographs of parameter values from a bootstrap.

@@ -104,15 +104,13 @@ KWARG_DCT = {k.name: k for k in KWARGS}
 AX_STATEMENT_KW = {
       MARKERSIZE: 's',
       }
-TRAILER = """
-
+HEADER= """
 A figure may contain 1 or more plot, and each plot may contain
 1 or more line. Figure (f), plot (p), and line (c) are the possible
-scope of an option.
-If the option is singled valued, then it applies to all instances
-of its scope. If it has multiple values, then the index of the value
-corresponds to the instance within the scope. A figure scope is
-always single valued.
+scope of an option.  If the option is singled valued, then it applies
+to all instances of its scope. If it has multiple values, then the
+index of the value corresponds to the instance within the scope.
+A figure scope is always single valued.
 """
    
  
