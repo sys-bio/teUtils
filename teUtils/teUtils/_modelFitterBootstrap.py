@@ -40,9 +40,8 @@ def calcObservedTS(fitter:mfc.ModelFitterCore,
     newObservedTS = fitter.observedTS.copy()
     for column in fitter.selectedColumns:
         newObservedTS[column] = np.random.choice(
-              fitter.residualsTS[column],
-              numRow, replace=True) +  \
-              fitter.fittedTS[column]
+            fitter.residualsTS[column],numRow, replace=True) +  \
+            fitter.fittedTS[column]
     return newObservedTS
 
 def calcObservedTSNormal(fitter:mfc.ModelFitterCore, 
@@ -58,7 +57,24 @@ def calcObservedTSNormal(fitter:mfc.ModelFitterCore,
         newObservedTS[column] += randoms
     return newObservedTS
 
-def _runBootstrap(arguments)->dict:
+class _Arguments():
+    """ Arguments passed to _runBootstrap. """
+
+    def __init__(self, fitter, numProcess:int, processIdx:int,
+                 numIteration:int=10,
+                 reportInterval:int=-1,
+                 calcObservedFunc:typing.Callable=None,
+                 **kwargs: dict):
+        # Same the antimony model, not roadrunner bcause of Pickle
+        self.fitter = fitter.copy()
+        self.numIteration  = numIteration
+        self.reportInterval  = reportInterval
+        self.calcObservedFunc  = calcObservedFunc
+        self.numProcess = numProcess
+        self.processIdx = processIdx
+        self.kwargs = kwargs
+
+def _runBootstrap(arguments:_Arguments)->dict:
     """
     Executes bootstrapping.
 
@@ -72,6 +88,10 @@ def _runBootstrap(arguments)->dict:
         key: parameer
         value: list-float (estimates)
     int: number of successful iterations
+
+    Notes
+    -----
+    1. Only the first process generates progress reports.
         
     """
     # Unapack arguments
@@ -80,6 +100,9 @@ def _runBootstrap(arguments)->dict:
     numIteration = arguments.numIteration
     reportInterval = arguments.reportInterval
     calcObservedFunc = arguments.calcObservedFunc
+    processIdx = arguments.processIdx
+    processingRate = min(arguments.numProcess,
+                         multiprocessing.cpu_count())
     kwargs = arguments.kwargs
     # Initialize
     if calcObservedFunc is None:
@@ -99,10 +122,12 @@ def _runBootstrap(arguments)->dict:
           isPlot=fitter._isPlot)
     # Do the bootstrap iterations
     for iteration in range(numIteration*ITERATION_MULTIPLIER):
-        if (reportInterval > 0) and (numSuccessIteration != lastReport):
-            if numSuccessIteration % reportInterval == 0:
-                print("bootstrap completed %d iterations"
-                      % numSuccessIteration)
+        if (iteration > 0) and (numSuccessIteration != lastReport)  \
+                and (processIdx == 0):
+            totalIteration = numSuccessIteration*processingRate
+            if totalIteration % reportInterval == 0:
+                print("bootstrap completed %d iterations."
+                      % totalIteration)
                 lastReport = numSuccessIteration
         if numSuccessIteration >= numIteration:
             # Performed the iterations
@@ -123,24 +148,11 @@ def _runBootstrap(arguments)->dict:
         dct = newFitter.params.valuesdict()
         [parameterDct[p].append(dct[p]) for p in fitter.parametersToFit]
         newFitter.observedTS = calcObservedFunc(fitter, **kwargs)
+    print("Completed bootstrap process %d." % (processIdx + 1))
     return parameterDct, numSuccessIteration
 
 
 ##################### CLASSES #########################
-class _Arguments():
-    """ Arguments passed to _runBootstrap. """
-
-    def __init__(self, fitter, numIteration:int=10, 
-          reportInterval:int=-1,
-          calcObservedFunc=None,
-           **kwargs: dict):
-        # Same the antimony model, not roadrunner bcause of Pickle
-        self.fitter = fitter.copy()
-        self.numIteration  = numIteration
-        self.reportInterval  = reportInterval
-        self.calcObservedFunc  = calcObservedFunc
-        self.kwargs = kwargs
-
 
 ##############################
 class BootstrapResult():
@@ -232,12 +244,13 @@ class ModelFitterBootstrap(mfc.ModelFitterCore):
         numProcess = max(int(numIteration/ITERATION_PER_PROCESS), 1)
         numProcess = min(numProcess, maxProcess)
         numProcessIteration = int(np.ceil(numIteration/numProcess))
-        args_list = [_Arguments(
-              fitter=self,
+        args_list = [_Arguments(self, numProcess, i,
               numIteration=numProcessIteration,
               reportInterval=reportInterval ,
               calcObservedFunc=calcObservedFunc ,
-              kwargs=kwargs) for _ in range(numProcess)]
+              kwargs=kwargs) for i in range(numProcess)]
+        print("\n**Running bootstrap for %d iterations with %d processes."
+              % (numIteration, numProcess))
         with multiprocessing.Pool(numProcess) as pool:
             results = pool.map(_runBootstrap, args_list)
         pool.join()

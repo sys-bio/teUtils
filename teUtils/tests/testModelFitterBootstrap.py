@@ -34,8 +34,8 @@ class TestModelFitterBootstrap(unittest.TestCase):
         if IGNORE_TEST:
             return
         NUM_ITERATION = 10
-        MAX_DIFF = 2
-        arguments = mfb._Arguments(self.fitter)
+        MAX_DIFF = 4
+        arguments = mfb._Arguments(self.fitter, 1, 0)
         arguments.numIteration = NUM_ITERATION
         parameterDct, numSuccessIteration = mfb._runBootstrap(arguments)
         self.assertEqual(numSuccessIteration, NUM_ITERATION)

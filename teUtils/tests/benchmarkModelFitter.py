@@ -41,7 +41,7 @@ def main(num_iteration):
           ["k1", "k2"], selectedColumns=['S1', 'S3'], isPlot=False)
     fitter.fitModel()
     startTime = time.time()
-    fitter.bootstrap(numIteration=10000)
+    fitter.bootstrap(numIteration=10000, reportInterval=1000)
     elapsedTime = time.time() - startTime
     return elapsedTime
         
