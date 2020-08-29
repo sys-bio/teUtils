@@ -210,7 +210,7 @@ class BootstrapResult():
 class ModelFitterBootstrap(mfc.ModelFitterCore):
 
     def bootstrap(self, numIteration:int=10, 
-          reportInterval:int=-1,
+          reportInterval:int=1000,
           calcObservedFunc=None,
           maxProcess:int=None,
            **kwargs: dict):
