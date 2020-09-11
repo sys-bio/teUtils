@@ -1,5 +1,6 @@
 tabulate
-libroadrunner
 lmfit
 numpy
 tellurium
+pandas
+nose

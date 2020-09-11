@@ -7,13 +7,13 @@ teUtils/__init__.py
 teUtils/_version.py
 teUtils/buildNetworks.py
 teUtils/fileUtils.py
-teUtils/model_fitter.py
-teUtils/named_timeseries.py
+teUtils/fitModel.py
+teUtils/modelFitter.py
+teUtils/modelFitting.py
 teUtils/odePrint.py
+teUtils/parameterScanning.py
 teUtils/plotting.py
 teUtils/prettyTabular.py
-teUtils/scanning.py
-teUtils/timeseries_plotter.py
 teUtils.egg-info/PKG-INFO
 teUtils.egg-info/SOURCES.txt
 teUtils.egg-info/dependency_links.txt

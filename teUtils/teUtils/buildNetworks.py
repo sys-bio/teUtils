@@ -3,8 +3,11 @@
 
 import tellurium as _te
 import random as _random
+import roadrunner
 
 __all__ = ['getLinearChain']
+
+rateConstantScale = 1.0
 
 def _getMMRateLaw (k, s1, s2):
     return 'Vm' + str (k) + '/Km' + str (k) + '0*(' + s1 + '-' + s2 + '/Keq' + str (k) + \
@@ -32,7 +35,7 @@ def getLinearChain (lengthOfChain, rateLawType='MassAction', keqRatio=5):
     
     Example
     -------     
-    >>> s = teUtils.buildNetworks.getLinearChain ('MassAction', 6)
+    >>> s = teUtils.buildNetworks.getLinearChain (6, rateLawType='MassAction')
     >>> r = te.loada (s)
     >>> r.simulate (0, 50, 100)
     >>> r.plot()
@@ -117,7 +120,7 @@ Created on Tue May 15 17:39:53 2018
 #   st = _getFullStoichiometryMatrix (rl)
 #   stt = _removeBoundaryNodes (st)
 #   if len (stt[1]) > 0:
-#      antStr = _genAntimonyScript (stt[1], stt[2], rl)
+#      antStr = _getAntimonyScript (stt[1], stt[2], rl, isReversible)
 
 # floating and boundary Ids are represented as integers
 
@@ -149,20 +152,24 @@ def _pickReactionType():
     
     
 # Generates a reaction network in the form of a reaction list
-# reactionList = [nSpecies, reaction, ....]
-# reaction = [reactionType, [list of reactants], [list of product], rateConstant]
-def generateReactionList (nSpecies, nReactions):
+# reactionList = [nSpecies, reaction, reaction, ....]
+# reaction = [reactionType, [list of reactants], [list of products], rateConstant]
+# Disallowed reactions:
+# S1 -> S1
+# S1 + S2 -> S2  # Can't have the same reactant and product
+# S1 + S1 -> S1
+def _generateReactionList (nSpecies, nReactions):
     
-      
     reactionList = []
     for r in range(nReactions):
         
-       rateConstant = _random.random()
+       rateConstant = _random.random()*rateConstantScale
        rt = _pickReactionType()
        if rt == _TReactionType.UNIUNI:
            # UniUni
            reactant = _random.randint (0, nSpecies-1)
            product = _random.randint (0, nSpecies-1)
+           # Disallow S1 -> S1 type of reaction
            while product == reactant:
                  product = _random.randint (0, nSpecies-1)
            reactionList.append ([rt, [reactant], [product], rateConstant]) 
@@ -174,8 +181,9 @@ def generateReactionList (nSpecies, nReactions):
            reactant2 = _random.randint (0, nSpecies-1)
            # pick a product but only products that don't include the reactants
            species = range (nSpecies)
-           # Remove reactant1 and 2 from list
+           # Remove reactant1 and 2 from the species list
            species = _np.delete (species, [reactant1, reactant2], axis=0)
+           # Then pick a product from the reactants that are left
            product = species[_random.randint (0, len (species)-1)]
                
            reactionList.append ([rt, [reactant1, reactant2], [product], rateConstant]) 
@@ -185,8 +193,9 @@ def generateReactionList (nSpecies, nReactions):
            reactant1 = _random.randint (0, nSpecies-1)
            # pick a product but only products that don't include the reactant
            species = range (nSpecies)
-           # Remove reactant1 from the list
+           # Remove reactant1 from the species list
            species = _np.delete (species, [reactant1], axis=0)
+           # Then pick a product from the reactants that are left
            product1 = species[_random.randint (0, len (species)-1)]
            product2 = species[_random.randint (0, len (species)-1)]
   
@@ -198,8 +207,9 @@ def generateReactionList (nSpecies, nReactions):
            reactant2= _random.randint (0, nSpecies-1)
            # pick a product but only products that don't include the reactant
            species = range (nSpecies)
-           # Remove reactant1 and 2 from list
+           # Remove reactant1 and 2 from the species list
            species = _np.delete (species, [reactant1, reactant2], axis=0)
+           # Then pick a product from the reactants that are left
            product1 = species[_random.randint (0, len (species)-1)]
            product2 = species[_random.randint (0, len (species)-1)]
                
@@ -299,7 +309,7 @@ def _removeBoundaryNodes (st):
     
 
        
-def _genAntimonyScript (floatingIds, boundaryIds, reactionList):
+def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
     
     nSpecies = reactionList[0]
     # Remove the first element which is the nSpecies
@@ -318,15 +328,18 @@ def _genAntimonyScript (floatingIds, boundaryIds, reactionList):
        for index in boundaryIds[1:]:
            antStr = antStr + ', ' + 'S' + str (index)
        antStr = antStr + ';\n'
-
     
     for index, r in enumerate (reactionListCopy):
+        antStr = antStr + 'J' + str (index) + ': '
         if r[0] == _TReactionType.UNIUNI:
            # UniUni
            antStr = antStr + 'S' + str (reactionListCopy[index][1][0])
            antStr = antStr + ' -> '
            antStr = antStr + 'S' + str (reactionListCopy[index][2][0])
-           antStr = antStr + '; k' + str (index) + '*S' + str (reactionListCopy[index][1][0])
+           antStr = antStr + '; E' + str (index) + '*(k' + str (index) + '*S' + str (reactionListCopy[index][1][0])
+           if isReversible:
+              antStr = antStr + ' - k' + str (index) + 'r' + '*S' + str (reactionListCopy[index][2][0])
+           antStr = antStr + ')'
         if r[0] == _TReactionType.BIUNI:
            # BiUni
            antStr = antStr + 'S' + str (reactionListCopy[index][1][0])
@@ -334,7 +347,10 @@ def _genAntimonyScript (floatingIds, boundaryIds, reactionList):
            antStr = antStr + 'S' + str (reactionListCopy[index][1][1])
            antStr = antStr + ' -> '
            antStr = antStr + 'S' + str (reactionListCopy[index][2][0])
-           antStr = antStr + '; k' + str (index) + '*S' + str (reactionListCopy[index][1][0]) + '*S' + str (reactionListCopy[index][1][1])
+           antStr = antStr + '; E' + str (index) + '*(k' + str (index) + '*S' + str (reactionListCopy[index][1][0]) + '*S' + str (reactionListCopy[index][1][1])
+           if isReversible:
+             antStr = antStr + ' - k' + str (index) + 'r' + '*S' + str (reactionListCopy[index][2][0])
+           antStr = antStr + ')'
         if r[0] == _TReactionType.UNIBI:
            # UniBi
            antStr = antStr + 'S' + str (reactionListCopy[index][1][0])
@@ -342,7 +358,10 @@ def _genAntimonyScript (floatingIds, boundaryIds, reactionList):
            antStr = antStr + 'S' + str (reactionListCopy[index][2][0])
            antStr = antStr + ' + '
            antStr = antStr + 'S' + str (reactionListCopy[index][2][1])
-           antStr = antStr + '; k' + str (index) + '*S' + str (reactionListCopy[index][1][0])
+           antStr = antStr + '; E' + str (index) + '*(k' + str (index) + '*S' + str (reactionListCopy[index][1][0])
+           if isReversible:
+             antStr = antStr + ' - k' + str (index) + 'r' + '*S' + str (reactionListCopy[index][2][0]) + '*S' + str (reactionListCopy[index][2][1])
+           antStr = antStr + ')'
         if r[0] == _TReactionType.BIBI:
            # BiBi
            antStr = antStr + 'S' + str (reactionListCopy[index][1][0])
@@ -352,21 +371,34 @@ def _genAntimonyScript (floatingIds, boundaryIds, reactionList):
            antStr = antStr + 'S' + str (reactionListCopy[index][2][0])
            antStr = antStr + ' + '
            antStr = antStr + 'S' + str (reactionListCopy[index][2][1])  
-           antStr = antStr + '; k' + str (index) + '*S' + str (reactionListCopy[index][1][0]) + '*S' + str (reactionListCopy[index][1][1])
+           antStr = antStr + '; E' + str (index) + '*(k' + str (index) + '*S' + str (reactionListCopy[index][1][0]) + '*S' + str (reactionListCopy[index][1][1])
+           if isReversible:
+             antStr = antStr + ' - k' + str (index) + 'r' + '*S' + str (reactionListCopy[index][2][0]) + '*S' + str (reactionListCopy[index][2][1])
+           antStr = antStr + ')'
         antStr = antStr + ';\n'
 
     antStr = antStr + '\n'
     for index, r in enumerate (reactionListCopy):
         antStr = antStr + 'k' + str (index) + ' = ' + str (r[3]) + '\n'
+        if isReversible:
+           antStr = antStr + 'k' + str (index) + 'r = ' + str (_random.random()*rateConstantScale) + '\n'       
         
+    antStr = antStr + '\n'
+    for index, r in enumerate (reactionListCopy):
+        antStr = antStr + 'E' + str (index) + ' = 1\n'
+ 
     antStr = antStr + '\n'
     for index, b in enumerate (boundaryIds):
         antStr = antStr + 'S' + str (b) + ' = ' + str (_random.randint (1,6)) + '\n'
         
+    antStr = antStr + '\n'
+    for index, b in enumerate (floatingIds):
+        antStr = antStr + 'S' + str (b) + ' = ' + str (_random.randint (1,6)) + '\n'
+
     return antStr       
      
 
-def getRandomNetwork (nSpecies, nReactions):  
+def getRandomNetwork (nSpecies, nReactions, isReversible=False):  
     """
     Generate a random network using uniuni, unibi, biuni, and bibi reactions.
     All reactions are governed by mass-action kinetics. User can set the maximum
@@ -377,7 +409,8 @@ def getRandomNetwork (nSpecies, nReactions):
          arg1 (nSpecies integer): Maximum number of species
          
          arg2 (nreaction integer): Maximum number of reactions
-         
+
+         arg3 (isReversible boolean): Set True if the reactions should be reversible     
          
     Return
     ------
@@ -388,16 +421,20 @@ def getRandomNetwork (nSpecies, nReactions):
     >>> model = getRandomNetwork (6, 9)
     >>> r = te.loada(model)
     >>> m = r.simulate (0, 10, 100)      
-    """
-    
-    if nSpecies <= 2:
-        raise Exception ('You must have more than two species')
+    """ 
+    roadrunner.Logger_disableConsoleLogging()
+    roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
 
-    rl =  generateReactionList (nSpecies, nReactions)  
+    rl = _generateReactionList (nSpecies, nReactions)  
+    #print (rl)
     st = _getFullStoichiometryMatrix (rl)
+    #print (st)
+    #fullNetwork = [st, _np.arange (nSpecies), []]
+    #return _getAntimonyScript (fullNetwork[1], fullNetwork[2], rl, isReversible)
+    
     stt = _removeBoundaryNodes (st)
     if len (stt[1]) > 0:
-       return _genAntimonyScript (stt[1], stt[2], rl)
+       return _getAntimonyScript (stt[1], stt[2], rl, isReversible)
     else:
        return ""
 
@@ -405,7 +442,10 @@ if __name__ == '__main__' :
    # import heat map code 
    import teUtils as _teUtils
    
-   mod = getLinearChain ('MassAction', 9, keqRatio=2)
+   roadrunner.Logger_disableConsoleLogging()
+   roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
+    
+   mod = getLinearChain (9, rateLawType='MassAction', keqRatio=2)
    print (mod)
    r = _te.loada (mod)
    m = r.simulate (0, 100, 200)
@@ -414,11 +454,11 @@ if __name__ == '__main__' :
 
    numBadModels = 0
    for i in range (5):
-       rl =  _generateReactionList (8, 8)
+       rl = _generateReactionList (8, 8)
        st = _getFullStoichiometryMatrix (rl)
        stt = _removeBoundaryNodes (st)
        if len (stt[1]) > 0:
-          antStr = _genAntimonyScript (stt[1], stt[2], rl)
+          antStr = _getAntimonyScript (stt[1], stt[2], rl, isReversible=True)
           r = _te.loada(antStr)
           m = r.simulate (0, 10, 100)
           try:

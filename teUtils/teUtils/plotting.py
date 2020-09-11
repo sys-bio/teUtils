@@ -63,8 +63,56 @@ def plotAsciiReactionRatesBar (r, scale=5):
         print ('{:{X}.{Y}}'.format (ids[value], X=maxString, Y=maxString), ':', math.trunc (scale*c[value])*'*')
 
 
+def plotPhasePortraitGrid  (r, pdfExport=None, figsize=(11,8), endTime=200, numPoints=500):
+    '''
+    Plots a grid pf phase portraits of the floating species concentrations.
+    
+    Arguments
+    ---------
+        r : reference
+           roadrunner instance
+        figsize : tuple of float
+           optional: width and heigh of plot in inches
+        endtime : double
+           optional: time to simulate to
+        numPoints: double
+           optional: numberof points to generate for the plot
+        pdfExport : string
+            optional parameter, indicates the filename to export the plot as a pdf file
 
-def plotConcentrationControlHeatMap (r, pdfExport=None):
+    >>> teUtils.plotting.plotPhasePortraitGrid (r)
+    '''
+    slist = sorted (r.getFloatingSpeciesIds())
+    r.reset()
+    m = r.simulate (0, endTime, numPoints, slist)
+    n = r.getNumFloatingSpecies()
+    fig, axarr = _plt.subplots(n, n, figsize=figsize)
+    fig.subplots_adjust (wspace=0.15, hspace=0.15)
+
+    count = 0
+    for i in range(n):
+        for j in range(n):
+            count += 1
+            ax = _plt.subplot2grid ((n,n), (i,j))
+            if i==n-1:
+               ax.set_xlabel (slist[j]) 
+               ax.set_xticklabels([])
+            else:
+               ax.set_xticklabels([])
+               ax.set_xticks([])
+            if j == 0:
+               ax.set_ylabel (slist[i])              
+               ax.set_yticklabels([])
+            else:
+               ax.set_yticklabels([])
+               ax.set_yticks([])
+
+            ax.plot (m[:,i], m[:,j])
+
+    if pdfExport != None:
+        fig.savefig(pdfExport)
+        
+def plotConcentrationControlHeatMap (r, pdfExport=None, annotations=True, figsize=(13,7), vmin=-1, vmax=1):
     '''
     Display the concentation control coefficients as a heat map
     
@@ -73,7 +121,13 @@ def plotConcentrationControlHeatMap (r, pdfExport=None):
         r : reference
             roadrunner instance
         pdfExport : string
-            optional parameter, if present it should indicate the filename to export the heat map image to in the form of pdf
+            optional: indicates the filename to export the heat map image to in the form of pdf
+        annotations (boolean), 
+            optional : used to draw values on teh heatmap cells
+        figsize : tutle of double
+            optional: sets the size of the plot, eg figsize=(10,5)
+        vmin and vmax : double
+            optional: set the lower and upper limits for the range
 
     >>> teUtils.prettyTabular.plotConcentrationControlHeatMap (r, pdfExport='heapmap.pdf')
     '''
@@ -83,17 +137,17 @@ def plotConcentrationControlHeatMap (r, pdfExport=None):
     hist = r.getScaledConcentrationControlCoefficientMatrix()
 
     ss = r.getFloatingSpeciesIds()
-    rr = r.getReactionIds()
+    rr = ["E" + str(x) for x in range (r.getNumReactions())]
 
     df = pd.DataFrame (hist, columns=rr, index=ss)
 
-    f, ax = _plt.subplots(figsize=(9, 6))
-    hp = sns.heatmap(df, annot=True, fmt="5.2f", linewidths=.5, ax=ax,cmap='bwr')
+    f, ax = _plt.subplots(figsize=figsize)
+    hp = sns.heatmap(df, annot=annotations, fmt="5.2f", linewidths=.5, ax=ax,cmap='bwr', vmin=vmin, vmax=vmax)
     if pdfExport != None:
         f.savefig(pdfExport)
 
     
-def plotFluxControlHeatMap (r, pdfExport=None):
+def plotFluxControlHeatMap (r, pdfExport=None, annotations=True, figsize=(13,7), vmin=-1, vmax=1):
     '''
     Display the flux control coefficients as a heat map
     
@@ -103,7 +157,12 @@ def plotFluxControlHeatMap (r, pdfExport=None):
            roadrunner instance
         pdfExport : string
            optional parameter, if present it should indicate the filename to export the heat map image to in the form of pdf
-
+        annotations : boolean
+           used to draw values on teh heatmap cells
+        figsize : tuple
+           sets the size of the plot, eg figsize=(10,5)
+        vmin and vmax : double
+           set the lower and upper limits for the range
     >>> teUtils.prettyTabular.plotFluxControlHeatMap (r, pdfExport='heapmap.pdf')
     '''
 
@@ -111,20 +170,52 @@ def plotFluxControlHeatMap (r, pdfExport=None):
     import pandas as pd
     
     hist = r.getScaledFluxControlCoefficientMatrix()
-
     ss = r.getReactionIds()
-    rr = r.getReactionIds()
+    rr = ["E" + str(x) for x in range (r.getNumReactions())]
 
-    df = pd.DataFrame (hist,columns=rr, index=ss)
+    df = pd.DataFrame (hist, columns=rr, index=ss)
 
-    f, ax = _plt.subplots(figsize=(9, 6))
-    hp = sns.heatmap(df, annot=True, fmt="5.2f", linewidths=.5, vmin=-1, vmax=1, ax=ax,cmap='bwr')
+    f, ax = _plt.subplots(figsize=figsize)
+    hp = sns.heatmap(df, annot=annotations, fmt="5.2f", linewidths=.5, vmin=vmin, vmax=vmax, ax=ax, cmap='bwr')
 
     if pdfExport != None:
         f.savefig(pdfExport)
 
+def plotArrayHeatMap (data, pdfExport=None, annotations=True, figsize=(13,7), vmin=-1, vmax=1):
+    '''
+    Display the flux control coefficients as a heat map
     
-def plotConcentrationControlIn3D (r, upperLimit=1, lowerLimit=-1):
+    Arguments
+    ---------
+        r : reference
+           roadrunner instance
+        pdfExport : string
+           optional parameter, if present it should indicate the filename to export the heat map image to in the form of pdf
+        annotations : boolean
+           used to draw values on teh heatmap cells
+        figsize : tuple
+           sets the size of the plot, eg figsize=(10,5)
+        vmin and vmax : double
+           set the lower and upper limits for the range
+    >>> teUtils.prettyTabular.plotFluxControlHeatMap (r, pdfExport='heapmap.pdf')
+    '''
+
+    import seaborn as sns
+    import pandas as pd
+    
+    #ss = r.getReactionIds()
+    #rr = ["E" + str(x) for x in range (r.getNumReactions())]
+
+    df = pd.DataFrame (data)
+
+    f, ax = _plt.subplots(figsize=figsize)
+    hp = sns.heatmap(df, annot=annotations, fmt="5.2f", linewidths=.5, vmin=vmin, vmax=vmax, ax=ax, cmap='bwr')
+
+    if pdfExport != None:
+       f.savefig(pdfExport)
+
+    
+def plotConcentrationControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(8, 6)):
     '''
     Display the concentation control coefficients as a 3D plot
     
@@ -136,6 +227,8 @@ def plotConcentrationControlIn3D (r, upperLimit=1, lowerLimit=-1):
            optional parameter, sets the lower z axis limit
         upperlimit : float
            optional parameter, sets the upper z axis limit
+        figsize : tuble of float
+           optional: width and heigh of plot in inches
 
     >>> teUtils.prettyTabular.plotConcentrationControlIn3D (r)
     '''
@@ -144,7 +237,7 @@ def plotConcentrationControlIn3D (r, upperLimit=1, lowerLimit=-1):
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
     
-    fig = _plt.figure()
+    fig = _plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection='3d')
     
     hist = r.getScaledConcentrationControlCoefficientMatrix()
@@ -184,7 +277,7 @@ def plotConcentrationControlIn3D (r, upperLimit=1, lowerLimit=-1):
     ax.bar3d (xpos, ypos, zpos, dx, dy, dz, color=colors, zsort='average') 
     
     
-def plotFluxControlIn3D (r, upperLimit=1, lowerLimit=-1):
+def plotFluxControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(9, 7)):
     '''
     Display the flux control coefficients as a 3D plot
 
@@ -196,6 +289,8 @@ def plotFluxControlIn3D (r, upperLimit=1, lowerLimit=-1):
            optional parameter, sets the lower z axis limit
         upperlimit : float
            optional parameter, sets the upper z axis limit
+        figsize : tuble of float
+           optional: width and heigh of plot in inches
 
     >>> teUtils.prettyTabular.plotFluxControlIn3D (r)
     '''
@@ -203,7 +298,7 @@ def plotFluxControlIn3D (r, upperLimit=1, lowerLimit=-1):
     import matplotlib.cm as cm
     import matplotlib.colors as colors
         
-    fig = _plt.figure()
+    fig = _plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection='3d')
     
     hist = r.getScaledFluxControlCoefficientMatrix()
@@ -243,7 +338,29 @@ def plotFluxControlIn3D (r, upperLimit=1, lowerLimit=-1):
     ax.bar3d (xpos, ypos, zpos, dx, dy, dz, color=colors, zsort='average') 
     
     
-def plotFloatingSpecies (r, width=12, height=6):
+def plotReactionRates (r, figsize=(12,6)):
+    '''
+    Plots a graph bar graph of the reaction rates
+    
+    Arguments
+    ---------
+        r : reference
+           roadrunner instance
+        figsize : tuple of float
+           optional: width and heigh of plot in inches
+
+    >>> teUtils.prettyTabular.plotReactionRates (r, figsize=(12,6))
+    '''
+    import matplotlib.pyplot as plt
+    
+    xlabels = r.getReactionIds()
+    rates = r.getReactionRates()
+    _plt.figure(figsize=figsize)    
+    _plt.bar(xlabels, rates, label=xlabels)
+    _plt.xticks(range (len (xlabels)), xlabels,  ha='right', rotation=45)  
+
+
+def plotFloatingSpecies (r, figsize=(12,6)):
     '''
     Plots a graph bar graph of the floating species concentrations.
     
@@ -251,18 +368,16 @@ def plotFloatingSpecies (r, width=12, height=6):
     ---------
         r : reference
            roadrunner instance
-        width : float
-           optional width in inches of the plot
-        height : float
-           optional height in inches of the plot
+        figsize : tuple of float
+           optional: width and heigh of plot in inches
 
-    >>> teUtils.prettyTabular.plotFloatingSpecies (r)
+    >>> teUtils.prettyTabular.plotFloatingSpecies (r, figsize=(12,6))
     '''
     import matplotlib.pyplot as plt
     
     xlabels = r.getFloatingSpeciesIds()
     concs = r.getFloatingSpeciesConcentrations()
-    _plt.figure(figsize=(width,height))    
+    _plt.figure(figsize=figsize)    
     _plt.bar(xlabels, concs, label=xlabels)
     _plt.xticks(range (len (xlabels)), xlabels,  ha='right', rotation=45)    
 
