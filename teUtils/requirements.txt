@@ -5,4 +5,3 @@ numpy
 tabulate
 python-csv
 tellurium
-docstring_expander
