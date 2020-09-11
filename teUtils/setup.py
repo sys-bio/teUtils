@@ -27,7 +27,6 @@ setup(
     packages=['teUtils'],
     version=get_version("teUtils/_version.py"),   # Update the version number for new releases
     #scripts=['teutilities'],    # The name of your scipt, and also the command you'll be using for calling it
-    author='H M Sauro, J Hellerstein',
     author_email='hsauro@uw.edu',
     url='http://tellurium.analogmachine.org',
     description='Utilities for Tellurium',
@@ -46,6 +45,7 @@ setup(
         'numpy', 
         'tellurium',
         'pandas',
+        'python-libsbml',
         'nose',
     ],
     python_requires='>=3.6',

@@ -1,6 +1,0 @@
-#!/bin/bash
-# Jupyter doesn't seem to pick up site-packages in the virtual environment. So put it in the PYTHONPATH.
-bash setup_run.sh
-PYTHONPATH=`pwd`:'/home/ubuntu/teUtils/teUtils/te/lib/python3.6/site-packages'
-export PYTHONPATH
-jupyter notebook

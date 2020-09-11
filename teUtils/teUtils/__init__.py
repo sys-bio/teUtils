@@ -56,7 +56,6 @@ try:
     from . import buildNetworks
     from . import parameterScanning
     from . import fileUtils
-    from . import model_fitter
 except:
     from teUtils import odePrint
     from teUtils import plotting
