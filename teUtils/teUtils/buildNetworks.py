@@ -8,11 +8,27 @@ from   dataclasses import dataclass
 
 __all__ = ['getLinearChain']
 
+
+# General settings for the package
 @dataclass
 class Settings:
   rateConstantScale = 1.0
   allowMassViolatingReactions = False
 
+  @dataclass
+  class ReactionProbabilities:
+         UniUni = 0.4
+         BiUni = 0.3
+         UniBi = 0.3
+         BiBI  = 0.05
+
+  def restoreDefaultProbabilities ():
+      Settings.ReactionProbabilities.UniUni = 0.4
+      Settings.ReactionProbabilities.BiUni = 0.3
+      Settings.ReactionProbabilities.UniBi = 0.3
+      Settings.ReactionProbabilities.BiBI  = 0.05    
+
+# Return strings
 def _getMMRateLaw (k, s1, s2):
     return 'Vm' + str (k) + '/Km' + str (k) + '0*(' + s1 + '-' + s2 + '/Keq' + str (k) + \
     ')/(' + '1 + ' + s1 + '/' + 'Km' + str (k) + '0' + ' + ' \
@@ -44,7 +60,6 @@ def getLinearChain (lengthOfChain, rateLawType='MassAction', keqRatio=5):
     >>> r.simulate (0, 50, 100)
     >>> r.plot()
     """
-
     # Set up a default
     getRateLaw = _getMARateLaw
     n = lengthOfChain
@@ -100,6 +115,7 @@ Created on Tue May 15 17:39:53 2018
 # The following reaction patterns are currently not allowed:
 # X -> X
 
+# The following are allowed if the settings variable allowMassViolatingReactions is set to True
 # X + Y -> X
 # Y + X -> X 
 # X + X -> X
@@ -131,26 +147,21 @@ Created on Tue May 15 17:39:53 2018
 import numpy as _np
 import copy as _copy
 
+@dataclass
 class _TReactionType:
       UNIUNI = 0
       BIUNI = 1
       UNIBI = 2
       BIBI = 3
       
-class _TReactionProbabilities:
-       UniUni = 0.4
-       BiUni = 0.3
-       UniBi = 0.3
-       BiBI  = 0.05
      
-      
 def _pickReactionType():
        rt = _random.random()
-       if rt < _TReactionProbabilities.UniUni:
+       if rt < Settings.ReactionProbabilities.UniUni:
            return _TReactionType.UNIUNI
-       if rt < _TReactionProbabilities.UniUni + _TReactionProbabilities.BiUni:
+       if rt < Settings.ReactionProbabilities.UniUni + Settings.ReactionProbabilities.BiUni:
            return _TReactionType.BIUNI
-       if rt < _TReactionProbabilities.UniUni + _TReactionProbabilities.BiUni + _TReactionProbabilities.UniBi:
+       if rt < Settings.ReactionProbabilities.UniUni + Settings.ReactionProbabilities.BiUni + Settings.ReactionProbabilities.UniBi:
            return _TReactionType.UNIBI
        return _TReactionType.BIBI
     
