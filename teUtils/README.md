@@ -33,6 +33,5 @@ and ascii plots.
 This modules provides two methods to display fluxes and concentrations in a neat tabular format.
 
 # Installation
-1. ``cd teUtils``
-1. ``pip install tellurium``
-1. ``python setup.py install``
+1. ``pip install teUtils``
+2. or ``python setup.py install``

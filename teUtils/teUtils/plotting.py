@@ -337,6 +337,7 @@ def plotFluxControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(9, 7)):
 
     ax.bar3d (xpos, ypos, zpos, dx, dy, dz, color=colors, zsort='average') 
     
+
     
 def plotReactionRates (r, figsize=(12,6)):
     '''

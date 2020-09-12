@@ -45,8 +45,6 @@ setup(
         'numpy', 
         'tellurium',
         'pandas',
-        'python-libsbml',
-        'nose',
     ],
     python_requires='>=3.6',
 )
