@@ -4,10 +4,14 @@
 import tellurium as _te
 import random as _random
 import roadrunner
+from   dataclasses import dataclass
 
 __all__ = ['getLinearChain']
 
-rateConstantScale = 1.0
+@dataclass
+class Settings:
+  rateConstantScale = 1.0
+  allowMassViolatingReactions = False
 
 def _getMMRateLaw (k, s1, s2):
     return 'Vm' + str (k) + '/Km' + str (k) + '0*(' + s1 + '-' + s2 + '/Keq' + str (k) + \
@@ -163,7 +167,7 @@ def _generateReactionList (nSpecies, nReactions):
     reactionList = []
     for r in range(nReactions):
         
-       rateConstant = _random.random()*rateConstantScale
+       rateConstant = _random.random()*Settings.rateConstantScale
        rt = _pickReactionType()
        if rt == _TReactionType.UNIUNI:
            # UniUni
@@ -179,48 +183,59 @@ def _generateReactionList (nSpecies, nReactions):
            # Pick two reactants
            reactant1 = _random.randint (0, nSpecies-1)
            reactant2 = _random.randint (0, nSpecies-1)
-           # pick a product but only products that don't include the reactants
-           species = range (nSpecies)
-           # Remove reactant1 and 2 from the species list
-           species = _np.delete (species, [reactant1, reactant2], axis=0)
-           # Then pick a product from the reactants that are left
-           product = species[_random.randint (0, len (species)-1)]
+           if Settings.allowMassViolatingReactions:
+              product = _random.randint (0, nSpecies-1)
+           else:
+             # pick a product but only products that don't include the reactants
+             species = range (nSpecies)
+             # Remove reactant1 and 2 from the species list
+             species = _np.delete (species, [reactant1, reactant2], axis=0)
+             # Then pick a product from the reactants that are left
+             product = species[_random.randint (0, len (species)-1)]
                
            reactionList.append ([rt, [reactant1, reactant2], [product], rateConstant]) 
 
        if rt == _TReactionType.UNIBI:
-           # UniBi
-           reactant1 = _random.randint (0, nSpecies-1)
-           # pick a product but only products that don't include the reactant
-           species = range (nSpecies)
-           # Remove reactant1 from the species list
-           species = _np.delete (species, [reactant1], axis=0)
-           # Then pick a product from the reactants that are left
-           product1 = species[_random.randint (0, len (species)-1)]
-           product2 = species[_random.randint (0, len (species)-1)]
-  
-           reactionList.append ([rt, [reactant1], [product1, product2], rateConstant]) 
+          # UniBi
+          reactant1 = _random.randint (0, nSpecies-1)
+          if Settings.allowMassViolatingReactions:
+             product1 = _random.randint (0, nSpecies-1)
+             product2 = _random.randint (0, nSpecies-1)
+          else:
+             # pick a product but only products that don't include the reactant
+             species = range (nSpecies)
+             # Remove reactant1 from the species list
+             species = _np.delete (species, [reactant1], axis=0)
+             # Then pick a product from the reactants that are left
+             product1 = species[_random.randint (0, len (species)-1)]
+             product2 = species[_random.randint (0, len (species)-1)]
+    
+          reactionList.append ([rt, [reactant1], [product1, product2], rateConstant]) 
 
        if rt == _TReactionType.BIBI:
-           # BiBi
-           reactant1 = _random.randint (0, nSpecies-1)
-           reactant2= _random.randint (0, nSpecies-1)
-           # pick a product but only products that don't include the reactant
-           species = range (nSpecies)
-           # Remove reactant1 and 2 from the species list
-           species = _np.delete (species, [reactant1, reactant2], axis=0)
-           # Then pick a product from the reactants that are left
-           product1 = species[_random.randint (0, len (species)-1)]
-           product2 = species[_random.randint (0, len (species)-1)]
+          # BiBi
+          reactant1 = _random.randint (0, nSpecies-1)
+          reactant2= _random.randint (0, nSpecies-1)
+          if Settings.allowMassViolatingReactions:
+             product1 = _random.randint (0, nSpecies-1)
+             product2 = _random.randint (0, nSpecies-1)
+          else:
+             # pick a product but only products that don't include the reactant
+             species = range (nSpecies)
+             # Remove reactant1 and 2 from the species list
+             species = _np.delete (species, [reactant1, reactant2], axis=0)
+             # Then pick a product from the reactants that are left
+             product1 = species[_random.randint (0, len (species)-1)]
+             product2 = species[_random.randint (0, len (species)-1)]
                
-           element = [rt, [reactant1, reactant2], [product1, product2], rateConstant]
-           reactionList.append (element)            
+          element = [rt, [reactant1, reactant2], [product1, product2], rateConstant]
+          reactionList.append (element)            
 
     reactionList.insert (0, nSpecies)
     return reactionList
     
 
-# Include boundary and floating species
+# Includes boundary and floating species
 # Returns a list:
 # [New Stoichiometry matrix, list of floatingIds, list of boundaryIds]
 def _getFullStoichiometryMatrix (reactionList):
@@ -381,7 +396,7 @@ def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
     for index, r in enumerate (reactionListCopy):
         antStr = antStr + 'k' + str (index) + ' = ' + str (r[3]) + '\n'
         if isReversible:
-           antStr = antStr + 'k' + str (index) + 'r = ' + str (_random.random()*rateConstantScale) + '\n'       
+           antStr = antStr + 'k' + str (index) + 'r = ' + str (_random.random()*Settings.rateConstantScale) + '\n'       
         
     antStr = antStr + '\n'
     for index, r in enumerate (reactionListCopy):
