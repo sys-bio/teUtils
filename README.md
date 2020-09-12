@@ -33,6 +33,10 @@ and ascii plots.
 This modules provides two methods to display fluxes and concentrations in a neat tabular format.
 
 # Installation
-1. ``pip install teUtils``
+You can install teUtils using pip:
+
+``pip install teUtils``
+
+# Documenation
 
 The documentation can be found at: http://teUtils.readthedocs.io/en/latest/
