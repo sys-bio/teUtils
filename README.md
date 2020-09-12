@@ -34,4 +34,5 @@ This modules provides two methods to display fluxes and concentrations in a neat
 
 # Installation
 1. ``pip install teUtils``
-2. or ``python setup.py install``
+
+The documentation can be found at: http://teUtils.readthedocs.io/en/latest/
