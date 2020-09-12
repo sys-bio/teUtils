@@ -1,4 +1,4 @@
 
 # Edit the version number here and only here
 
-__version__ = "0.975"
+__version__ = "0.976"

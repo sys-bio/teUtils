@@ -3,4 +3,3 @@ lmfit
 numpy
 tellurium
 pandas
-nose

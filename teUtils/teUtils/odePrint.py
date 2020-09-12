@@ -10,7 +10,7 @@ Created on Sat Dec 16 10:36:22 2017
 #from __future__ import absolute_import, division, print_function, unicode_literals
 
 import tellurium as _te
-import libsbml
+import tesbml as libsbml
 
 def getODEsFromSBMLFile (fileName):
     """ Given a SBML file name, this function returns the model
@@ -223,5 +223,5 @@ if __name__ == "__main__":
         // Species initializations:
         S1 = 100; E = 20; S9 = 1;
     ''')
-    odes = _teUtils.getODEsFromModel(r)
+    odes = _teUtils.odePrint.getODEsFromModel(r)
     print (odes)
