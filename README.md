@@ -4,9 +4,10 @@
   </tr>
 </table> 
 
-
 <a href="https://codecov.io/gh/sys-bio/teUtils">
 </a>
+
+<a href=https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)</a>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
