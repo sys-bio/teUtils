@@ -2,7 +2,9 @@
   <tr>
     <td><img src="https://codecov.io/gh/sys-bio/teUtils/branch/master/graph/badge.svg" /></td>
     <td><img src="https://img.shields.io/badge/License-MIT-yellow.svg" /></td>
-    <td><img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/sys-bio/teUtils"></td>
+    <td><img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/w/sys-bio/teUtils"></td>
+    <td><img alt="Read the Docs" src="https://img.shields.io/readthedocs/teutils"></td>
+    <td><img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/teutils"></td>
   </tr>
 </table> 
 
