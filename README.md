@@ -1,13 +1,14 @@
  <table style="width:100%">
   <tr>
     <td><img src="https://codecov.io/gh/sys-bio/teUtils/branch/master/graph/badge.svg" /></td>
+    <td><img srf="https://img.shields.io/badge/License-MIT-yellow.svg" /></td>
   </tr>
 </table> 
 
 <a href="https://codecov.io/gh/sys-bio/teUtils">
 </a>
 
-<a href="https://img.shields.io/badge/License-MIT-yellow.svg">
+
 </a>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
