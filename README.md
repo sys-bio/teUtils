@@ -10,11 +10,19 @@
 </a>
 
 
-
 # Utilities for Tellurium
 
 This repo includes a number of useful utilities for Tellurium users.
 Modules are described below.
+
+# Installation
+You can install teUtils using pip:
+
+``pip install teUtils``
+
+# Documenation
+
+The documentation can be found at: http://teUtils.readthedocs.io/en/latest/
 
 ## buildNetworks
 This modules provides two methods to build a linear chain of reactions using either mass-action or Michaelis-Menten
@@ -32,11 +40,3 @@ and ascii plots.
 ## prettyTabular
 This modules provides two methods to display fluxes and concentrations in a neat tabular format.
 
-# Installation
-You can install teUtils using pip:
-
-``pip install teUtils``
-
-# Documenation
-
-The documentation can be found at: http://teUtils.readthedocs.io/en/latest/
