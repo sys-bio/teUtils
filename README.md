@@ -2,6 +2,7 @@
   <tr>
     <td><img src="https://codecov.io/gh/sys-bio/teUtils/branch/master/graph/badge.svg" /></td>
     <td><img src="https://img.shields.io/badge/License-MIT-yellow.svg" /></td>
+    <td><img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/sys-bio/teUtils"></td>
   </tr>
 </table> 
 
@@ -9,8 +10,6 @@
 </a>
 
 </a>
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # Additional Utilities for Tellurium that we have found useful in our work
 
