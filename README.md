@@ -9,7 +9,7 @@
 <a href="https://codecov.io/gh/sys-bio/teUtils">
 </a>
 
-<img alt="APM" src="https://img.shields.io/apm/l/sys-bio/teUtils">
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
 # Additional Utilities for Tellurium that we have found useful in our work
