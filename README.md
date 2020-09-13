@@ -5,13 +5,14 @@
     <td><img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/w/sys-bio/teUtils"></td>
     <td><img alt="Read the Docs" src="https://img.shields.io/readthedocs/teutils"></td>
     <td><img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/teutils"></td>
+    <td><img alt="GitHub issues" src="https://img.shields.io/github/issues-raw/sys-bio/teutils"></td>
+    <td><img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/teUtils"></td>
   </tr>
 </table> 
 
 <a href="https://codecov.io/gh/sys-bio/teUtils">
 </a>
 
-</a>
 
 # Additional Utilities for Tellurium that we have found useful in our work
 
