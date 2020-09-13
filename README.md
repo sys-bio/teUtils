@@ -11,7 +11,8 @@
 
 </a>
 
-https://img.shields.io/apm/l/teUtils
+
+.. image:: https://img.shields.io/apm/l/teUtils   :alt: APM
 
 
 # Additional Utilities for Tellurium that we have found useful in our work
