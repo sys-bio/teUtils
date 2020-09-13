@@ -7,13 +7,9 @@
 
 
 <a href="https://codecov.io/gh/sys-bio/teUtils">
-<a href="https://img.shields.io/apm/l/teUtils">
-
 </a>
 
-<img alt="APM" src="https://img.shields.io/apm/l/teUtils">
-
-image:https://img.shields.io/apm/l/teUtils[APM]
+<img alt="APM" src="https://img.shields.io/apm/l/plottings">
 
 
 # Additional Utilities for Tellurium that we have found useful in our work
