@@ -7,13 +7,15 @@
 
 
 <a href="https://codecov.io/gh/sys-bio/teUtils">
+<a href="https://img.shields.io/apm/l/teUtils">
+
 </a>
 
 
-# Utilities for Tellurium
 
-This repo includes a number of useful utilities for Tellurium users.
-Modules are described below.
+# Additional Utilities for Tellurium that we have found useful in our work
+
+This repo includes a number of useful utilities for Tellurium users. These include:
 
 # Installation
 You can install teUtils using pip:
