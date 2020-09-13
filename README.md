@@ -1,6 +1,5 @@
  <table style="width:100%">
   <tr>
-    <td><img src="https://api.travis-ci.org/sys-bio/teUtils.svg?branch=master" width="100"/></td>
     <td><img src="https://codecov.io/gh/sys-bio/teUtils/branch/master/graph/badge.svg" /></td>
   </tr>
 </table> 
