@@ -12,17 +12,29 @@ __all__ = ['getLinearChain']
 # General settings for the package
 @dataclass
 class Settings:
+  """ Settings to control some properties of the network generation"""
   rateConstantScale = 1.0
+  """ How much the rate cosntants are scaled by. By default rate constants ge values between 0 and 1.0"""
   allowMassViolatingReactions = False
+  """ If set to true, reactions such as A + B -> A are allowed"""
 
   @dataclass
   class ReactionProbabilities:
+         """ Defines the probabilities of generating different reaction mechanisms.
+         Current probabilities are:
+         
+         UniUni = 0.4
+         BiUni = 0.3
+         UniBi = 0.3
+         BiBI  = 0.05
+         """
          UniUni = 0.4
          BiUni = 0.3
          UniBi = 0.3
          BiBI  = 0.05
 
   def restoreDefaultProbabilities ():
+      """Restore the default settings for the reaction mechanism propabilities"""
       Settings.ReactionProbabilities.UniUni = 0.4
       Settings.ReactionProbabilities.BiUni = 0.3
       Settings.ReactionProbabilities.UniBi = 0.3
@@ -41,24 +53,23 @@ def _getMARateLaw (k, s1, s2):
 def getLinearChain (lengthOfChain, rateLawType='MassAction', keqRatio=5):
     """ Return an Antimony string for a linear chain
     
-    Parameters 
-    ----------      
-        arg1 (integer): Length of generated chain, number of reactions
+    Args:     
+        lengthOfChain (integer): Length of generated chain, number of reactions       
+        rateLawType (string): Optional, can be 'MassAction' (default) or 'Michaelis'
+        keqRatio (float): Optional, maximum size of equilibrium constant
          
-        arg2 (rateLawType String): Optional, can be 'MassAction' (default) or 'Michaelis'
-  
-        arg3 (float): Optional, maximum size of equilibrium constant
-         
-    Return
-    ------
-    result: Antimony string
+    Returns:
+        string :
+           Returns an Antimony string representing the network model
     
-    Example
-    -------     
-    >>> s = teUtils.buildNetworks.getLinearChain (6, rateLawType='MassAction')
-    >>> r = te.loada (s)
-    >>> r.simulate (0, 50, 100)
-    >>> r.plot()
+    Examples:  
+
+    .. code-block:: python 
+
+       >>> s = teUtils.buildNetworks.getLinearChain (6, rateLawType='MassAction')
+       >>> r = te.loada (s)
+       >>> r.simulate (0, 50, 100)
+       >>> r.plot()
     """
     # Set up a default
     getRateLaw = _getMARateLaw
@@ -430,23 +441,19 @@ def getRandomNetwork (nSpecies, nReactions, isReversible=False):
     All reactions are governed by mass-action kinetics. User can set the maximum
     number of reactions and species. 
       
-    Parameters 
-    ----------
-         arg1 (nSpecies integer): Maximum number of species
+    Args:
+         nSpecies (integer): Maximum number of species       
+         nreaction (integer): Maximum number of reactions
+         isReversible (boolean): Set True if the reactions should be reversible     
          
-         arg2 (nreaction integer): Maximum number of reactions
-
-         arg3 (isReversible boolean): Set True if the reactions should be reversible     
-         
-    Return
-    ------
-        result: Antimony network string
-
-    Example
-    -------
-    >>> model = getRandomNetwork (6, 9)
-    >>> r = te.loada(model)
-    >>> m = r.simulate (0, 10, 100)      
+    Returns:
+        string :
+           Returns an Antimony string representing the network model
+    
+    Examples:
+       >>> model = getRandomNetwork (6, 9)
+       >>> r = te.loada(model)
+       >>> m = r.simulate (0, 10, 100)      
     """ 
     roadrunner.Logger_disableConsoleLogging()
     roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)

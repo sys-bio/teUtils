@@ -19,7 +19,9 @@ import shlex
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../teUtils'))
+sys.path.insert(0, os.path.abspath('../../source'))
+
+print ('path = ', os.path.abspath('../../source'))
 
 import sphinx_rtd_theme
 
@@ -37,9 +39,18 @@ import sphinx_rtd_theme
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',
+    'sphinx.ext.mathjax',
     'sphinx.ext.autodoc',
+    'numpydoc',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.doctest',
+    'sphinx.ext.inheritance_diagram',
 ]
+
+# So we don't get two return entries, set to false
+napoleon_use_rtype = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -278,7 +289,7 @@ man_pages = [
 #texinfo_documents = [
 #  (master_doc, 'SimpleSBML', u'SimpleSBML Documentation',
 #   author, 'SimpleSBML', 'Simplified SBML model creation commands.',
-3   'Miscellaneous'),
+#   'Miscellaneous'),
 #]
 
 # Documents to append as an appendix to all manuals.

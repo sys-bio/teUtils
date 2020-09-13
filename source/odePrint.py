@@ -16,7 +16,11 @@ def getODEsFromSBMLFile (fileName):
     """ Given a SBML file name, this function returns the model
     as a string of rules and ODEs
     
-    >>> print (te.getODEsFromSBMLFile ('mymodel.xml'))
+    Args:
+      fileName (string): The path and name of the SBML file
+
+    Example:
+      >>> print (te.getODEsFromSBMLFile ('mymodel.xml'))
     """
 
     sbmlStr = _te.readFromFile (fileName)
@@ -27,7 +31,11 @@ def getODEsFromSBMLString (sbmlStr):
     """ Given a SBML string this fucntion returns the model
     as a string of rules and ODEs
     
-    >>> print (te.getODEsFromSBMLString (sbmlStr))
+    Args:
+      sbmlStr (string): A string representing an SBML model
+
+    Example:
+       >>> print (te.getODEsFromSBMLString (sbmlStr))
     """
 
     extractor = _ODEExtractor (sbmlStr)
@@ -37,8 +45,12 @@ def getODEsFromModel (sbmlModel):
     """Given a roadrunner instance this function returns
     a string of rules and ODEs
     
-    >>> r = te.loada ('S1 -> S2; k1*S1; k1=1')
-    >>> print (te.getODEsFromModel (r))
+    Args: 
+      sbmlModel (string): A reodarunner instance
+      
+    Example:
+      >>> r = te.loada ('S1 -> S2; k1*S1; k1=1')
+      >>> print (te.getODEsFromModel (r))
     """
 
     from roadrunner import RoadRunner

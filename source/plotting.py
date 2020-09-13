@@ -1,32 +1,32 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Jan 16 09:32:22 2018
+#
+# Created on Tue Jan 16 09:32:22 2018
+#
+# @author: hsauro
 
-@author: hsauro
-"""
-
-# Let's only support 3.x series
-#from __future__ import absolute_import, division, print_function, unicode_literals
+# ---------------------------------------------------------------------
+# Plotting Utilities
+# ---------------------------------------------------------------------
 
 import tellurium as _te
 
 from mpl_toolkits.mplot3d import Axes3D as _Axes3D
 import numpy as _np
-import matplotlib.pyplot as _plt
-import teUtils as _teUtils
+import matplotlib.pyplot as plt 
 
 def plotAsciiConcentrationsBar (r, scale=5):
     '''
     Display the floating species concentrations as an ASCII bar chart.
     
-    Argument
-    --------
+    Args:
+    -----
         r : reference 
             roadrunner instance
         scale : integer
             optional parameter to scale the ascii bar graph
 
-    >>> teUtils.prettyTabular.plotAsciiConcentrationsBar (r, scale=20)
+    Example:
+       >>> teUtils.plotting.plotAsciiConcentrationsBar (r, scale=20)
     '''
     
     import math
@@ -43,14 +43,15 @@ def plotAsciiReactionRatesBar (r, scale=5):
     '''
     Display the reaction rates as an ASCII bar chart.
 
-    Argument
-    --------
+    Args:
+    -----
         r : reference
               roadrunner instance
         scale : integer
               optional parameter to scale the ascii bar graph
 
-    >>> teUtils.prettyTabular.plotAsciiReactionRatesBar (r, scale=20)
+    Example:
+       >>> teUtils.plotting.plotAsciiReactionRatesBar (r, scale=20)
     '''
 
     import math
@@ -67,8 +68,7 @@ def plotPhasePortraitGrid  (r, pdfExport=None, figsize=(11,8), endTime=200, numP
     '''
     Plots a grid pf phase portraits of the floating species concentrations.
     
-    Arguments
-    ---------
+    Args:
         r : reference
            roadrunner instance
         figsize : tuple of float
@@ -80,7 +80,8 @@ def plotPhasePortraitGrid  (r, pdfExport=None, figsize=(11,8), endTime=200, numP
         pdfExport : string
             optional parameter, indicates the filename to export the plot as a pdf file
 
-    >>> teUtils.plotting.plotPhasePortraitGrid (r)
+    Example:
+      >>> teUtils.plotting.plotPhasePortraitGrid (r)
     '''
     slist = sorted (r.getFloatingSpeciesIds())
     r.reset()
@@ -116,8 +117,7 @@ def plotConcentrationControlHeatMap (r, pdfExport=None, annotations=True, figsiz
     '''
     Display the concentation control coefficients as a heat map
     
-    Arguments
-    ---------
+    Args:
         r : reference
             roadrunner instance
         pdfExport : string
@@ -129,7 +129,8 @@ def plotConcentrationControlHeatMap (r, pdfExport=None, annotations=True, figsiz
         vmin and vmax : double
             optional: set the lower and upper limits for the range
 
-    >>> teUtils.prettyTabular.plotConcentrationControlHeatMap (r, pdfExport='heapmap.pdf')
+    Example:
+      >>> teUtils.plotting.plotConcentrationControlHeatMap (r, pdfExport='heapmap.pdf')
     '''
 
     import seaborn as sns
@@ -151,8 +152,7 @@ def plotFluxControlHeatMap (r, pdfExport=None, annotations=True, figsize=(13,7),
     '''
     Display the flux control coefficients as a heat map
     
-    Arguments
-    ---------
+    Args:
         r : reference
            roadrunner instance
         pdfExport : string
@@ -163,7 +163,9 @@ def plotFluxControlHeatMap (r, pdfExport=None, annotations=True, figsize=(13,7),
            sets the size of the plot, eg figsize=(10,5)
         vmin and vmax : double
            set the lower and upper limits for the range
-    >>> teUtils.prettyTabular.plotFluxControlHeatMap (r, pdfExport='heapmap.pdf')
+
+    Example:
+       >>> teUtils.plotting.plotFluxControlHeatMap (r, pdfExport='heapmap.pdf')
     '''
 
     import seaborn as sns
@@ -185,8 +187,7 @@ def plotArrayHeatMap (data, pdfExport=None, annotations=True, figsize=(13,7), vm
     '''
     Display the flux control coefficients as a heat map
     
-    Arguments
-    ---------
+    Args:
         r : reference
            roadrunner instance
         pdfExport : string
@@ -197,7 +198,9 @@ def plotArrayHeatMap (data, pdfExport=None, annotations=True, figsize=(13,7), vm
            sets the size of the plot, eg figsize=(10,5)
         vmin and vmax : double
            set the lower and upper limits for the range
-    >>> teUtils.prettyTabular.plotFluxControlHeatMap (r, pdfExport='heapmap.pdf')
+
+    Example:
+       >>> teUtils.plotting.plotFluxControlHeatMap (r, pdfExport='heapmap.pdf')
     '''
 
     import seaborn as sns
@@ -219,8 +222,7 @@ def plotConcentrationControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(8, 6)
     '''
     Display the concentation control coefficients as a 3D plot
     
-    Arguments
-    ---------
+    Args:
         r : reference
            roadrunner instance
         upperlimit : float 
@@ -230,7 +232,8 @@ def plotConcentrationControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(8, 6)
         figsize : tuble of float
            optional: width and heigh of plot in inches
 
-    >>> teUtils.prettyTabular.plotConcentrationControlIn3D (r)
+    Example:
+       >>> teUtils.plotting.plotConcentrationControlIn3D (r)
     '''
 
     import matplotlib.colors as colors
@@ -281,8 +284,7 @@ def plotFluxControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(9, 7)):
     '''
     Display the flux control coefficients as a 3D plot
 
-    Arguments
-    ---------
+    Args:
         r : reference
            roadrunner instance
         upperlimit : float 
@@ -292,7 +294,8 @@ def plotFluxControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(9, 7)):
         figsize : tuble of float
            optional: width and heigh of plot in inches
 
-    >>> teUtils.prettyTabular.plotFluxControlIn3D (r)
+    Example:
+       >>> teUtils.plotting.plotFluxControlIn3D (r)
     '''
 
     import matplotlib.cm as cm
@@ -343,14 +346,14 @@ def plotReactionRates (r, figsize=(12,6)):
     '''
     Plots a graph bar graph of the reaction rates
     
-    Arguments
-    ---------
+    Args:
         r : reference
            roadrunner instance
         figsize : tuple of float
            optional: width and heigh of plot in inches
 
-    >>> teUtils.prettyTabular.plotReactionRates (r, figsize=(12,6))
+    Example:
+       >>> teUtils.plotting.plotReactionRates (r, figsize=(12,6))
     '''
     import matplotlib.pyplot as plt
     
@@ -365,14 +368,14 @@ def plotFloatingSpecies (r, figsize=(12,6)):
     '''
     Plots a graph bar graph of the floating species concentrations.
     
-    Arguments
-    ---------
+    Args:
         r : reference
            roadrunner instance
         figsize : tuple of float
            optional: width and heigh of plot in inches
 
-    >>> teUtils.prettyTabular.plotFloatingSpecies (r, figsize=(12,6))
+    Example:
+       >>> teUtils.plotting.plotFloatingSpecies (r, figsize=(12,6))
     '''
     import matplotlib.pyplot as plt
     
@@ -382,25 +385,31 @@ def plotFloatingSpecies (r, figsize=(12,6)):
     _plt.bar(xlabels, concs, label=xlabels)
     _plt.xticks(range (len (xlabels)), xlabels,  ha='right', rotation=45)    
 
-# ---------------------------------------------------------------------
-# Plotting Utilities
-# ---------------------------------------------------------------------
+
 def plotArray(result, loc='upper right', show=True, resetColorCycle=True,
              xlabel=None, ylabel=None, title=None, xlim=None, ylim=None,
              xscale='linear', yscale="linear", grid=False, labels=None, **kwargs):
-    """ Plot an array.
-    The first column of the array must be the x-axis and remaining columns the y-axis. Returns
-    a handle to the plotting object. Note that you can add plotting options as named key values after
+    """ Plot a 2D graph based on an array where the first column is the x-axis
+
+    The first column of the array must be the x-axis and remaining columns the y-axis.  
+    Note that you can add plotting options as named key values after
     the array. To add a legend, include the label legend values:
     te.plotArray (m, labels=['Label 1, 'Label 2', etc])
     Make sure you include as many labels as there are curves to plot!
     Use show=False to add multiple curves. Use color='red' to use the same color for every curve.
-    ::
-        import numpy as np
-        result = _np.array([[1,2,3], [7.2,6.5,8.8], [9.8, 6.5, 4.3]])
-        te.plotArray(result, title="My graph', xlim=((0, 5)))
-    """
 
+    Args:
+        r : reference
+           roadrunner instance
+
+    Returns:
+       Returns a handle to the plotting object.
+
+    Example:
+        >>> import numpy as np
+        >>> result = _np.array([[1,2,3], [7.2,6.5,8.8], [9.8, 6.5, 4.3]])
+        >>> te.plotArray(result, title="My graph', xlim=((0, 5)))
+    """
     # FIXME: unify r.plot & _te.plot (lots of code duplication)
     # reset color cycle (columns in repeated simulations have same color)
     if resetColorCycle:
@@ -472,17 +481,18 @@ def testme():
     """)
 
     r.steadyState()
-    _teUtils.plotting.plotFloatingSpecies (r, width=6,height=3)
+    plotting.plotFloatingSpecies (r, width=6,height=3)
     
-    _teUtils.plotting.plotConcentrationControlIn3D (r)
-    _teUtils.plotting.plotFluxControlIn3D (r, lowerLimit=0)
+    plotting.plotConcentrationControlIn3D (r)
+    plotting.plotFluxControlIn3D (r, lowerLimit=0)
     
-    _teUtils.plotting.plotConcentrationControlHeatMap (r)
-    _teUtils.plotting.plotFluxControlHeatMap (r)
+    plotting.plotConcentrationControlHeatMap (r)
+    plotting.plotFluxControlHeatMap (r)
 
 
 if __name__ == "__main__":
 
+    import teUtils
     r = _te.loada("""
          J1: $Xo -> S1;  k1*Xo - k11*S1;
          J2:  S1 -> S2;  k2*S1 - k22*S2;
@@ -503,17 +513,17 @@ if __name__ == "__main__":
     """)
     
     m = r.simulate(0, 100,200)
-    _teUtils.plotting.plotArray (m)
-    _teUtils.plotting.plotWithLegend (r, m)
+    teUtils.plotting.plotArray (m)
+    teUtils.plotting.plotWithLegend (r, m)
     
     r.steadyState()
-    _teUtils.plotting.plotFloatingSpecies (r, width=6,height=3)
+    teUtils.plotting.plotFloatingSpecies (r, figsize=(6,3))
     
-    _teUtils.plotting.plotConcentrationControlIn3D (r)
-    _teUtils.plotting.plotFluxControlIn3D (r, lowerLimit=0)
+    teUtils.plotting.plotConcentrationControlIn3D (r)
+    teUtils.plotting.plotFluxControlIn3D (r, lowerLimit=0)
     
-    _teUtils.plotting.plotConcentrationControlHeatMap (r)
-    _teUtils.plotting.plotFluxControlHeatMap (r)
+    teUtils.plotting.plotConcentrationControlHeatMap (r)
+    teUtils.plotting.plotFluxControlHeatMap (r)
     
 
 
