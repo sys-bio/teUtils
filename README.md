@@ -29,14 +29,17 @@ This modules provides two methods to build a linear chain of reactions using eit
 kinetics or a random network using uniuni, unibi, biuni or bibi mass-action governed reactions. 
 
 ## odePrint
-
-This provides a number of methods convert SBML into the equations representing the model. 
+This provides a number of methods to convert SBML into the equations representing the model. 
    
 ## plotting
-
-This modules contains a variety of additional plotting methods, include 3D, heatmaps for control coefficients, 
-and ascii plots.
+This modules contains a variety of additional plotting methods, include 3D, heatmaps for control coefficients, ascii plots, phase plots and more.
 
 ## prettyTabular
-This modules provides two methods to display fluxes and concentrations in a neat tabular format.
+This modules provides two methods to display fluxes and concentrations in a neat tabular format using jsut ascii characters.
+
+## fileUtils
+File utilties that simply some operation whch for some reason are not available in Python
+
+## parameterScanning
+This package only has one method currently which is a single method to make time course parameter scanning easier
 
