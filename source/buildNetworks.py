@@ -446,21 +446,29 @@ def getRandomNetwork (nSpecies, nReactions, isReversible=False, returnStoichiome
          nreaction (integer): Maximum number of reactions
          isReversible (boolean): Set True if the reactions should be reversible  
          returnStoichiometryMatrix (boolean): Set True to make the function return the stoichiometry matrix that
-         only inludes the floating species. If you want the full stoichiometriy matrix that includes the boundary
-         species as well, set the returnFullStoichiometryMatrix to True
+             only inludes the floating species. If you want the full stoichiometriy matrix that includes the boundary
+             species as well, set the returnFullStoichiometryMatrix to True
          returnFullStoichiometryMatrix (boolean): Set True if you want the full stoichometry matrix returned. The 
-         full matrix will include any boundary species in the network.
+             full matrix will include any boundary species in the network.
                
     Returns:
         string :
            Returns an Antimony string representing the network model
     
-    Examples:
+    Examples::
+
        >>> model = getRandomNetwork (6, 9)
        >>> r = te.loada(model)
        >>> m = r.simulate (0, 10, 100)   
        
-       >>> model = getRandomNetwork (
+       >>> model = getRandomNetwork (6, 7, returnStoichiometryMatrix=True)
+
+         array([[ 0.,  0.,  1.,  0., -1.,  0.,  0.],
+               [ 1.,  0.,  0.,  1.,  0., -1.,  1.],
+               [-1.,  1.,  0.,  0.,  0.,  0.,  0.],
+               [ 0.,  0.,  1.,  0.,  0.,  0., -1.],
+               [ 0., -1.,  0., -1.,  0.,  1.,  0.],
+               [ 0.,  0., -1.,  0.,  1.,  0.,  0.]])
     """ 
     roadrunner.Logger_disableConsoleLogging()
     roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
