@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 import os.path
 import codecs
 
@@ -24,8 +24,8 @@ def get_version(rel_path):
 
 setup(
     name='teUtils',    # This is the name of your PyPI-package.
-    packages=['source'],
-    version=get_version("source/_version.py"),   # Update the version number for new releases
+    packages=find_packages(),
+    version=get_version("teUtils/_version.py"),   # Update the version number for new releases
     #scripts=['teutilities'],    # The name of your scipt, and also the command you'll be using for calling it
     author_email='hsauro@uw.edu',
     url='http://tellurium.analogmachine.org',
