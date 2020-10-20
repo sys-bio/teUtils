@@ -12,7 +12,7 @@ import tellurium as _te
 
 from mpl_toolkits.mplot3d import Axes3D as _Axes3D
 import numpy as _np
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as _plt 
 
 def plotAsciiConcentrationsBar (r, scale=5):
     '''
