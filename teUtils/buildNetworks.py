@@ -477,7 +477,7 @@ def getRandomNetwork (nSpecies, nReactions, isReversible=False, returnStoichiome
     st = _getFullStoichiometryMatrix (rl)
     
     if returnFullStoichiometryMatrix:
-        return st
+       return st
     
     stt = _removeBoundaryNodes (st)
     if returnStoichiometryMatrix:

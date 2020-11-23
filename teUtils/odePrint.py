@@ -165,9 +165,9 @@ class _ODEExtractor:
         r = ''
         for i in range (self.model.getNumRules()):
             if self.model.getRule(i).getType() == 0:
-                r += 'd' + self.model.getRule(i).id + '/dt = ' + self.model.getRule(i).formula + '\n'
+                r += 'd' + self.model.getRule(i).getId() + '/dt = ' + self.model.getRule(i).getFormula() + '\n'
             if self.model.getRule(i).getType() == 1:
-                r += self.model.getRule(i).id + ' = ' + self.model.getRule(i).formula + '\n'
+                r += self.model.getRule(i).getId() + ' = ' + self.model.getRule(i).getFormula() + '\n'
         return r
 
     def _getKineticLaws (self):
@@ -191,7 +191,7 @@ class _ODEExtractor:
         r = self._getRules()
         r = r + self._getKineticLaws() + '\n'
         for index in range (self.model.getNumSpecies()):
-            if not self.model.getSpecies (index).boundary_condition:
+            if not self.model.getSpecies (index).getBoundaryCondition():
                r = r + self._getRateOfChange (index)
         return r
 
