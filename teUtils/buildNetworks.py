@@ -3,7 +3,12 @@
 
 import tellurium as _te
 import random as _random
-import roadrunner
+importRoadrunnerFail = False;
+try:
+  import roadrunner
+except:
+    importRoadrunnerFail = True
+    
 from   dataclasses import dataclass
 
 __all__ = ['getLinearChain']
@@ -17,6 +22,8 @@ class Settings:
   """ How much the rate cosntants are scaled by. By default rate constants ge values between 0 and 1.0"""
   allowMassViolatingReactions = False
   """ If set to true, reactions such as A + B -> A are allowed"""
+  addDegradationSteps = False;
+  """Set true if you want every floating node (not boundary nodes) to have a degradation step"""
 
   @dataclass
   class ReactionProbabilities:
@@ -178,11 +185,11 @@ def _pickReactionType():
     
     
 # Generates a reaction network in the form of a reaction list
-# reactionList = [nSpecies, reaction, reaction, ....]
+# reactionList = [numSpecies, reaction, reaction, ....]
 # reaction = [reactionType, [list of reactants], [list of products], rateConstant]
 # Disallowed reactions:
 # S1 -> S1
-# S1 + S2 -> S2  # Can't have the same reactant and product
+# S1 + S2 -> S2  # Can't have the same reactant and product unless allowMassViolatingReactions is true
 # S1 + S1 -> S1
 def _generateReactionList (nSpecies, nReactions):
     
@@ -366,64 +373,80 @@ def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
            antStr = antStr + ', ' + 'S' + str (index)
        antStr = antStr + ';\n'
     
-    for index, r in enumerate (reactionListCopy):
-        antStr = antStr + 'J' + str (index) + ': '
+    for reactionIndex, r in enumerate (reactionListCopy):
+        antStr = antStr + 'J' + str (reactionIndex) + ': '
         if r[0] == _TReactionType.UNIUNI:
            # UniUni
-           antStr = antStr + 'S' + str (reactionListCopy[index][1][0])
+           antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][1][0])
            antStr = antStr + ' -> '
-           antStr = antStr + 'S' + str (reactionListCopy[index][2][0])
-           antStr = antStr + '; E' + str (index) + '*(k' + str (index) + '*S' + str (reactionListCopy[index][1][0])
+           antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][2][0])
+           antStr = antStr + '; E' + str (reactionIndex) + '*(k' + str (reactionIndex) + '*S' + str (reactionListCopy[reactionIndex][1][0])
            if isReversible:
-              antStr = antStr + ' - k' + str (index) + 'r' + '*S' + str (reactionListCopy[index][2][0])
+              antStr = antStr + ' - k' + str (reactionIndex) + 'r' + '*S' + str (reactionListCopy[reactionIndex][2][0])
            antStr = antStr + ')'
         if r[0] == _TReactionType.BIUNI:
            # BiUni
-           antStr = antStr + 'S' + str (reactionListCopy[index][1][0])
+           antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][1][0])
            antStr = antStr + ' + '
-           antStr = antStr + 'S' + str (reactionListCopy[index][1][1])
+           antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][1][1])
            antStr = antStr + ' -> '
-           antStr = antStr + 'S' + str (reactionListCopy[index][2][0])
-           antStr = antStr + '; E' + str (index) + '*(k' + str (index) + '*S' + str (reactionListCopy[index][1][0]) + '*S' + str (reactionListCopy[index][1][1])
+           antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][2][0])
+           antStr = antStr + '; E' + str (reactionIndex) + '*(k' + str (reactionIndex) + '*S' + str (reactionListCopy[reactionIndex][1][0]) + '*S' + str (reactionListCopy[reactionIndex][1][1])
            if isReversible:
-             antStr = antStr + ' - k' + str (index) + 'r' + '*S' + str (reactionListCopy[index][2][0])
+             antStr = antStr + ' - k' + str (reactionIndex) + 'r' + '*S' + str (reactionListCopy[reactionIndex][2][0])
            antStr = antStr + ')'
         if r[0] == _TReactionType.UNIBI:
            # UniBi
-           antStr = antStr + 'S' + str (reactionListCopy[index][1][0])
+           antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][1][0])
            antStr = antStr + ' -> '
-           antStr = antStr + 'S' + str (reactionListCopy[index][2][0])
+           antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][2][0])
            antStr = antStr + ' + '
-           antStr = antStr + 'S' + str (reactionListCopy[index][2][1])
-           antStr = antStr + '; E' + str (index) + '*(k' + str (index) + '*S' + str (reactionListCopy[index][1][0])
+           antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][2][1])
+           antStr = antStr + '; E' + str (index) + '*(k' + str (reactionIndex) + '*S' + str (reactionListCopy[reactionIndex][1][0])
            if isReversible:
-             antStr = antStr + ' - k' + str (index) + 'r' + '*S' + str (reactionListCopy[index][2][0]) + '*S' + str (reactionListCopy[index][2][1])
+             antStr = antStr + ' - k' + str (reactionIndex) + 'r' + '*S' + str (reactionListCopy[reactionIndex][2][0]) + '*S' + str (reactionListCopy[reactionIndex][2][1])
            antStr = antStr + ')'
         if r[0] == _TReactionType.BIBI:
            # BiBi
-           antStr = antStr + 'S' + str (reactionListCopy[index][1][0])
+           antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][1][0])
            antStr = antStr + ' + '
-           antStr = antStr + 'S' + str (reactionListCopy[index][1][1])
+           antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][1][1])
            antStr = antStr + ' -> '
-           antStr = antStr + 'S' + str (reactionListCopy[index][2][0])
+           antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][2][0])
            antStr = antStr + ' + '
-           antStr = antStr + 'S' + str (reactionListCopy[index][2][1])  
-           antStr = antStr + '; E' + str (index) + '*(k' + str (index) + '*S' + str (reactionListCopy[index][1][0]) + '*S' + str (reactionListCopy[index][1][1])
+           antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][2][1])  
+           antStr = antStr + '; E' + str (reactionIndex) + '*(k' + str (reactionIndex) + '*S' + str (reactionListCopy[reactionIndex][1][0]) + '*S' + str (reactionListCopy[reactionIndex][1][1])
            if isReversible:
-             antStr = antStr + ' - k' + str (index) + 'r' + '*S' + str (reactionListCopy[index][2][0]) + '*S' + str (reactionListCopy[index][2][1])
+             antStr = antStr + ' - k' + str (reactionIndex) + 'r' + '*S' + str (reactionListCopy[reactionIndex][2][0]) + '*S' + str (reactionListCopy[reactionIndex][2][1])
            antStr = antStr + ')'
         antStr = antStr + ';\n'
 
+
+    if Settings.addDegradationSteps:
+       reactionIndex += 1
+       parameterIndex = reactionIndex
+       for sp in floatingIds:
+           antStr = antStr + 'S' + str (sp) + ' ->; ' + 'k' + str (reactionIndex) + '*' + 'S' + str (sp) + '\n'
+           reactionIndex += 1
+        
     antStr = antStr + '\n'
     for index, r in enumerate (reactionListCopy):
         antStr = antStr + 'k' + str (index) + ' = ' + str (r[3]) + '\n'
         if isReversible:
            antStr = antStr + 'k' + str (index) + 'r = ' + str (_random.random()*Settings.rateConstantScale) + '\n'       
+   
+    if Settings.addDegradationSteps:
+       # Next the degradation rate constants
+       for sp in floatingIds:
+           #antStr = antStr + 'k' + str (parameterIndex) + ' = ' + str (_random.random()*Settings.rateConstantScale) + '\n' 
+           antStr = antStr + 'k' + str (parameterIndex) + ' = ' +  '0.01' + '\n' 
+           parameterIndex += 1        
         
     antStr = antStr + '\n'
     for index, r in enumerate (reactionListCopy):
         antStr = antStr + 'E' + str (index) + ' = 1\n'
  
+       
     antStr = antStr + '\n'
     for index, b in enumerate (boundaryIds):
         antStr = antStr + 'S' + str (b) + ' = ' + str (_random.randint (1,6)) + '\n'
@@ -434,22 +457,57 @@ def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
 
     return antStr       
      
+     
+def getRandomNetworkDataStructure (nSpecies, nReactions, isReversible=False, randomSeed=-1):  
+    """
+    Return a random network in the form of a data stucture containing the floating species, boundary
+    species and reaction list
 
-def getRandomNetwork (nSpecies, nReactions, isReversible=False, returnStoichiometryMatrix=False, returnFullStoichiometryMatrix=False):  
+    Args:
+         nSpecies (integer): Maximum number of species       
+         nreaction (integer): Maximum number of reactions
+         isReversible (boolean): Set True if the reactions should be reversible  
+         randomSeed: Set this to a positive number if you want to set the random number genreator seed (allow repeatabiliy of a run)
+
+    Returns:
+         Returns a list structure representing the network model
+         reactionList = [numSpecies, reaction, reaction, ....]
+         reaction = [reactionType, [list of reactants], [list of products], rateConstant]
+
+
+    """
+ 
+    if not importRoadrunnerFail:
+        roadrunner.Logger_disableConsoleLogging()
+        roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
+
+    if randomSeed != -1:
+       _random.seed (randomSeed)
+       
+    rl = _generateReactionList (nSpecies, nReactions)  
+    st = _getFullStoichiometryMatrix (rl)
+ 
+    stt = _removeBoundaryNodes (st)
+     
+    return [stt[1], stt[2], rl, isReversible]
+
+    
+def getRandomNetwork (nSpecies, nReactions, isReversible=False, returnStoichiometryMatrix=False, randomSeed=-1, returnFullStoichiometryMatrix=False):  
     """
     Generate a random network using uniuni, unibi, biuni, and bibi reactions.
     All reactions are governed by mass-action kinetics. User can set the maximum
     number of reactions and species. 
       
     Args:
-         nSpecies (integer): Maximum number of species       
-         nreaction (integer): Maximum number of reactions
-         isReversible (boolean): Set True if the reactions should be reversible  
-         returnStoichiometryMatrix (boolean): Set True to make the function return the stoichiometry matrix that
-             only inludes the floating species. If you want the full stoichiometriy matrix that includes the boundary
-             species as well, set the returnFullStoichiometryMatrix to True
-         returnFullStoichiometryMatrix (boolean): Set True if you want the full stoichometry matrix returned. The 
-             full matrix will include any boundary species in the network.
+        nSpecies (integer): Maximum number of species       
+        nreaction (integer): Maximum number of reactions
+        isReversible (boolean): Set True if the reactions should be reversible  
+        returnStoichiometryMatrix (boolean): Set True to make the function return the stoichiometry matrix that
+            only inludes the floating species. If you want the full stoichiometriy matrix that includes the boundary
+            species as well, set the returnFullStoichiometryMatrix to True
+        randomSeed: Set this to a positive number if you want to set the random number genreator seed (allow repeatabiliy of a run)
+        returnFullStoichiometryMatrix (boolean): Set True if you want the full stoichometry matrix returned. The 
+            full matrix will include any boundary species in the network.
                
     Returns:
         string :
@@ -470,9 +528,13 @@ def getRandomNetwork (nSpecies, nReactions, isReversible=False, returnStoichiome
                [ 0., -1.,  0., -1.,  0.,  1.,  0.],
                [ 0.,  0., -1.,  0.,  1.,  0.,  0.]])
     """ 
-    roadrunner.Logger_disableConsoleLogging()
-    roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
+    if not importRoadrunnerFail:
+       roadrunner.Logger_disableConsoleLogging()
+       roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
 
+    if randomSeed != -1:
+       _random.seed (randomSeed)
+       
     rl = _generateReactionList (nSpecies, nReactions)  
     st = _getFullStoichiometryMatrix (rl)
     
@@ -483,17 +545,21 @@ def getRandomNetwork (nSpecies, nReactions, isReversible=False, returnStoichiome
     if returnStoichiometryMatrix:
        return stt[0]
    
+    # stt[1] = floating species Ids
+    # stt[2] = boundary species Ids    
     if len (stt[1]) > 0:
        return _getAntimonyScript (stt[1], stt[2], rl, isReversible)
     else:
        return ""
 
+
 if __name__ == '__main__' :
    # import heat map code 
    import teUtils as _teUtils
    
-   roadrunner.Logger_disableConsoleLogging()
-   roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
+   if not importRoadrunnerFail:
+      roadrunner.Logger_disableConsoleLogging()
+      roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
     
    mod = getLinearChain (9, rateLawType='MassAction', keqRatio=2)
    print (mod)
