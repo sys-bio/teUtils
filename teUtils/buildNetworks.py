@@ -475,8 +475,7 @@ def getRandomNetworkDataStructure (nSpecies, nReactions, isReversible=False, ran
          reaction = [reactionType, [list of reactants], [list of products], rateConstant]
 
 
-    """
- 
+    """   
     if not importRoadrunnerFail:
         roadrunner.Logger_disableConsoleLogging()
         roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
@@ -489,6 +488,10 @@ def getRandomNetworkDataStructure (nSpecies, nReactions, isReversible=False, ran
  
     stt = _removeBoundaryNodes (st)
      
+    if Settings.addDegradationSteps:
+       for sp in stt[1]:
+           rl.append ([_TReactionType.UNIUNI, [sp], [], 0.01])
+            
     return [stt[1], stt[2], rl, isReversible]
 
     
@@ -527,7 +530,7 @@ def getRandomNetwork (nSpecies, nReactions, isReversible=False, returnStoichiome
                [ 0.,  0.,  1.,  0.,  0.,  0., -1.],
                [ 0., -1.,  0., -1.,  0.,  1.,  0.],
                [ 0.,  0., -1.,  0.,  1.,  0.,  0.]])
-    """ 
+    """    
     if not importRoadrunnerFail:
        roadrunner.Logger_disableConsoleLogging()
        roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
@@ -544,7 +547,7 @@ def getRandomNetwork (nSpecies, nReactions, isReversible=False, returnStoichiome
     stt = _removeBoundaryNodes (st)
     if returnStoichiometryMatrix:
        return stt[0]
-   
+      
     # stt[1] = floating species Ids
     # stt[2] = boundary species Ids    
     if len (stt[1]) > 0:
