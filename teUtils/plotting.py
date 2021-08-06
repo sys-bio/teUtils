@@ -66,7 +66,7 @@ def plotAsciiReactionRatesBar (r, scale=5):
 
 def plotPhasePortraitGrid  (r, pdfExport=None, figsize=(11,8), endTime=200, numPoints=500):
     '''
-    Plots a grid pf phase portraits of the floating species concentrations.
+    Plots a grid of phase portraits of the floating species concentrations.
     
     Args:
         r : reference
@@ -83,11 +83,15 @@ def plotPhasePortraitGrid  (r, pdfExport=None, figsize=(11,8), endTime=200, numP
     Example:
       >>> teUtils.plotting.plotPhasePortraitGrid (r)
     '''
+    print ("Starting....")
     slist = sorted (r.getFloatingSpeciesIds())
     r.reset()
+    print ('Run simulation...')
     m = r.simulate (0, endTime, numPoints, slist)
     n = r.getNumFloatingSpecies()
+    print ('Creating subplots (will take a while for a large grid)...')
     fig, axarr = _plt.subplots(n, n, figsize=figsize)
+    print ("Adjust subplots...")
     fig.subplots_adjust (wspace=0.15, hspace=0.15)
 
     count = 0
@@ -218,7 +222,7 @@ def plotArrayHeatMap (data, pdfExport=None, annotations=True, figsize=(13,7), vm
        f.savefig(pdfExport)
 
     
-def plotConcentrationControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(8, 6)):
+def plotConcentrationControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(10, 8)):
     '''
     Display the concentation control coefficients as a 3D plot
     
@@ -271,10 +275,10 @@ def plotConcentrationControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(8, 6)
     ax.set_zlabel('Control Coefficient')
     ax.set_xlabel('Species')
     ax.set_ylabel('Enzymes')
-    ax.w_xaxis.set_ticks(_np.arange (float (hist.shape[0]) + 1))
+    ax.w_xaxis.set_ticks(_np.arange (float (hist.shape[0])))
     ax.w_xaxis.set_ticklabels(r.getFloatingSpeciesIds())
-    ax.w_yaxis.set_ticks(_np.arange (float (hist.shape[1]) + 1))
-    ax.w_yaxis.set_ticks(ypos + dy/2.)
+    ax.w_yaxis.set_ticks(_np.arange (float (hist.shape[1])))
+    #ax.w_yaxis.set_ticks(ypos + dy/2.)
     ax.w_yaxis.set_ticklabels(r.getReactionIds())
 
     ax.bar3d (xpos, ypos, zpos, dx, dy, dz, color=colors, zsort='average') 
@@ -332,10 +336,10 @@ def plotFluxControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(9, 7)):
     ax.set_zlabel('Control Coefficient')
     ax.set_xlabel('Fluxes')
     ax.set_ylabel('Enzymes')
-    ax.w_xaxis.set_ticks(_np.arange (float (hist.shape[0]) + 1))
+    ax.w_xaxis.set_ticks(_np.arange (float (hist.shape[0])))
     ax.w_xaxis.set_ticklabels(r.getReactionIds())
-    ax.w_yaxis.set_ticks(_np.arange (float (hist.shape[1]) + 1))
-    ax.w_yaxis.set_ticks(ypos + dy/2.)
+    ax.w_yaxis.set_ticks(_np.arange (float (hist.shape[1])))
+    print (hist.shape)
     ax.w_yaxis.set_ticklabels(r.getReactionIds())
 
     ax.bar3d (xpos, ypos, zpos, dx, dy, dz, color=colors, zsort='average') 
@@ -480,14 +484,16 @@ def testme():
           Xo = 10;
     """)
 
+    import teUtils
+    
     r.steadyState()
-    plotting.plotFloatingSpecies (r, width=6,height=3)
+    teUtils.plotting.plotFloatingSpecies (r)
     
-    plotting.plotConcentrationControlIn3D (r)
-    plotting.plotFluxControlIn3D (r, lowerLimit=0)
+    teUtils.plotting.plotConcentrationControlIn3D (r)
+    teUtils.plotting.plotFluxControlIn3D (r, lowerLimit=0)
     
-    plotting.plotConcentrationControlHeatMap (r)
-    plotting.plotFluxControlHeatMap (r)
+    teUtils.plotting.plotConcentrationControlHeatMap (r)
+    teUtils.plotting.plotFluxControlHeatMap (r)
 
 
 if __name__ == "__main__":
