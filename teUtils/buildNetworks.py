@@ -42,7 +42,7 @@ class Settings:
          UniBi = 0.3
          BiBI  = 0.05
 
-  def restoreDefaultProbabilities ():
+  def restoreDefaultProbabilities (self):
       """Restore the default settings for the reaction mechanism propabilities"""
       Settings.ReactionProbabilities.UniUni = 0.4
       Settings.ReactionProbabilities.BiUni = 0.3
@@ -473,7 +473,7 @@ def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
     return antStr       
      
      
-def getRandomNetworkDataStructure (nSpecies, nReactions, isReversible=False, randomSeed=-1):  
+def getRandomNetworkDataStructure (nSpecies, nReactions, isReversible=False, randomSeed=-1, returnStoichiometryMatrix=False):
     """
     Return a random network in the form of a data stucture containing the floating species, boundary
     species and reaction list
