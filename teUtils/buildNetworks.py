@@ -42,7 +42,7 @@ class Settings:
          UniBi = 0.3
          BiBI  = 0.05
 
-  def restoreDefaultProbabilities (self):
+  def restoreDefaultProbabilities ():
       """Restore the default settings for the reaction mechanism propabilities"""
       Settings.ReactionProbabilities.UniUni = 0.4
       Settings.ReactionProbabilities.BiUni = 0.3
@@ -190,6 +190,7 @@ def _pickReactionType():
 # Generates a reaction network in the form of a reaction list
 # reactionList = [numSpecies, reaction, reaction, ....]
 # reaction = [reactionType, [list of reactants], [list of products], rateConstant]
+# Doesn't differentiate between boundary and floating species
 # Disallowed reactions:
 # S1 -> S1
 # S1 + S2 -> S2  # Can't have the same reactant and product unless allowMassViolatingReactions is true
@@ -277,7 +278,7 @@ def _generateReactionList (nSpecies, nReactions):
 # Includes boundary and floating species
 # Returns a list:
 # [New Stoichiometry matrix, list of floatingIds, list of boundaryIds]
-# On entry, reactionList has the structure:
+# On entry, reactionList has the structure (obtained by calling _generateReactionList)
 # reactionList = [numSpecies, reaction, reaction, ....]
 # reaction = [reactionType, [list of reactants], [list of products], rateConstant]
 
@@ -286,7 +287,9 @@ def _getFullStoichiometryMatrix (reactionList):
     nSpecies = reactionList[0]
     reactionListCopy = _copy.deepcopy (reactionList)
     # Remove the first entry in the list which is the number of species
+    # This just makes it easier to index
     reactionListCopy.pop (0)
+    # Prepare space for the stoichiometry matrix
     st = _np.zeros ((nSpecies, len(reactionListCopy)))
     
     for index, r in enumerate (reactionListCopy):
@@ -300,31 +303,31 @@ def _getFullStoichiometryMatrix (reactionList):
         if r[0] == TReactionType.BIUNI:
             # BiUni
             reactant1 = reactionListCopy[index][1][0]
-            st[reactant1, index] = -1
+            st[reactant1, index] += -1
             reactant2 = reactionListCopy[index][1][1]
-            st[reactant2, index] = -1
+            st[reactant2, index] += -1
             product = reactionListCopy[index][2][0]
             st[product, index] = 1
 
         if r[0] == TReactionType.UNIBI:
             # UniBi
             reactant1 = reactionListCopy[index][1][0]
-            st[reactant1, index] = -1
+            st[reactant1, index] += -1
             product1 = reactionListCopy[index][2][0]
-            st[product1, index] = 1
+            st[product1, index] += 1
             product2 = reactionListCopy[index][2][1]
-            st[product2, index] = 1
+            st[product2, index] += 1
 
         if r[0] == TReactionType.BIBI:
             # BiBi
             reactant1 = reactionListCopy[index][1][0]
-            st[reactant1, index] = -1
+            st[reactant1, index] += -1
             reactant2 = reactionListCopy[index][1][1]
-            st[reactant2, index] = -1
+            st[reactant2, index] += -1
             product1 = reactionListCopy[index][2][0]
-            st[product1, index] = 1
+            st[product1, index] += 1
             product2 = reactionListCopy[index][2][1]
-            st[product2, index] = 1
+            st[product2, index] += 1
 
     return st   
         
@@ -473,7 +476,7 @@ def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
     return antStr       
      
      
-def getRandomNetworkDataStructure (nSpecies, nReactions, isReversible=False, randomSeed=-1, returnStoichiometryMatrix=False):
+def getRandomNetworkDataStructure (nSpecies, nReactions, isReversible=False, randomSeed=-1):  
     """
     Return a random network in the form of a data stucture containing the floating species, boundary
     species and reaction list
