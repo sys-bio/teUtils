@@ -35,19 +35,19 @@ class Settings:
          UniUni = 0.4
          BiUni = 0.3
          UniBi = 0.3
-         BiBI  = 0.05
+         BiBI  = 0.1
          """
-         UniUni = 0.4
+         UniUni = 0.3
          BiUni = 0.3
          UniBi = 0.3
-         BiBI  = 0.05
+         BiBI  = 0.1
 
   def restoreDefaultProbabilities ():
       """Restore the default settings for the reaction mechanism propabilities"""
-      Settings.ReactionProbabilities.UniUni = 0.4
+      Settings.ReactionProbabilities.UniUni = 0.3
       Settings.ReactionProbabilities.BiUni = 0.3
       Settings.ReactionProbabilities.UniBi = 0.3
-      Settings.ReactionProbabilities.BiBI  = 0.05    
+      Settings.ReactionProbabilities.BiBI  = 0.1    
 
 # Return strings
 def _getMMRateLaw (k, s1, s2):
