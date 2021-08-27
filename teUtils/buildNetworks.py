@@ -32,22 +32,22 @@ class Settings:
          """ Defines the probabilities of generating different reaction mechanisms.
          Current probabilities are:
          
-         UniUni = 0.4
+         UniUni = 0.3
          BiUni = 0.3
          UniBi = 0.3
-         BiBI  = 0.1
+         BiBi  = 0.1
          """
          UniUni = 0.3
          BiUni = 0.3
          UniBi = 0.3
-         BiBI  = 0.1
+         BiBi  = 0.1
 
   def restoreDefaultProbabilities ():
       """Restore the default settings for the reaction mechanism propabilities"""
       Settings.ReactionProbabilities.UniUni = 0.3
       Settings.ReactionProbabilities.BiUni = 0.3
       Settings.ReactionProbabilities.UniBi = 0.3
-      Settings.ReactionProbabilities.BiBI  = 0.1    
+      Settings.ReactionProbabilities.BiBi  = 0.1    
 
 # Return strings
 def _getMMRateLaw (k, s1, s2):
@@ -170,21 +170,21 @@ import copy as _copy
 
 @dataclass
 class TReactionType:
-      UNIUNI = 0
-      BIUNI = 1
-      UNIBI = 2
-      BIBI = 3
+      UniUni = 0
+      BiUni = 1
+      UniBi = 2
+      BiBi = 3
       
      
 def _pickReactionType():
        rt = _random.random()
        if rt < Settings.ReactionProbabilities.UniUni:
-           return TReactionType.UNIUNI
+           return TReactionType.UniUni
        if rt < Settings.ReactionProbabilities.UniUni + Settings.ReactionProbabilities.BiUni:
-           return TReactionType.BIUNI
+           return TReactionType.BiUni
        if rt < Settings.ReactionProbabilities.UniUni + Settings.ReactionProbabilities.BiUni + Settings.ReactionProbabilities.UniBi:
-           return TReactionType.UNIBI
-       return TReactionType.BIBI
+           return TReactionType.UniBi
+       return TReactionType.BiBi
     
     
 # Generates a reaction network in the form of a reaction list
@@ -202,7 +202,7 @@ def _generateReactionList (nSpecies, nReactions):
         
        rateConstant = _random.random()*Settings.rateConstantScale
        rt = _pickReactionType()
-       if rt == TReactionType.UNIUNI:
+       if rt == TReactionType.UniUni:
            # UniUni
            reactant = _random.randint (0, nSpecies-1)
            product = _random.randint (0, nSpecies-1)
@@ -211,7 +211,7 @@ def _generateReactionList (nSpecies, nReactions):
                  product = _random.randint (0, nSpecies-1)
            reactionList.append ([rt, [reactant], [product], rateConstant]) 
                
-       if rt == TReactionType.BIUNI:
+       if rt == TReactionType.BiUni:
            # BiUni
            # Pick two reactants
            reactant1 = _random.randint (0, nSpecies-1)
@@ -230,7 +230,7 @@ def _generateReactionList (nSpecies, nReactions):
                
            reactionList.append ([rt, [reactant1, reactant2], [product], rateConstant]) 
 
-       if rt == TReactionType.UNIBI:
+       if rt == TReactionType.UniBi:
           # UniBi
           reactant1 = _random.randint (0, nSpecies-1)
           if Settings.allowMassViolatingReactions:
@@ -250,7 +250,7 @@ def _generateReactionList (nSpecies, nReactions):
     
           reactionList.append ([rt, [reactant1], [product1, product2], rateConstant]) 
 
-       if rt == TReactionType.BIBI:
+       if rt == TReactionType.BiBi:
           # BiBi
           reactant1 = _random.randint (0, nSpecies-1)
           reactant2= _random.randint (0, nSpecies-1)
@@ -293,14 +293,14 @@ def _getFullStoichiometryMatrix (reactionList):
     st = _np.zeros ((nSpecies, len(reactionListCopy)))
     
     for index, r in enumerate (reactionListCopy):
-        if r[0] == TReactionType.UNIUNI:
+        if r[0] == TReactionType.UniUni:
            # UniUni
            reactant = reactionListCopy[index][1][0]
            st[reactant, index] = -1
            product = reactionListCopy[index][2][0]
            st[product, index] = 1
      
-        if r[0] == TReactionType.BIUNI:
+        if r[0] == TReactionType.BiUni:
             # BiUni
             reactant1 = reactionListCopy[index][1][0]
             st[reactant1, index] += -1
@@ -309,7 +309,7 @@ def _getFullStoichiometryMatrix (reactionList):
             product = reactionListCopy[index][2][0]
             st[product, index] = 1
 
-        if r[0] == TReactionType.UNIBI:
+        if r[0] == TReactionType.UniBi:
             # UniBi
             reactant1 = reactionListCopy[index][1][0]
             st[reactant1, index] += -1
@@ -318,7 +318,7 @@ def _getFullStoichiometryMatrix (reactionList):
             product2 = reactionListCopy[index][2][1]
             st[product2, index] += 1
 
-        if r[0] == TReactionType.BIBI:
+        if r[0] == TReactionType.BiBi:
             # BiBi
             reactant1 = reactionListCopy[index][1][0]
             st[reactant1, index] += -1
@@ -393,7 +393,7 @@ def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
     
     for reactionIndex, r in enumerate (reactionListCopy):
         antStr = antStr + 'J' + str (reactionIndex) + ': '
-        if r[0] == TReactionType.UNIUNI:
+        if r[0] == TReactionType.UniUni:
            # UniUni
            antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][1][0])
            antStr = antStr + ' -> '
@@ -402,7 +402,7 @@ def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
            if isReversible:
               antStr = antStr + ' - k' + str (reactionIndex) + 'r' + '*S' + str (reactionListCopy[reactionIndex][2][0])
            antStr = antStr + ')'
-        if r[0] == TReactionType.BIUNI:
+        if r[0] == TReactionType.BiUni:
            # BiUni
            antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][1][0])
            antStr = antStr + ' + '
@@ -413,7 +413,7 @@ def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
            if isReversible:
              antStr = antStr + ' - k' + str (reactionIndex) + 'r' + '*S' + str (reactionListCopy[reactionIndex][2][0])
            antStr = antStr + ')'
-        if r[0] == TReactionType.UNIBI:
+        if r[0] == TReactionType.UniBi:
            # UniBi
            antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][1][0])
            antStr = antStr + ' -> '
@@ -424,7 +424,7 @@ def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
            if isReversible:
              antStr = antStr + ' - k' + str (reactionIndex) + 'r' + '*S' + str (reactionListCopy[reactionIndex][2][0]) + '*S' + str (reactionListCopy[reactionIndex][2][1])
            antStr = antStr + ')'
-        if r[0] == TReactionType.BIBI:
+        if r[0] == TReactionType.BiBi:
            # BiBi
            antStr = antStr + 'S' + str (reactionListCopy[reactionIndex][1][0])
            antStr = antStr + ' + '
@@ -514,7 +514,7 @@ def getRandomNetworkDataStructure (nSpecies, nReactions, isReversible=False, ran
      
     if Settings.addDegradationSteps:
        for sp in stt[1]:
-           rl.append ([TReactionType.UNIUNI, [sp], [], 0.01])
+           rl.append ([TReactionType.UniUni, [sp], [], 0.01])
             
     return [stt[1], stt[2], rl, isReversible]
 
