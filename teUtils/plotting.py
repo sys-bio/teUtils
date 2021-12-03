@@ -13,6 +13,7 @@ import tellurium as _te
 from mpl_toolkits.mplot3d import Axes3D as _Axes3D
 import numpy as _np
 import matplotlib.pyplot as _plt 
+import random
 
 def plotAsciiConcentrationsBar (r, scale=5):
     '''
@@ -63,6 +64,72 @@ def plotAsciiReactionRatesBar (r, scale=5):
     for value in range (len (c)):
         print ('{:{X}.{Y}}'.format (ids[value], X=maxString, Y=maxString), ':', math.trunc (scale*c[value])*'*')
 
+
+def plotRandSimGrid  (r, species=[], pdfExport=None, figsize=(11,8), maxRange=10, endTime=200, numPoints=500, ngrid=20):
+    '''
+    Plots a grid of simulations, each simulation is based on the same model
+    but randomly drawn parameter values. 
+    
+    Args:
+        r : reference
+           roadrunner instance
+        figsize : tuple of float
+           optional: width and heigh of plot in inches
+        endtime : double
+           optional: time to simulate to
+        numPoints: double
+           optional: numberof points to generate for the plot
+        ngrid : integer
+           optional: the size of the grid, default is 20 x 20 plots
+        maxRange: double
+           optional: upper range for randomly drawn parameter values
+        pdfExport : string
+            optional parameter, indicates the filename to export the plot as a pdf file
+
+    Example:
+      >>> teUtils.plotting.plotPhasePortraitGrid (r)
+    '''
+    print ("Starting....")
+    slist = sorted (r.getFloatingSpeciesIds())
+    if species == []:
+       n = r.getNumFloatingSpecies()
+    else:
+       slist = species
+       n = len (species) + 1
+    slist = ['time'] + slist
+    print ('Creating subplots (will take a while for a large grid)...')
+    fig, axarr = _plt.subplots(ngrid, ngrid, figsize=figsize)
+    print ("Adjust subplots...")
+    fig.subplots_adjust (wspace=0.15, hspace=0.15)
+
+    print ("Run simulations and populate grid....")
+    count = 0
+    for i in range(ngrid):
+        for j in range(ngrid):
+            r.reset()
+            for k in r.getGlobalParameterIds():
+                r[k] = random.random()*maxRange
+             
+            m = r.simulate (0, endTime, numPoints, slist)
+            count += 1
+            ax = _plt.subplot2grid ((ngrid,ngrid), (i,j))
+            if i==n-1:
+               ax.set_xlabel ('Time') 
+               ax.set_xticklabels([])
+            else:
+               ax.set_xticklabels([])
+               ax.set_xticks([])
+            if j == 0:
+            
+               ax.set_yticklabels([])
+            else:
+               ax.set_yticks([])
+
+            for k in range (n-1):
+                ax.plot (m[:,0],m[:,k+1])
+                
+    if pdfExport != None:
+        fig.savefig(pdfExport)                
 
 def plotPhasePortraitGrid  (r, pdfExport=None, figsize=(11,8), endTime=200, numPoints=500):
     '''
