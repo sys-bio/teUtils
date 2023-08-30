@@ -253,6 +253,66 @@ def plotFluxControlHeatMap (r, pdfExport=None, annotations=True, figsize=(13,7),
 
     if pdfExport != None:
         f.savefig(pdfExport)
+        
+       
+def plotFluxControlBar (r, reactionId, figsize=(13,7)):
+    '''
+    Plots a graph bar graph of the flux control coefficients
+    
+    Args:
+        r : reference
+           roadrunner instance
+        reactionid : string
+           reactinoId for the flux control 
+        figsize : tuple of float
+           optional: width and heigh of plot in inches
+
+    Example:
+       >>> teUtils.plotting.plotFluxControlBar (r, 'J1', figsize=(12,6))
+    '''
+    import matplotlib.pyplot as plt
+    
+    cc = r.getScaledFluxControlCoefficientMatrix()
+    rIds = r.getReactionIds()
+    index = rIds.index (reactionId)
+    row = cc[index,:]
+    
+    _plt.figure(figsize=figsize)    
+    _plt.bar(rIds, row, label=reactionId)
+    _plt.xticks(range (len (rIds)), rIds,  ha='right', rotation=45)  
+    _plt.legend()
+
+def plotConcentrationControlBar (r, speciesId, figsize=(13,7)):
+    '''
+    Plots a graph bar graph of the concentration control coefficients
+    
+    Args:
+        r : reference
+           roadrunner instance
+        speciesid : string
+           speciesId for the concentration control 
+        figsize : tuple of float
+           optional: width and heigh of plot in inches
+
+    Example:
+       >>> teUtils.plotting.plotConcentrationControlBar (r, 'Glucose', figsize=(12,6))
+    '''
+    import matplotlib.pyplot as plt
+    
+
+    cc = r.getScaledConcentrationControlCoefficientMatrix()
+    spIds = r.getFloatingSpeciesIds()
+    rIds = r.getReactionIds()
+    index = spIds.index (speciesId)
+    row = cc[index,:]
+    print (row)
+    print (rIds)
+    
+    _plt.figure(figsize=figsize)    
+    _plt.bar(rIds, row, label=speciesId)
+    _plt.xticks(range (len (rIds)), rIds,  ha='right', rotation=45)  
+    _plt.legend()
+
 
 def plotArrayHeatMap (data, pdfExport=None, annotations=True, figsize=(13,7), vmin=-1, vmax=1):
     '''

@@ -35,16 +35,19 @@ setup(
     license='MIT',
     classifiers=[
        'License :: OSI Approved :: MIT License',
-       'Programming Language :: Python :: 3.6',
        'Programming Language :: Python :: 3.7',
        'Programming Language :: Python :: 3.8',
+       'Programming Language :: Python :: 3.9',
+       'Programming Language :: Python :: 3.10',
+       'Programming Language :: Python :: 3.11',
        'Operating System :: OS Independent',
     ],
     install_requires=[
         'tabulate', 
         'numpy>=1.20', 
         'tellurium',
+        'libsbml',
         'pandas',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
 )

@@ -79,6 +79,7 @@ def tabulateFluxes(r, fmt='psql'):
 def testme():
     """ Run this to try out the methods"""
 
+    import teUtils
     r = _te.loada("""
          J1: $Xo -> S1;  k1*Xo - k11*S1;
          J2:  S1 -> S2;  k2*S1 - k22*S2;
@@ -98,8 +99,8 @@ def testme():
           Xo = 10;
     """)
     r.simulate (0, 10, 10)
-    _teUtils.prettyTabular.tabulateConcentrations (r)
-    _teUtils.prettyTabular.tabulateFluxes (r)
+    teUtils.prettyTabular.tabulateConcentrations (r)
+    teUtils.prettyTabular.tabulateFluxes (r)
 
     
 if __name__ == "__main__":
