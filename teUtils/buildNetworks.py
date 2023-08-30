@@ -307,7 +307,7 @@ def _getFullStoichiometryMatrix (reactionList):
             reactant2 = reactionListCopy[index][1][1]
             st[reactant2, index] += -1
             product = reactionListCopy[index][2][0]
-            st[product, index] = 1
+            st[product, index] += 1
 
         if r[0] == TReactionType.UniBi:
             # UniBi
