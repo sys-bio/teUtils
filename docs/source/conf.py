@@ -16,12 +16,28 @@
 import sys
 import os
 import shlex
+from mock import Mock as MagicMock
+
+# Mock things for readthedoc build
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return Mock()
+            
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../source'))
 
-print ('path = ', os.path.abspath('../../source'))
+MOCK_MODULES = ['tellurium', 'random', 'roadrunner', 'numpy', 'copy'
+			]
+				
+sys.path.insert(0, os.path.abspath('..'))
+sys.path.append(os.path.abspath(
+    os.path.join(__file__, "../../teUtils")
+))
+#sys.path.insert(0, os.path.abspath('../../docs/source'))
+
+print ('path = ', os.path.abspath('../../teUtils'))
 
 import sphinx_rtd_theme
 
@@ -67,7 +83,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'teUtils'
-copyright = '2019, 2020, Herbert Sauro'
+copyright = '2019, 2023, Herbert Sauro'
 author = 'Herbert Sauro'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -84,7 +100,7 @@ release = '2.6'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
