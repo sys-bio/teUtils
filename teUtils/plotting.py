@@ -20,11 +20,8 @@ def plotAsciiConcentrationsBar (r, scale=5):
     Display the floating species concentrations as an ASCII bar chart.
     
     Args:
-    -----
-        r : reference 
-            roadrunner instance
-        scale : integer
-            optional parameter to scale the ascii bar graph
+        r : roadrunner instance
+        scale : (integer) optional parameter to scale the ascii bar graph
 
     Example:
        >>> teUtils.plotting.plotAsciiConcentrationsBar (r, scale=20)
@@ -43,13 +40,10 @@ def plotAsciiConcentrationsBar (r, scale=5):
 def plotAsciiReactionRatesBar (r, scale=5):
     '''
     Display the reaction rates as an ASCII bar chart.
-
+    
     Args:
-    -----
-        r : reference
-              roadrunner instance
-        scale : integer
-              optional parameter to scale the ascii bar graph
+        r : roadrunner instance.
+        scale : (integer) optional parameter to scale the ascii bar graph
 
     Example:
        >>> teUtils.plotting.plotAsciiReactionRatesBar (r, scale=20)
@@ -71,20 +65,13 @@ def plotRandSimGrid  (r, species=[], pdfExport=None, figsize=(11,8), maxRange=10
     but randomly drawn parameter values. 
     
     Args:
-        r : reference
-           roadrunner instance
-        figsize : tuple of float
-           optional: width and heigh of plot in inches
-        endtime : double
-           optional: time to simulate to
-        numPoints: double
-           optional: numberof points to generate for the plot
-        ngrid : integer
-           optional: the size of the grid, default is 20 x 20 plots
-        maxRange: double
-           optional: upper range for randomly drawn parameter values
-        pdfExport : string
-            optional parameter, indicates the filename to export the plot as a pdf file
+        r : roadrunner instance
+        figsize : (tuple of float) optional: width and heigh of plot in inches
+        endtime : (double) optional: time to simulate to
+        numPoints: (double) optional: numberof points to generate for the plot
+        ngrid : (integer) optional: the size of the grid, default is 20 x 20 plots
+        maxRange: (double) optional: upper range for randomly drawn parameter values
+        pdfExport : (string) optional parameter, indicates the filename to export the plot as a pdf file
 
     Example:
       >>> teUtils.plotting.plotPhasePortraitGrid (r)
@@ -136,16 +123,11 @@ def plotPhasePortraitGrid  (r, pdfExport=None, figsize=(11,8), endTime=200, numP
     Plots a grid of phase portraits of the floating species concentrations.
     
     Args:
-        r : reference
-           roadrunner instance
-        figsize : tuple of float
-           optional: width and heigh of plot in inches
-        endtime : double
-           optional: time to simulate to
-        numPoints: double
-           optional: numberof points to generate for the plot
-        pdfExport : string
-            optional parameter, indicates the filename to export the plot as a pdf file
+        r : roadrunner instance
+        figsize : (tuple of float) optional: width and heigh of plot in inches
+        endtime : (double) optional: time to simulate to
+        numPoints: (double) optional: numberof points to generate for the plot
+        pdfExport : (string) optional parameter, indicates the filename to export the plot as a pdf file
 
     Example:
       >>> teUtils.plotting.plotPhasePortraitGrid (r)
@@ -189,16 +171,12 @@ def plotConcentrationControlHeatMap (r, pdfExport=None, annotations=True, figsiz
     Display the concentation control coefficients as a heat map
     
     Args:
-        r : reference
-            roadrunner instance
-        pdfExport : string
-            optional: indicates the filename to export the heat map image to in the form of pdf
-        annotations (boolean), 
-            optional : used to draw values on teh heatmap cells
-        figsize : tutle of double
-            optional: sets the size of the plot, eg figsize=(10,5)
-        vmin and vmax : double
-            optional: set the lower and upper limits for the range
+        r : roadrunner instance
+        pdfExport : (string) optional: indicates the filename to export the heat map image to in the form of pdf
+        annotations (boolean) optional : used to draw values on teh heatmap cells
+        figsize : (tutle of double) optional: sets the size of the plot, eg figsize=(10,5)
+        vmin : (double) optional: set the lower limit for the range
+        vmac : (double) optional: set the upper limit for the range
 
     Example:
       >>> teUtils.plotting.plotConcentrationControlHeatMap (r, pdfExport='heapmap.pdf')
@@ -224,16 +202,12 @@ def plotFluxControlHeatMap (r, pdfExport=None, annotations=True, figsize=(13,7),
     Display the flux control coefficients as a heat map
     
     Args:
-        r : reference
-           roadrunner instance
-        pdfExport : string
-           optional parameter, if present it should indicate the filename to export the heat map image to in the form of pdf
-        annotations : boolean
-           used to draw values on teh heatmap cells
-        figsize : tuple
-           sets the size of the plot, eg figsize=(10,5)
-        vmin and vmax : double
-           set the lower and upper limits for the range
+        r : roadrunner instance
+        pdfExport : (string) optional parameter, if present it should indicate the filename to export the heat map image to in the form of pdf
+        annotations : (boolean) used to draw values on teh heatmap cells
+        figsize : (tuple of double) sets the size of the plot, eg figsize=(10,5)
+        vmin : (double) set the lower limit for the range
+        vmax : (double) set the upper limit for the range
 
     Example:
        >>> teUtils.plotting.plotFluxControlHeatMap (r, pdfExport='heapmap.pdf')
@@ -260,12 +234,9 @@ def plotFluxControlBar (r, reactionId, figsize=(13,7)):
     Plots a graph bar graph of the flux control coefficients
     
     Args:
-        r : reference
-           roadrunner instance
-        reactionid : string
-           reactinoId for the flux control 
-        figsize : tuple of float
-           optional: width and heigh of plot in inches
+        r : roadrunner instance
+        reactionid (string) reactionId for the flux control 
+        figsize : (tuple of float) optional width and heigh of plot in inches
 
     Example:
        >>> teUtils.plotting.plotFluxControlBar (r, 'J1', figsize=(12,6))
@@ -287,12 +258,9 @@ def plotConcentrationControlBar (r, speciesId, figsize=(13,7)):
     Plots a graph bar graph of the concentration control coefficients
     
     Args:
-        r : reference
-           roadrunner instance
-        speciesid : string
-           speciesId for the concentration control 
-        figsize : tuple of float
-           optional: width and heigh of plot in inches
+        r : roadrunner instance
+        speciesid : (string) speciesId for the concentration control 
+        figsize : (tuple of float) optional: width and heigh of plot in inches
 
     Example:
        >>> teUtils.plotting.plotConcentrationControlBar (r, 'Glucose', figsize=(12,6))
@@ -319,16 +287,12 @@ def plotArrayHeatMap (data, pdfExport=None, annotations=True, figsize=(13,7), vm
     Display the flux control coefficients as a heat map
     
     Args:
-        r : reference
-           roadrunner instance
-        pdfExport : string
-           optional parameter, if present it should indicate the filename to export the heat map image to in the form of pdf
-        annotations : boolean
-           used to draw values on teh heatmap cells
-        figsize : tuple
-           sets the size of the plot, eg figsize=(10,5)
-        vmin and vmax : double
-           set the lower and upper limits for the range
+        r : roadrunner instance
+        pdfExport : (string) optional parameter, if present it should indicate the filename to export the heat map image to in the form of pdf
+        annotations : (boolean) used to draw values on teh heatmap cells
+        figsize : (tuple) sets the size of the plot, eg figsize=(10,5)
+        vmin : (double) set the lower limit for the range
+        vmax : (double) set the upper limit for the range
 
     Example:
        >>> teUtils.plotting.plotFluxControlHeatMap (r, pdfExport='heapmap.pdf')
@@ -354,14 +318,10 @@ def plotConcentrationControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(10, 8
     Display the concentation control coefficients as a 3D plot
     
     Args:
-        r : reference
-           roadrunner instance
-        upperlimit : float 
-           optional parameter, sets the lower z axis limit
-        upperlimit : float
-           optional parameter, sets the upper z axis limit
-        figsize : tuble of float
-           optional: width and heigh of plot in inches
+        r : roadrunner instance
+        upperlimit : (float) optional parameter, sets the lower z axis limit
+        upperlimit : (float) optional parameter, sets the upper z axis limit
+        figsize : (tuble of float)  optional: width and heigh of plot in inches
 
     Example:
        >>> teUtils.plotting.plotConcentrationControlIn3D (r)
@@ -416,14 +376,10 @@ def plotFluxControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(9, 7)):
     Display the flux control coefficients as a 3D plot
 
     Args:
-        r : reference
-           roadrunner instance
-        upperlimit : float 
-           optional parameter, sets the lower z axis limit
-        upperlimit : float
-           optional parameter, sets the upper z axis limit
-        figsize : tuble of float
-           optional: width and heigh of plot in inches
+        r : roadrunner instance
+        upperlimit : (float) optional parameter, sets the lower z axis limit
+        upperlimit : (float) optional parameter, sets the upper z axis limit
+        figsize : (tuble of float) optional: width and heigh of plot in inches
 
     Example:
        >>> teUtils.plotting.plotFluxControlIn3D (r)
@@ -478,10 +434,8 @@ def plotReactionRates (r, figsize=(12,6)):
     Plots a graph bar graph of the reaction rates
     
     Args:
-        r : reference
-           roadrunner instance
-        figsize : tuple of float
-           optional: width and heigh of plot in inches
+        r : roadrunner instance
+        figsize : (tuple of float) optional: width and heigh of plot in inches
 
     Example:
        >>> teUtils.plotting.plotReactionRates (r, figsize=(12,6))
@@ -500,10 +454,8 @@ def plotFloatingSpecies (r, figsize=(12,6)):
     Plots a graph bar graph of the floating species concentrations.
     
     Args:
-        r : reference
-           roadrunner instance
-        figsize : tuple of float
-           optional: width and heigh of plot in inches
+        r : roadrunner instance
+        figsize : (tuple of float) optional: width and heigh of plot in inches
 
     Example:
        >>> teUtils.plotting.plotFloatingSpecies (r, figsize=(12,6))
@@ -520,7 +472,7 @@ def plotFloatingSpecies (r, figsize=(12,6)):
 def plotArray(result, loc='upper right', show=True, resetColorCycle=True,
              xlabel=None, ylabel=None, title=None, xlim=None, ylim=None,
              xscale='linear', yscale="linear", grid=False, labels=None, **kwargs):
-    """ Plot a 2D graph based on an array where the first column is the x-axis
+    ''' Plot a 2D graph based on an array where the first column is the x-axis
 
     The first column of the array must be the x-axis and remaining columns the y-axis.  
     Note that you can add plotting options as named key values after
@@ -530,8 +482,7 @@ def plotArray(result, loc='upper right', show=True, resetColorCycle=True,
     Use show=False to add multiple curves. Use color='red' to use the same color for every curve.
 
     Args:
-        r : reference
-           roadrunner instance
+        r : roadrunner instance
 
     Returns:
        Returns a handle to the plotting object.
@@ -540,7 +491,7 @@ def plotArray(result, loc='upper right', show=True, resetColorCycle=True,
         >>> import numpy as np
         >>> result = _np.array([[1,2,3], [7.2,6.5,8.8], [9.8, 6.5, 4.3]])
         >>> te.plotArray(result, title="My graph', xlim=((0, 5)))
-    """
+    '''
     # FIXME: unify r.plot & _te.plot (lots of code duplication)
     # reset color cycle (columns in repeated simulations have same color)
     if resetColorCycle:

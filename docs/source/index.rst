@@ -1,27 +1,13 @@
-.. teUilts documentation master file, created by sphinx-quickstart 
+.. teUtils documentation master file, created by sphinx-quickstart 
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. automodule:: buildNetworks
-   :members:
 
 ======================================
 Documentation for teUtils Version 0.99
 ======================================
 
 This page describes the teUtils package.
-
-Contents:
-
-.. toctree::
-   :maxdepth: 2
-
-   buildNetworks
-   plotting
-   parameterScanning
-   odePrint
-   prettyTabular
-   fileUtils
 
 Installation
 ------------
@@ -70,3 +56,15 @@ Examples
 
       # Generate the ODES for a SBML model stored in a file
       tu.odePrint.getODEsFromSBMLFile ('mymodel.xml')
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   buildNetworks
+   plotting
+   parameterScanning
+   odePrint
+   prettyTabular
+   fileUtils
+

@@ -11,7 +11,7 @@ except:
     
 from   dataclasses import dataclass
 
-__all__ = ['getLinearChain']
+__all__ = ['Settings', 'restoreDefaultProbabilities', 'getLinearChain', 'getRandomNetworkDataStructure', 'getRandomNetwork']
 
 
 # General settings for the package
@@ -58,7 +58,7 @@ def _getMMRateLaw (k, s1, s2):
 def _getMARateLaw (k, s1, s2):
     return 'k' + str (k) + '0*' + s1 + ' - k' + str (k) + '1' + '*' + s2
 
-
+	
 def getLinearChain (lengthOfChain, rateLawType='MassAction', keqRatio=5):
     """ Return an Antimony string for a linear chain
     
@@ -478,6 +478,7 @@ def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
      
 def getRandomNetworkDataStructure (nSpecies, nReactions, isReversible=False, randomSeed=-1, returnStoichiometryMatrix=False):  
     """
+    
     Return a random network in the form of a data stucture containing the floating species, boundary
     species and reaction list
 

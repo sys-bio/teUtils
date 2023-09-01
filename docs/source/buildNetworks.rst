@@ -3,5 +3,5 @@ Random Network Building Utilities
 =================================
 
 .. automodule:: buildNetworks
-   :members: Settings,getLinearChain,getRandomNetwork
+   :members:
    :member-order: bysource
