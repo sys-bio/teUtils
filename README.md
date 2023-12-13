@@ -16,7 +16,7 @@
 
 # Additional Utilities for Tellurium that we have found useful in our work
 
-Updated to 2.8. New version adds 'ei*(' terms to mass actions rate laws, eg
+Updated to 2.9. New version adds 'ei*(' terms to mass actions rate laws, eg
 
 ```S1 -> S2; e1*(k1*S1 - k2*S2)```
 
