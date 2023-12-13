@@ -46,7 +46,11 @@ setup(
         'tabulate', 
         'numpy>=1.20', 
         'tellurium',
+<<<<<<< HEAD
         'python-libsbml>=5.19.0',
+=======
+        'python-libsbml',
+>>>>>>> 663841834dbfabcf32a44cde329f7ff2ffc50c19
         'pandas',
     ],
     python_requires='>=3.7',
