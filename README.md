@@ -13,6 +13,9 @@
 <a href="https://codecov.io/gh/sys-bio/teUtils">
 </a>
 
+
+# Additional Utilities for Tellurium that we have found useful in our work
+
 Updated to 2.8. New version adds 'ei*(' terms to mass actions rate laws, eg
 
 S1 -> S2; e1*(k1*S1 - k2*S2)
@@ -28,8 +31,6 @@ These can be generated using the call:
 model = teUtils.buildNetworks.getLinearChain(10, rateLawType="ModifiedMassAction")
 
 Useful if you want to more easily control the equilbrium constant for a reaction
-
-# Additional Utilities for Tellurium that we have found useful in our work
 
 This repo includes a number of useful utilities for Tellurium users. These include:
 
