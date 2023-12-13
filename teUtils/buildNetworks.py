@@ -56,15 +56,18 @@ def _getMMRateLaw (k, s1, s2):
     + s2 + '/' + 'Km' + str (k) + '1' + ')'
 
 def _getMARateLaw (k, s1, s2):
-    return 'k' + str (k) + '0*' + s1 + ' - k' + str (k) + '1' + '*' + s2
+    return 'e' + str(k) + '*(k' + str (k) + '0*' + s1 + ' - k' + str (k) + '1' + '*' + s2 + ')'
 
-	
+def _getModifiedMARateLaw (k, s1, s2):
+    return 'k' + str (k) + '*' + s1 + '*(1 - (' + s2 + '/' + s1 + ')/Keq' + str (k) + ')'
+
+  
 def getLinearChain (lengthOfChain, rateLawType='MassAction', keqRatio=5):
     """ Return an Antimony string for a linear chain
     
     Args:     
         lengthOfChain (integer): Length of generated chain, number of reactions       
-        rateLawType (string): Optional, can be 'MassAction' (default) or 'Michaelis'
+        rateLawType (string): Optional, can be 'MassAction' (default), 'ModifiedMassAction' or 'Michaelis'
         keqRatio (float): Optional, maximum size of equilibrium constant
          
     Returns:
@@ -80,6 +83,9 @@ def getLinearChain (lengthOfChain, rateLawType='MassAction', keqRatio=5):
        >>> r.simulate (0, 50, 100)
        >>> r.plot()
     """
+    if lengthOfChain <= 1:
+        raise Exception("Pathway has to have more than one reaction")
+        
     # Set up a default
     getRateLaw = _getMARateLaw
     n = lengthOfChain
@@ -89,14 +95,19 @@ def getLinearChain (lengthOfChain, rateLawType='MassAction', keqRatio=5):
         
     if rateLawType == 'MassAction':
         getRateLaw = _getMARateLaw
+
+    if rateLawType == 'ModifiedMassAction':
+        getRateLaw = _getModifiedMARateLaw
         
         
     model = 'J1: $Xo -> S1; ' + getRateLaw (1, 'Xo', 'S1') + '; \n'
-    
-    for i in range (n-2):
-        r = i + 1
-        model += 'J' + str (i+2) + ': S' + str (r) + ' -> ' + 'S' + str (r+1) + '; ' + getRateLaw(r+1, 'S' + str(r), 'S' + str (r+1)) + '; \n'     
-    model += 'J' + str (r+2) + ': S' + str(n-1) + ' -> $X1; ' + getRateLaw (n, 'S' + str (r+1), 'X1') + '; \n\n'
+    if n == 2:
+       model += 'J2: S1 -> $X1; ' +  getRateLaw (2, 'S1', 'X1') + '; \n'
+    else:    
+        for i in range (n-2):
+            r = i + 1
+            model += 'J' + str (i+2) + ': S' + str (r) + ' -> ' + 'S' + str (r+1) + '; ' + getRateLaw(r+1, 'S' + str(r), 'S' + str (r+1)) + '; \n'     
+        model += 'J' + str (r+2) + ': S' + str(n-1) + ' -> $X1; ' + getRateLaw (n, 'S' + str (r+1), 'X1') + '; \n\n'
        
     if rateLawType == 'Michaelis':
         for i in range (n):
@@ -115,11 +126,24 @@ def getLinearChain (lengthOfChain, rateLawType='MassAction', keqRatio=5):
            # Add 0.01 to ensure the value won't be zero
            model += 'k' + str (i+1) + '0 = ' + str ('{:.2f}'.format ((_random.random()+0.01)*keqRatio)) + ';  ' + \
            'k' + str (i+1) + '1 = ' + str ('{:.2f}'.format ((_random.random()+0.01)*1)) + '\n'
+           model += 'e' + str(i+1) + '= 1; '
            
+    # Initialize values
+    if rateLawType == 'ModifiedMassAction':
+       for i in range (n):
+           # Add 0.01 to ensure the value won't be zero
+           model += 'k' + str (i+1) + ' = ' + str ('{:.2f}'.format ((_random.random()+0.01)*keqRatio)) + ';  ' + \
+           'Keq' + str (i+1) + ' = ' + str ('{:.2f}'.format ((_random.random()+0.01)*10)) + '\n'
+           model += 'e' + str(i+1) + '= 1; '
+
+
     model += 'Xo = ' + str ('{:.2f}'.format (_random.randint(1, 10))) + '\n' 
     model += 'X1 = 0' + '\n' 
     for i in range (n-1):
-        model += 'S' + str (i+1) + ' = 0; '
+        if rateLawType == 'ModifiedMassAction':
+           model += 'S' + str (i+1) + ' = 1E-6; '  # To avoid divide by zero 
+        else:
+           model += 'S' + str (i+1) + ' = 0; '
         if (i+1) % 4 == 0:
            model += '\n'
            

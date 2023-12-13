@@ -4,4 +4,4 @@ numpy
 tabulate
 python-csv
 tellurium
-python-libsbml
+python-libsbml>=5.19.0
