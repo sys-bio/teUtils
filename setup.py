@@ -46,7 +46,7 @@ setup(
         'tabulate', 
         'numpy>=1.20', 
         'tellurium',
-        'libsbml',
+        'python-libsbml',
         'pandas',
     ],
     python_requires='>=3.7',
