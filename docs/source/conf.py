@@ -16,21 +16,10 @@
 import sys
 import os
 import shlex
-#from mock import Mock as MagicMock
-
-# Mock things for readthedoc build
-#class Mock(MagicMock):
-#    @classmethod
-#    def __getattr__(cls, name):
-#            return Mock()
-            
 
 import os
 import sys
 
-#MOCK_MODULES = ['tellurium', 'random', 'roadrunner', 'numpy', 'copy'
-			]
-				
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath("../.."))
 sys.path.insert(0, os.path.abspath("../../teUtils"))
