@@ -11,4 +11,3 @@ tabulate
 python-csv
 tellurium
 python-libsbml>=5.19.0
-copy
