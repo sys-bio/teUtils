@@ -7,5 +7,4 @@ myst_parser
 nose
 numpy
 tabulate
-tellurium
 python-libsbml>=5.19.0
