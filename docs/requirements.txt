@@ -3,5 +3,12 @@ sphinx
 sphinx-rtd-theme == 1.2.0
 sphinx-execute-code
 sphinx-tabs
-mock
-myst_parser
+myst_parserlibroadrunner
+nose
+numpy
+tabulate
+python-csv
+tellurium
+python-libsbml>=5.19.0
+random
+copy
