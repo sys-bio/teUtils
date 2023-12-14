@@ -22,7 +22,7 @@ import sys
 from unittest import mock
 
 # Mock open3d because it fails to build in readthedocs
-MOCK_MODULES = ["tellurium", "random", "numpy", "mpl_toolkits", 
+MOCK_MODULES = ["tellurium", "random", "numpy", "mpl_toolkits", "mpl_toolkits.mplot3d",
                 "matplotlib", "matplotlib.pyplot", "roadrunner", "copy"]
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
