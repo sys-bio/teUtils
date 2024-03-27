@@ -362,11 +362,11 @@ def plotConcentrationControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(10, 8
     ax.set_zlabel('Control Coefficient')
     ax.set_xlabel('Species')
     ax.set_ylabel('Enzymes')
-    ax.w_xaxis.set_ticks(_np.arange (float (hist.shape[0])))
-    ax.w_xaxis.set_ticklabels(r.getFloatingSpeciesIds())
-    ax.w_yaxis.set_ticks(_np.arange (float (hist.shape[1])))
-    #ax.w_yaxis.set_ticks(ypos + dy/2.)
-    ax.w_yaxis.set_ticklabels(r.getReactionIds())
+    ax.xaxis.set_ticks(_np.arange (float (hist.shape[0])))
+    ax.xaxis.set_ticklabels(r.getFloatingSpeciesIds())
+    ax.yaxis.set_ticks(_np.arange (float (hist.shape[1])))
+    #ax.yaxis.set_ticks(ypos + dy/2.)
+    ax.yaxis.set_ticklabels(r.getReactionIds())
 
     ax.bar3d (xpos, ypos, zpos, dx, dy, dz, color=colors, zsort='average') 
     
@@ -419,11 +419,11 @@ def plotFluxControlIn3D (r, upperLimit=1, lowerLimit=-1, figsize=(9, 7)):
     ax.set_zlabel('Control Coefficient')
     ax.set_xlabel('Fluxes')
     ax.set_ylabel('Enzymes')
-    ax.w_xaxis.set_ticks(_np.arange (float (hist.shape[0])))
-    ax.w_xaxis.set_ticklabels(r.getReactionIds())
-    ax.w_yaxis.set_ticks(_np.arange (float (hist.shape[1])))
+    ax.xaxis.set_ticks(_np.arange (float (hist.shape[0])))
+    ax.xaxis.set_ticklabels(r.getReactionIds())
+    ax.yaxis.set_ticks(_np.arange (float (hist.shape[1])))
     print (hist.shape)
-    ax.w_yaxis.set_ticklabels(r.getReactionIds())
+    ax.yaxis.set_ticklabels(r.getReactionIds())
 
     ax.bar3d (xpos, ypos, zpos, dx, dy, dz, color=colors, zsort='average') 
     

@@ -3,9 +3,9 @@
     Tellurium Utilities
     ===================
 
-    teUtils provides a number of useful modules.
+    teUtils provides a number of useful modules to the tellurium modeling package.
 
-    This repo includes a number of useful utilities for Tellurium users. These are included in three modules:
+    This repo includes a number of useful utilities for Tellurium users. These are included in five modules:
 
     odePrint
     --------
@@ -15,7 +15,7 @@
     plotting
     --------
 
-    This modules contains a variety of additional plotting methods, include 3D, heatmaps for control coefficients, and ascii plots.
+    This module contains a variety of additional plotting methods, including 3D plots, heatmaps for control coefficients, and ascii plots.
 
     prettyTabular
     -------------
@@ -25,19 +25,20 @@
     buildNetworks
     -------------
 
-    This module provides a single method that can be used to build linear chaing network with random parmaetr values. The 
-    user has a choice of either building a network based on mass-action or Michaelis-Menten kinetics
+    This module provides a number of methods that can be used to build random kinetic networks linear. The 
+    user choose networks based on mass-action or Michaelis-Menten kinetics, linear chaings or random networks.
+    A number of methods under Settings allow the generation of random models to be configured.
 
     parameterScanning
-    --------
+    -----------------
 
-    At the moment a single method to do a simple time course parameter scan
+    At the moment this is a single method to do a simple time course parameter scan
     
-    fitModel
+    fileUtils
     --------
     
-    A helper class to make it much easier to fit models using lmfit
-    
+    Currently a single method to make it trival to import a csv file 
+
 '''
 
 try:
