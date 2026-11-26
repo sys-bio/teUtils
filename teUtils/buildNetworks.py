@@ -11,7 +11,7 @@ except:
     
 from   dataclasses import dataclass
 
-__all__ = ['Settings', 'restoreDefaultProbabilities', 'getLinearChain', 'getRandomNetworkDataStructure', 'getRandomNetwork']
+__all__ = ['Settings', 'getLinearChain', 'getRandomNetworkDataStructure', 'getRandomNetwork']
 
 
 # General settings for the package
@@ -85,7 +85,11 @@ def getLinearChain (lengthOfChain, rateLawType='MassAction', keqRatio=5):
     """
     if lengthOfChain <= 1:
         raise Exception("Pathway has to have more than one reaction")
-        
+
+    if rateLawType not in ('MassAction', 'ModifiedMassAction', 'Michaelis'):
+        raise ValueError("Unknown rateLawType '" + str (rateLawType) +
+                         "', must be 'MassAction', 'ModifiedMassAction' or 'Michaelis'")
+
     # Set up a default
     getRateLaw = _getMARateLaw
     n = lengthOfChain
@@ -410,7 +414,7 @@ def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
        antStr = antStr + '\n'
     
     if len (boundaryIds) > 0:
-       antStr = antStr + 'ext ' + 'S' + str (boundaryIds[0])
+       antStr = antStr + 'const ' + 'S' + str (boundaryIds[0])
        for index in boundaryIds[1:]:
            antStr = antStr + ', ' + 'S' + str (index)
        antStr = antStr + ';\n'
@@ -465,7 +469,8 @@ def _getAntimonyScript (floatingIds, boundaryIds, reactionList, isReversible):
 
 
     if Settings.addDegradationSteps:
-       reactionIndex += 1
+       # Number degradation steps after the last network reaction
+       reactionIndex = len (reactionListCopy)
        parameterIndex = reactionIndex
        for sp in floatingIds:
            antStr = antStr + 'S' + str (sp) + ' ->; ' + 'k' + str (reactionIndex) + '*' + 'S' + str (sp) + '\n'
@@ -519,9 +524,10 @@ def getRandomNetworkDataStructure (nSpecies, nReactions, isReversible=False, ran
 
 
     """   
-    if not importRoadrunnerFail:
+    #if not importRoadrunnerFail:
+        # These methods appear to have disappeared in the latest version of libroadrunner
         #roadrunner.Logger_disableConsoleLogging()
-        roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
+        #roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
 
     if randomSeed != -1:
        _random.seed (randomSeed)
@@ -580,9 +586,10 @@ def getRandomNetwork (nSpecies, nReactions, isReversible=False, returnStoichiome
                [ 0., -1.,  0., -1.,  0.,  1.,  0.],
                [ 0.,  0., -1.,  0.,  1.,  0.,  0.]])
     """    
-    if not importRoadrunnerFail:
-       roadrunner.Logger_disableConsoleLogging()
-       roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
+    #if not importRoadrunnerFail:
+    # These methods appear to have disappeared in the latest version of libroadrunner
+    #   roadrunner.Logger_disableConsoleLogging()
+    #   roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
 
     if randomSeed != -1:
        _random.seed (randomSeed)
@@ -613,9 +620,10 @@ if __name__ == '__main__' :
    # import heat map code 
    import teUtils as _teUtils
    
-   if not importRoadrunnerFail:
-      roadrunner.Logger_disableConsoleLogging()
-      roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
+   #if not importRoadrunnerFail:
+   # These methods appear to have disappeared in the latest version of libroadrunner   
+   #   roadrunner.Logger_disableConsoleLogging()
+   #   roadrunner.Config_setValue (roadrunner.Config.ROADRUNNER_DISABLE_WARNINGS, True)
     
    mod = getLinearChain (9, rateLawType='MassAction', keqRatio=2)
    print (mod)
