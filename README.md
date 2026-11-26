@@ -16,6 +16,8 @@
 
 # Additional Utilities for Tellurium that we have found useful in our work
 
+Updated to 3.2. Fixes invalid Antimony (boundary species now declared with const) and other buildNetworks bugs; adds pyproject.toml so pip no longer warns about the legacy setup.py build
+
 Updated to 3.0 New verison updates matplotlib supoprt, fixes some typos in docs
 
 Updated to 2.9. New version adds 'ei*(' terms to mass actions rate laws, eg
