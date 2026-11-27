@@ -204,6 +204,8 @@ tu.plotting.plotArray(data, labels=header)
 
 # Release history
 
+**3.2.2** Expanded README documentation, now shown on PyPI.
+
 **3.2.1** Package dependencies now include matplotlib, seaborn and libroadrunner. Removes the deprecated
 license classifier.
 
