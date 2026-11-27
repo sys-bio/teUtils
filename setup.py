@@ -42,12 +42,14 @@ setup(
        'Operating System :: OS Independent',
     ],
     install_requires=[
-        'tabulate', 
-        'numpy>=1.20', 
         'tellurium',
+        'libroadrunner',
         'python-libsbml>=5.19.0',
-        'python-libsbml',
+        'numpy>=1.20',
         'pandas',
+        'matplotlib',
+        'seaborn',
+        'tabulate',
     ],
     python_requires='>=3.7',
 )
