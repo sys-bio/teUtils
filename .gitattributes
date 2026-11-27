@@ -1,0 +1,14 @@
+# Let git detect text files and store them with LF line endings in the repo.
+# Files are checked out with your platform's normal line endings.
+* text=auto
+
+# Windows batch files need CRLF to run reliably
+*.bat text eol=crlf
+
+# Binary files: never convert line endings
+*.png binary
+*.jpg binary
+*.gif binary
+*.pdf binary
+*.whl binary
+*.gz binary
